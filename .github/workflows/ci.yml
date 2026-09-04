@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -e "./services/research[dev]"
+      - run: python -m pytest services/research/tests -q
+
+  typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit -p packages/core/tsconfig.json
+      - run: npx vitest run
+
+  fixtures-are-current:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -e "./services/research[dev]"
+      - name: Regenerate golden vectors
+        run: python -m neurogrip.fixtures --out fixtures/conformance/golden.json
+      - name: Fail if the committed fixture is stale
+        run: |
+          if ! git diff --exit-code -- fixtures/conformance/golden.json; then
+            echo "::error::golden.json is stale. Run 'npm run fixtures' and commit the result."
+            exit 1
+          fi
