@@ -87,14 +87,14 @@ d:\NeuroGrip\
 - Consumes: nothing (first task)
 - Produces: importable package `neurogrip` exposing `neurogrip.features.extract_features` and `neurogrip.signal_quality.check_signal_quality` with unchanged behaviour; `neurogrip.__version__ = "0.2.0"`; `neurogrip.FEATURE_SPEC_VERSION = 1`
 
-- [ ] **Step 1: Confirm the suite is green before touching anything**
+- [x] **Step 1: Confirm the suite is green before touching anything**
 
 ```bash
 cd d:/NeuroGrip && ./.venv/Scripts/python.exe -m pytest -q
 ```
 Expected: PASS. Record the test count — it must not drop except for the deliberately deleted `test_api.py`.
 
-- [ ] **Step 2: Move the keepers with `git mv` so history follows**
+- [x] **Step 2: Move the keepers with `git mv` so history follows**
 
 ```bash
 cd d:/NeuroGrip
@@ -107,7 +107,7 @@ git rm -q src/pclm/model.py src/pclm/api.py src/pclm/schemas.py src/pclm/__init_
 rm -rf src/pclm.egg-info src tests
 ```
 
-- [ ] **Step 3: Write `services/research/neurogrip/__init__.py`**
+- [x] **Step 3: Write `services/research/neurogrip/__init__.py`**
 
 ```python
 """NeuroGrip research toolkit: sEMG simulation, features, training, evaluation."""
@@ -121,7 +121,7 @@ __version__ = "0.2.0"
 FEATURE_SPEC_VERSION = 1
 ```
 
-- [ ] **Step 4: Write `services/research/pyproject.toml`**
+- [x] **Step 4: Write `services/research/pyproject.toml`**
 
 ```toml
 [build-system]
@@ -147,7 +147,7 @@ include = ["neurogrip*"]
 testpaths = ["tests"]
 ```
 
-- [ ] **Step 5: Repoint imports in the moved tests**
+- [x] **Step 5: Repoint imports in the moved tests**
 
 Both moved test files import from `pclm.*`:
 
@@ -157,7 +157,7 @@ sed -i 's/from pclm\./from neurogrip./g; s/import pclm\./import neurogrip./g' se
 grep -rn "pclm" services/research/ || echo "no pclm references remain"
 ```
 
-- [ ] **Step 6: Reinstall under the new name and run the suite**
+- [x] **Step 6: Reinstall under the new name and run the suite**
 
 ```bash
 cd d:/NeuroGrip
@@ -167,7 +167,7 @@ cd services/research && ../../.venv/Scripts/python.exe -m pytest -q
 ```
 Expected: PASS at the Step 1 count minus `test_api.py`'s tests.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Write the message to a file to avoid shell quoting problems, then use `-F`:
 
@@ -200,7 +200,7 @@ git add -A && git commit -F /tmp/ng-msg.txt
 
 Why a fixed table: the existing `feature_vector()` sorts names lexicographically, placing `ch10_rms` before `ch2_rms`. At ten or more channels — NinaPro DB2 has twelve — the vector silently permutes between an 8-channel and a 12-channel run. An explicit table removes the failure mode entirely.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # services/research/tests/test_spec.py
@@ -252,14 +252,14 @@ def test_rejects_non_positive_channel_counts():
         feature_count(0)
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 ```bash
 cd d:/NeuroGrip/services/research && ../../.venv/Scripts/python.exe -m pytest tests/test_spec.py -q
 ```
 Expected: FAIL — `ModuleNotFoundError: No module named 'neurogrip.spec'`
 
-- [ ] **Step 3: Implement `spec.py`**
+- [x] **Step 3: Implement `spec.py`**
 
 ```python
 """Canonical feature specification.
@@ -314,14 +314,14 @@ def feature_count(n_channels: int) -> int:
     return n_channels * len(PER_CHANNEL_FEATURES)
 ```
 
-- [ ] **Step 4: Run and confirm green**
+- [x] **Step 4: Run and confirm green**
 
 ```bash
 cd d:/NeuroGrip/services/research && ../../.venv/Scripts/python.exe -m pytest tests/test_spec.py -q
 ```
 Expected: 5 passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd d:/NeuroGrip
@@ -370,7 +370,7 @@ Definitions, normative:
 - `median_frequency` — the smallest `freqs[i]` where `cumsum(psd)[i] >= 0.5 * sum(psd)`; `0.0` if `sum(psd) <= 0`.
 - `mean_frequency` — `sum(freqs * psd) / sum(psd)`; `0.0` if `sum(psd) <= 0`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # services/research/tests/test_dsp.py
@@ -463,14 +463,14 @@ def test_frequency_moments_are_zero_for_no_power():
     assert median_frequency(freqs, psd) == 0.0
 ```
 
-- [ ] **Step 2: Run and watch it fail**
+- [x] **Step 2: Run and watch it fail**
 
 ```bash
 cd d:/NeuroGrip/services/research && ../../.venv/Scripts/python.exe -m pytest tests/test_dsp.py -q
 ```
 Expected: FAIL — `ModuleNotFoundError: No module named 'neurogrip.dsp'`
 
-- [ ] **Step 3: Implement `dsp.py`**
+- [x] **Step 3: Implement `dsp.py`**
 
 ```python
 """Numeric primitives for the feature pipeline.
@@ -600,14 +600,14 @@ def mean_frequency(freqs: np.ndarray, psd: np.ndarray) -> float:
     return float(np.dot(np.asarray(freqs, dtype=np.float64), power) / total)
 ```
 
-- [ ] **Step 4: Run and confirm green**
+- [x] **Step 4: Run and confirm green**
 
 ```bash
 cd d:/NeuroGrip/services/research && ../../.venv/Scripts/python.exe -m pytest tests/test_dsp.py -q
 ```
 Expected: 9 passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd d:/NeuroGrip
@@ -639,7 +639,7 @@ git commit -F /tmp/ng-msg.txt
 
 Windows are non-padded: a trailing partial window is dropped, never zero-filled, because a zero-filled tail would produce features that no real contraction could generate and would pollute training.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # services/research/tests/test_windowing.py
@@ -690,14 +690,14 @@ def test_rejects_non_positive_geometry():
         WindowConfig(hop_ms=0).hop_samples
 ```
 
-- [ ] **Step 2: Run and watch it fail**
+- [x] **Step 2: Run and watch it fail**
 
 ```bash
 cd d:/NeuroGrip/services/research && ../../.venv/Scripts/python.exe -m pytest tests/test_windowing.py -q
 ```
 Expected: FAIL — `ModuleNotFoundError: No module named 'neurogrip.windowing'`
 
-- [ ] **Step 3: Implement `windowing.py`**
+- [x] **Step 3: Implement `windowing.py`**
 
 ```python
 """Framing a continuous multi-channel stream into overlapping analysis windows.
@@ -762,14 +762,14 @@ def frame_windows(channels: np.ndarray, config: WindowConfig) -> np.ndarray:
     return np.stack([signal[:, start : start + width] for start in starts])
 ```
 
-- [ ] **Step 4: Run and confirm green**
+- [x] **Step 4: Run and confirm green**
 
 ```bash
 cd d:/NeuroGrip/services/research && ../../.venv/Scripts/python.exe -m pytest tests/test_windowing.py -q
 ```
 Expected: 6 passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd d:/NeuroGrip
@@ -801,7 +801,7 @@ git commit -F /tmp/ng-msg.txt
 
 *Slope sign changes.* The current code compares `previous_diff * next_diff >= threshold`. The product has units of amplitude squared while `threshold` is expressed in amplitude units, so the same threshold behaves completely differently at different signal scales — a 10 µV threshold gates almost nothing at 1 mV amplitudes and gates almost everything at 10 µV amplitudes. The fix separates the two concerns: the *sign* test runs on the product (`> 0`, dimensionless), and the *magnitude* test runs on the differences themselves (amplitude units, directly comparable to the threshold).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # services/research/tests/test_features.py
@@ -885,14 +885,14 @@ def test_rejects_malformed_input():
         extract_features(np.zeros((1, 2), dtype=np.float32), _config())
 ```
 
-- [ ] **Step 2: Run and watch it fail**
+- [x] **Step 2: Run and watch it fail**
 
 ```bash
 cd d:/NeuroGrip/services/research && ../../.venv/Scripts/python.exe -m pytest tests/test_features.py -q
 ```
 Expected: FAIL — the new spec features (`ar*`, `mdf`, `mnf`) do not exist yet and `feature_vector` has the wrong signature.
 
-- [ ] **Step 3: Rewrite `features.py`**
+- [x] **Step 3: Rewrite `features.py`**
 
 ```python
 """Handcrafted sEMG feature extraction.
@@ -1010,14 +1010,14 @@ def _slope_sign_changes(values: np.ndarray, threshold: float) -> int:
     return int(np.count_nonzero(reversed_direction & large_enough))
 ```
 
-- [ ] **Step 4: Run and confirm green**
+- [x] **Step 4: Run and confirm green**
 
 ```bash
 cd d:/NeuroGrip/services/research && ../../.venv/Scripts/python.exe -m pytest tests/test_features.py -q
 ```
 Expected: 9 passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd d:/NeuroGrip
@@ -1054,7 +1054,7 @@ git commit -F /tmp/ng-msg.txt
 
 This module carries the anatomical model that Pillar 4 later back-projects attributions onto, so the geometry is defined once, here, and reused by both the simulator and the forearm attribution ring.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # services/research/tests/test_anatomy.py
@@ -1125,14 +1125,14 @@ def test_rejects_bad_electrode_counts():
         electrode_positions(0, 0.0, ForearmGeometry())
 ```
 
-- [ ] **Step 2: Run and watch it fail**
+- [x] **Step 2: Run and watch it fail**
 
 ```bash
 cd d:/NeuroGrip/services/research && ../../.venv/Scripts/python.exe -m pytest tests/test_anatomy.py -q
 ```
 Expected: FAIL — `ModuleNotFoundError: No module named 'neurogrip.anatomy'`
 
-- [ ] **Step 3: Implement `anatomy.py`**
+- [x] **Step 3: Implement `anatomy.py`**
 
 ```python
 """Forearm cross-section geometry: muscles, electrode ring, volume conduction.
@@ -1216,14 +1216,14 @@ def attenuation_matrix(
     return np.exp(-distances / geometry.conduction_lambda_mm)
 ```
 
-- [ ] **Step 4: Run and confirm green**
+- [x] **Step 4: Run and confirm green**
 
 ```bash
 cd d:/NeuroGrip/services/research && ../../.venv/Scripts/python.exe -m pytest tests/test_anatomy.py -q
 ```
 Expected: 7 passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd d:/NeuroGrip
@@ -1261,7 +1261,7 @@ Two gesture pairs are deliberately close in synergy space — `fist`/`spherical_
 
 `SubjectProfile` jitters synergies, electrode shift, amplitude and conduction length per subject. Without it, leave-one-subject-out evaluation is meaningless because every simulated subject would be identical.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # services/research/tests/test_simulator.py
@@ -1368,14 +1368,14 @@ def test_rejects_unknown_gesture(subject):
         simulate("moonwalk", 0.1, SimulatorConfig(), subject, seed=0)
 ```
 
-- [ ] **Step 2: Run and watch it fail**
+- [x] **Step 2: Run and watch it fail**
 
 ```bash
 cd d:/NeuroGrip/services/research && ../../.venv/Scripts/python.exe -m pytest tests/test_simulator.py -q
 ```
 Expected: FAIL — `ModuleNotFoundError: No module named 'neurogrip.simulator'`
 
-- [ ] **Step 3: Implement `simulator.py`**
+- [x] **Step 3: Implement `simulator.py`**
 
 ```python
 """Biophysical surface-EMG simulator.
@@ -1602,14 +1602,14 @@ def _spike_indices(
     return np.asarray(indices, dtype=np.int64)
 ```
 
-- [ ] **Step 4: Run and confirm green**
+- [x] **Step 4: Run and confirm green**
 
 ```bash
 cd d:/NeuroGrip/services/research && ../../.venv/Scripts/python.exe -m pytest tests/test_simulator.py -q
 ```
 Expected: 10 passed. If `test_fatigue_lowers_median_frequency` fails, raise `fatigue_tau_widening`; if `test_rest_is_much_quieter_than_a_fist` fails, lower the `rest` synergy values. Do not weaken the assertions.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd d:/NeuroGrip
@@ -1661,7 +1661,7 @@ Document shape:
 }
 ```
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # services/research/tests/test_fixtures.py
@@ -1719,14 +1719,14 @@ def test_write_fixtures_round_trips(tmp_path):
     assert json.loads(target.read_text(encoding="utf-8")) == written
 ```
 
-- [ ] **Step 2: Run and watch it fail**
+- [x] **Step 2: Run and watch it fail**
 
 ```bash
 cd d:/NeuroGrip/services/research && ../../.venv/Scripts/python.exe -m pytest tests/test_fixtures.py -q
 ```
 Expected: FAIL — `ModuleNotFoundError: No module named 'neurogrip.fixtures'`
 
-- [ ] **Step 3: Implement `fixtures.py`**
+- [x] **Step 3: Implement `fixtures.py`**
 
 ```python
 """Golden-vector generator: the Python side of the conformance contract.
@@ -1860,7 +1860,7 @@ if __name__ == "__main__":
     main()
 ```
 
-- [ ] **Step 4: Run the tests, then generate the committed fixture**
+- [x] **Step 4: Run the tests, then generate the committed fixture**
 
 ```bash
 cd d:/NeuroGrip/services/research && ../../.venv/Scripts/python.exe -m pytest tests/test_fixtures.py -q
@@ -1869,14 +1869,14 @@ ls -lh fixtures/conformance/golden.json
 ```
 Expected: 5 passed, then `wrote 11 cases (spec v1) to fixtures/conformance/golden.json`.
 
-- [ ] **Step 5: Run the whole Python suite before handing off to TypeScript**
+- [x] **Step 5: Run the whole Python suite before handing off to TypeScript**
 
 ```bash
 cd d:/NeuroGrip/services/research && ../../.venv/Scripts/python.exe -m pytest -q
 ```
 Expected: all green. This is the last Python-only gate.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd d:/NeuroGrip
@@ -1904,7 +1904,7 @@ git commit -F /tmp/ng-msg.txt
 
 npm workspaces, not pnpm — pnpm is not installed and introducing it adds a setup step for no benefit at two packages.
 
-- [ ] **Step 1: Write the root `package.json`**
+- [x] **Step 1: Write the root `package.json`**
 
 ```json
 {
@@ -1927,7 +1927,7 @@ npm workspaces, not pnpm — pnpm is not installed and introducing it adds a set
 }
 ```
 
-- [ ] **Step 2: Write `tsconfig.base.json`**
+- [x] **Step 2: Write `tsconfig.base.json`**
 
 ```json
 {
@@ -1952,7 +1952,7 @@ npm workspaces, not pnpm — pnpm is not installed and introducing it adds a set
 
 `noUncheckedIndexedAccess` is on deliberately: this package indexes typed arrays constantly and an off-by-one in a DSP loop is exactly the bug that would silently break conformance.
 
-- [ ] **Step 3: Write `packages/core/package.json`**
+- [x] **Step 3: Write `packages/core/package.json`**
 
 ```json
 {
@@ -1970,7 +1970,7 @@ npm workspaces, not pnpm — pnpm is not installed and introducing it adds a set
 }
 ```
 
-- [ ] **Step 4: Write `packages/core/tsconfig.json`**
+- [x] **Step 4: Write `packages/core/tsconfig.json`**
 
 ```json
 {
@@ -1984,7 +1984,7 @@ npm workspaces, not pnpm — pnpm is not installed and introducing it adds a set
 }
 ```
 
-- [ ] **Step 5: Write `packages/core/vitest.config.ts`**
+- [x] **Step 5: Write `packages/core/vitest.config.ts`**
 
 ```typescript
 import { defineConfig } from 'vitest/config';
@@ -1997,20 +1997,20 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 6: Write a placeholder `packages/core/src/index.ts`**
+- [x] **Step 6: Write a placeholder `packages/core/src/index.ts`**
 
 ```typescript
 export const CORE_VERSION = '0.2.0';
 ```
 
-- [ ] **Step 7: Extend `.gitignore` for Node**
+- [x] **Step 7: Extend `.gitignore` for Node**
 
 ```bash
 cd d:/NeuroGrip
 printf '\n# Node\nnode_modules/\ndist/\n*.tsbuildinfo\n' >> .gitignore
 ```
 
-- [ ] **Step 8: Install and verify the toolchain runs**
+- [x] **Step 8: Install and verify the toolchain runs**
 
 ```bash
 cd d:/NeuroGrip
@@ -2020,7 +2020,7 @@ npx tsc --noEmit -p packages/core/tsconfig.json
 ```
 Expected: install succeeds, vitest exits 0 with no tests, tsc exits 0.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 cd d:/NeuroGrip
@@ -2053,7 +2053,7 @@ git commit -F /tmp/ng-msg.txt
 
 Port target is `services/research/neurogrip/dsp.py`, algorithm for algorithm. Twiddle factors are computed from a cached table using `Math.cos`/`Math.sin` per index rather than accumulated incrementally — incremental accumulation drifts over the butterfly stages, and conformance is worth more here than the microseconds saved.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```typescript
 // packages/core/test/dsp.test.ts
@@ -2154,14 +2154,14 @@ describe('frequency moments', () => {
 });
 ```
 
-- [ ] **Step 2: Run and watch it fail**
+- [x] **Step 2: Run and watch it fail**
 
 ```bash
 cd d:/NeuroGrip && npx vitest run packages/core/test/dsp.test.ts
 ```
 Expected: FAIL — cannot resolve `../src/dsp.js`
 
-- [ ] **Step 3: Implement `dsp.ts`**
+- [x] **Step 3: Implement `dsp.ts`**
 
 ```typescript
 /**
@@ -2384,14 +2384,14 @@ export function meanFrequency(freqs: Float64Array, psd: Float64Array): number {
 }
 ```
 
-- [ ] **Step 4: Run and confirm green**
+- [x] **Step 4: Run and confirm green**
 
 ```bash
 cd d:/NeuroGrip && npx vitest run packages/core/test/dsp.test.ts
 ```
 Expected: 10 passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd d:/NeuroGrip
@@ -2423,7 +2423,7 @@ git commit -F /tmp/ng-msg.txt
 
 `featureVector` takes the channels directly rather than a feature map, because the hot path in the Web Worker should never allocate a `Map` per window. `extractFeatures` exists for debugging and for the conformance test's named comparisons.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```typescript
 // packages/core/test/features.test.ts
@@ -2496,14 +2496,14 @@ describe('featureVector', () => {
 });
 ```
 
-- [ ] **Step 2: Run and watch it fail**
+- [x] **Step 2: Run and watch it fail**
 
 ```bash
 cd d:/NeuroGrip && npx vitest run packages/core/test/features.test.ts
 ```
 Expected: FAIL — cannot resolve `../src/spec.js`
 
-- [ ] **Step 3: Implement `spec.ts`**
+- [x] **Step 3: Implement `spec.ts`**
 
 ```typescript
 /**
@@ -2542,7 +2542,7 @@ export function featureCount(nChannels: number): number {
 }
 ```
 
-- [ ] **Step 4: Implement `features.ts`**
+- [x] **Step 4: Implement `features.ts`**
 
 ```typescript
 /**
@@ -2676,7 +2676,7 @@ export function extractFeatures(
 }
 ```
 
-- [ ] **Step 5: Update `packages/core/src/index.ts`**
+- [x] **Step 5: Update `packages/core/src/index.ts`**
 
 ```typescript
 export const CORE_VERSION = '0.2.0';
@@ -2686,14 +2686,14 @@ export * from './features.js';
 export * from './spec.js';
 ```
 
-- [ ] **Step 6: Run and confirm green**
+- [x] **Step 6: Run and confirm green**
 
 ```bash
 cd d:/NeuroGrip && npx vitest run packages/core/test/features.test.ts && npx tsc --noEmit -p packages/core/tsconfig.json
 ```
 Expected: 8 passed, tsc exits 0
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 cd d:/NeuroGrip
@@ -2728,7 +2728,7 @@ The ring buffer is the browser's streaming front end: the source pushes frames a
 
 `checkSignalQuality` ports `services/research/neurogrip/signal_quality.py` verbatim — same thresholds, same order of checks, same reason strings — so a rejection in the browser is explicable by the Python-side test suite.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```typescript
 // packages/core/test/windowing.test.ts
@@ -2836,14 +2836,14 @@ describe('checkSignalQuality', () => {
 });
 ```
 
-- [ ] **Step 2: Run and watch them fail**
+- [x] **Step 2: Run and watch them fail**
 
 ```bash
 cd d:/NeuroGrip && npx vitest run packages/core/test/windowing.test.ts packages/core/test/signalQuality.test.ts
 ```
 Expected: FAIL — modules do not resolve
 
-- [ ] **Step 3: Implement `windowing.ts`**
+- [x] **Step 3: Implement `windowing.ts`**
 
 ```typescript
 /**
@@ -2949,7 +2949,7 @@ export class MultiChannelRingBuffer {
 }
 ```
 
-- [ ] **Step 4: Implement `signalQuality.ts`**
+- [x] **Step 4: Implement `signalQuality.ts`**
 
 ```typescript
 /**
@@ -3017,7 +3017,7 @@ export function checkSignalQuality(
 }
 ```
 
-- [ ] **Step 5: Re-export from `index.ts`**
+- [x] **Step 5: Re-export from `index.ts`**
 
 ```typescript
 export const CORE_VERSION = '0.2.0';
@@ -3029,14 +3029,14 @@ export * from './spec.js';
 export * from './windowing.js';
 ```
 
-- [ ] **Step 6: Run and confirm green**
+- [x] **Step 6: Run and confirm green**
 
 ```bash
 cd d:/NeuroGrip && npx vitest run && npx tsc --noEmit -p packages/core/tsconfig.json
 ```
 Expected: all suites pass, tsc exits 0
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 cd d:/NeuroGrip
@@ -3064,7 +3064,7 @@ git commit -F /tmp/ng-msg.txt
 
 The test reports the single worst-disagreeing feature by name when it fails. A bare "arrays differ" would leave the next engineer bisecting seventeen features by hand.
 
-- [ ] **Step 1: Write the test (it should fail only if the port is wrong)**
+- [x] **Step 1: Write the test (it should fail only if the port is wrong)**
 
 ```typescript
 // packages/core/test/conformance.test.ts
@@ -3157,7 +3157,7 @@ describe('Python/TypeScript feature conformance', () => {
 });
 ```
 
-- [ ] **Step 2: Run the gate**
+- [x] **Step 2: Run the gate**
 
 ```bash
 cd d:/NeuroGrip && npm run test:conformance
@@ -3172,7 +3172,7 @@ Expected: every case passes.
 
 Do not widen `RTOL` to make a failure go away. The tolerance is the contract.
 
-- [ ] **Step 3: Prove the gate actually bites**
+- [x] **Step 3: Prove the gate actually bites**
 
 Temporarily break the port and confirm the test catches it:
 
@@ -3188,7 +3188,7 @@ cd d:/NeuroGrip && git checkout packages/core/src/features.ts && npm run test:co
 ```
 Expected: PASS. A gate that has never been seen to fail is not known to work.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd d:/NeuroGrip
@@ -3217,7 +3217,7 @@ git commit -F /tmp/ng-msg.txt
 
 The fixture-staleness check is the important one. If someone edits `features.py` without regenerating `golden.json`, the conformance test keeps passing against a stale fixture and the gate becomes decorative. CI regenerates the fixture and fails if the working tree changes.
 
-- [ ] **Step 1: Write `.github/workflows/ci.yml`**
+- [x] **Step 1: Write `.github/workflows/ci.yml`**
 
 ```yaml
 name: CI
@@ -3268,7 +3268,7 @@ jobs:
           fi
 ```
 
-- [ ] **Step 2: Write `CLAUDE.md`**
+- [x] **Step 2: Write `CLAUDE.md`**
 
 This is the document the user asked to be able to refer back to every time. Phase 0 seeds it; each later phase appends its own section.
 
@@ -3356,7 +3356,7 @@ npm run test:conformance
   `ch10_rms` before `ch2_rms`; NinaPro DB2 has twelve channels.
 ```
 
-- [ ] **Step 3: Rewrite `README.md`**
+- [x] **Step 3: Rewrite `README.md`**
 
 Replace the file wholesale. The current one documents `pclm`, the placeholder model and the FastAPI demo payload, none of which still exist.
 
@@ -3392,7 +3392,7 @@ npm test
 See `CLAUDE.md` for architecture, the conformance rule, and full commands.
 ```
 
-- [ ] **Step 4: Run the complete Phase 0 verification**
+- [x] **Step 4: Run the complete Phase 0 verification**
 
 ```bash
 cd d:/NeuroGrip
@@ -3404,7 +3404,7 @@ npm run test:conformance
 ```
 Expected: all green, and `fixtures current` printed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd d:/NeuroGrip
@@ -3424,14 +3424,14 @@ git commit -F /tmp/ng-msg.txt
 
 All must hold before Phase 1 begins:
 
-- [ ] `python -m pytest services/research/tests -q` — green
-- [ ] `npm test` — green
-- [ ] `npm run typecheck` — clean
-- [ ] `npm run test:conformance` — green, and observed to fail when the port is deliberately broken (Task 13 Step 3)
-- [ ] `npm run fixtures` leaves the working tree clean
-- [ ] The simulator produces ten distinguishable gestures, fatigue measurably lowers median frequency, and electrode shift measurably changes the channel amplitude profile
-- [ ] `CLAUDE.md` exists and states the conformance rule
-- [ ] No references to `pclm` remain anywhere in the tree
+- [x] `python -m pytest services/research/tests -q` — green
+- [x] `npm test` — green
+- [x] `npm run typecheck` — clean
+- [x] `npm run test:conformance` — green, and observed to fail when the port is deliberately broken (Task 13 Step 3)
+- [x] `npm run fixtures` leaves the working tree clean
+- [x] The simulator produces ten distinguishable gestures, fatigue measurably lowers median frequency, and electrode shift measurably changes the channel amplitude profile
+- [x] `CLAUDE.md` exists and states the conformance rule
+- [x] No references to `pclm` remain anywhere in the tree
 
 ---
 
