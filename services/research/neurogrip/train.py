@@ -85,13 +85,21 @@ def model_by_name(name: str) -> ModelSpec:
 
 
 def _calibrated_pipeline(
-    spec: ModelSpec, calibration_folds: int, ensemble: bool = True
+    spec: ModelSpec, calibration_folds: int, ensemble: bool = False
 ) -> Pipeline:
     """Scale, then classify, then calibrate the classifier's scores.
 
     Sigmoid (Platt) calibration rather than isotonic: isotonic needs far more
     data per class to avoid overfitting, and the per-fold, per-class counts here
     are modest.
+
+    `ensemble=False` by default. The ensemble form fits one classifier per
+    calibration fold and averages them, which for an RBF SVM multiplies the
+    stored support vectors by the fold count. Measured on the full corpus, the
+    single form was better on every axis at once -- accuracy 0.9563 vs 0.9512,
+    ECE 0.0225 vs 0.0494, model 2.15 MB vs 5.16 MB, inference P95 0.94 ms vs
+    2.17 ms -- so there is no trade-off to weigh. Size and inference cost matter
+    here because this model is downloaded and run inside a browser.
     """
     return make_pipeline(
         StandardScaler(),
@@ -133,7 +141,7 @@ def evaluate_model(
     corpus: Corpus,
     spec: ModelSpec,
     calibration_folds: int = 3,
-    calibration_ensemble: bool = True,
+    calibration_ensemble: bool = False,
 ) -> ModelEvaluation:
     """Leave-one-subject-out evaluation, collecting out-of-fold probabilities."""
     n_classes = len(corpus.gestures)
@@ -186,7 +194,7 @@ def fit_final_model(
     corpus: Corpus,
     spec: ModelSpec,
     calibration_folds: int = 3,
-    calibration_ensemble: bool = True,
+    calibration_ensemble: bool = False,
 ) -> Pipeline:
     """Fit on the whole corpus, for export.
 

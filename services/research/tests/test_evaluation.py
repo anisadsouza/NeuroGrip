@@ -104,3 +104,29 @@ def test_paired_fold_test_finds_no_difference_between_identical_folds():
     same = np.array([0.90, 0.92, 0.88, 0.91])
     _, p_value = paired_fold_test(same, same.copy())
     assert p_value == 1.0
+
+
+def test_confidence_interval_is_clipped_to_the_probability_scale():
+    """A symmetric t-interval on a near-perfect mean exceeds 1.0. Reporting an
+    accuracy above 100% would be plainly wrong."""
+    near_perfect = LosoResult(
+        folds=(_fold(0, 99, 1), _fold(1, 98, 2), _fold(2, 100, 0)),
+        gestures=("a", "b"),
+    )
+    low, high = near_perfect.confidence_interval()
+    assert high <= 1.0
+    assert low >= 0.0
+
+
+def test_confidence_interval_lower_bound_cannot_go_negative():
+    near_zero = LosoResult(
+        folds=(_fold(0, 1, 99), _fold(1, 0, 100), _fold(2, 2, 98)),
+        gestures=("a", "b"),
+    )
+    low, _ = near_zero.confidence_interval()
+    assert low >= 0.0
+
+
+def test_single_fold_confidence_interval_is_the_point_estimate():
+    single = LosoResult(folds=(_fold(0, 8, 2),), gestures=("a", "b"))
+    assert single.confidence_interval() == (0.8, 0.8)

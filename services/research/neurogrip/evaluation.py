@@ -147,7 +147,15 @@ class LosoResult:
         margin = stats.t.ppf(
             0.5 + level / 2.0, df=values.size - 1
         ) * values.std(ddof=1) / np.sqrt(values.size)
-        return float(values.mean() - margin), float(values.mean() + margin)
+        # Accuracy is a proportion, so the interval is clipped to [0, 1]. A
+        # symmetric t-interval on a mean near 1.0 with few folds routinely
+        # exceeds 1.0, and reporting an accuracy above 100% would be plainly
+        # wrong. Clipping is the honest presentation of a wide interval, not a
+        # narrowing of it: when a bound is clipped the interval was already
+        # wide enough to touch the limit of the scale.
+        low = float(np.clip(values.mean() - margin, 0.0, 1.0))
+        high = float(np.clip(values.mean() + margin, 0.0, 1.0))
+        return low, high
 
     def per_gesture_recall(self) -> dict[str, float]:
         """Recall per gesture. NaN where a gesture never appeared as a label."""
