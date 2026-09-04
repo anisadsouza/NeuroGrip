@@ -1,0 +1,226 @@
+/**
+ * NeuroGrip design tokens.
+ *
+ * The instrument this interface imitates is a chart recorder, not a dashboard.
+ * Two rules follow from that and are enforced throughout:
+ *
+ *   1. The graticule means measurement. A grid appears only behind data that
+ *      has a real scale -- signal lanes, the cartograph, the commitment bar.
+ *      It is never chrome. If you see the grid, you are looking at measured
+ *      values, and the grid is their ruler.
+ *
+ *   2. Carmine means muscle. The one chromatic hue in the palette encodes
+ *      activation intensity, following anatomical illustration convention. It
+ *      is never used to emphasise a heading, a link, or a button.
+ *
+ * No gradients. No glows. No shadows beyond a single hairline. Depth comes
+ * from rules and spacing.
+ */
+
+:root {
+  /* ---- Ground and ink ------------------------------------------------- */
+  /* A cool green-grey, the colour of clinical laminate and glassware.
+     Deliberately not a warm cream. */
+  --ng-paper: #f3f4f2;
+  --ng-paper-sunk: #eaece9; /* recessed wells: signal lanes, plot beds */
+  --ng-paper-raised: #f9faf8; /* the one surface that sits above the ground */
+  --ng-ink: #16191a;
+  --ng-ink-muted: #5a6163;
+  --ng-ink-faint: #868d8f;
+
+  /* ---- Rules ---------------------------------------------------------- */
+  --ng-rule: #d8dbd8;
+  --ng-rule-strong: #b9bebb;
+  /* Graticule: fine divisions plus a heavier line every decade, as on chart
+     paper. Both sit far below text contrast so they never compete with data. */
+  --ng-graticule-fine: #e2e5e1;
+  --ng-graticule-decade: #cfd4cf;
+
+  /* ---- Muscle activation ---------------------------------------------- */
+  /* Carmine, the anatomical convention for muscle. Encodes activation only. */
+  --ng-muscle: #a8324a;
+  --ng-muscle-weak: #d9a2ae;
+  --ng-muscle-wash: #f2dfe3;
+
+  /* ---- State ---------------------------------------------------------- */
+  --ng-commit: #1f5c4c; /* latched: the gesture is held */
+  /* Ochre. Darkened from #b26a00, which measured 3.84:1 on the light ground
+     and failed the 4.5:1 text minimum. Amber is the hardest hue to make
+     legible on a light ground; it has to go this deep to qualify. */
+  --ng-caution: #9a5b00; /* drift, fatigue, degraded signal */
+  --ng-stop: #8c1d1d; /* rejected window, detached electrode */
+
+  /* ---- Type ----------------------------------------------------------- */
+  /* Atkinson Hyperlegible was designed for maximum character distinction at
+     low vision. The intended users of this system are people with
+     disabilities, so this is an argument from the brief, not a preference. */
+  --ng-font-text: 'Atkinson Hyperlegible', 'Helvetica Neue', Arial, sans-serif;
+  /* Numerals only. Instrument readouts must align and must never reflow. */
+  --ng-font-numeric: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+
+  /* A modest scale. An instrument has few type sizes; it is not a magazine. */
+  --ng-text-xs: 0.6875rem; /* 11px - axis ticks, units */
+  --ng-text-sm: 0.8125rem; /* 13px - table cells, secondary */
+  --ng-text-base: 0.9375rem; /* 15px - body */
+  --ng-text-lg: 1.125rem; /* 18px - panel titles */
+  --ng-text-xl: 1.5rem; /* 24px - screen title */
+  --ng-text-readout: 2rem; /* 32px - the one big number per panel */
+
+  --ng-leading-tight: 1.25;
+  --ng-leading-normal: 1.55;
+  --ng-measure: 68ch; /* prose never runs wider than this */
+
+  /* ---- Space ---------------------------------------------------------- */
+  /* A 4px base, because the graticule is 8px and everything must land on it. */
+  --ng-space-1: 0.25rem;
+  --ng-space-2: 0.5rem;
+  --ng-space-3: 0.75rem;
+  --ng-space-4: 1rem;
+  --ng-space-6: 1.5rem;
+  --ng-space-8: 2rem;
+  --ng-space-12: 3rem;
+  --ng-graticule-step: 8px;
+  --ng-graticule-decade-step: 40px;
+
+  /* ---- Geometry ------------------------------------------------------- */
+  /* Square. A measuring instrument does not have rounded corners; the one
+     exception is the pill on a live status dot. */
+  --ng-radius: 0;
+  --ng-radius-dot: 999px;
+  --ng-hairline: 1px;
+  --ng-stroke-icon: 1.5px;
+
+  /* ---- Motion --------------------------------------------------------- */
+  /* Motion is only ever used to show a value changing. Nothing enters, fades
+     or slides for effect. */
+  --ng-duration-fast: 90ms;
+  --ng-duration: 140ms;
+  --ng-duration-slow: 200ms;
+  --ng-ease: cubic-bezier(0.2, 0, 0.13, 1);
+
+  --ng-focus: 2px solid var(--ng-ink);
+  --ng-focus-offset: 2px;
+
+  color-scheme: light;
+}
+
+/*
+ * Dark counterpart. Designed as its own palette, not an inversion: the ground
+ * is a warm-neutral graphite rather than the light theme's cool grey, because
+ * a cool dark ground makes carmine read as purple. Carmine is lifted and
+ * desaturated to hold its identity against dark, and the graticule is dimmed
+ * relative to the ground so it stays subordinate to the trace.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --ng-paper: #1a1b1a;
+    --ng-paper-sunk: #131413;
+    --ng-paper-raised: #242624;
+    --ng-ink: #e8eae6;
+    --ng-ink-muted: #9aa19c;
+    --ng-ink-faint: #6d7570;
+
+    --ng-rule: #333634;
+    --ng-rule-strong: #4a4e4b;
+    --ng-graticule-fine: #262825;
+    --ng-graticule-decade: #33362f;
+
+    --ng-muscle: #e4697f;
+    --ng-muscle-weak: #7d3a46;
+    --ng-muscle-wash: #331f24;
+
+    --ng-commit: #57b598;
+    --ng-caution: #e0a04a;
+    --ng-stop: #e07070;
+
+    --ng-focus: 2px solid var(--ng-ink);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --ng-paper: #1a1b1a;
+  --ng-paper-sunk: #131413;
+  --ng-paper-raised: #242624;
+  --ng-ink: #e8eae6;
+  --ng-ink-muted: #9aa19c;
+  --ng-ink-faint: #6d7570;
+
+  --ng-rule: #333634;
+  --ng-rule-strong: #4a4e4b;
+  --ng-graticule-fine: #262825;
+  --ng-graticule-decade: #33362f;
+
+  --ng-muscle: #e4697f;
+  --ng-muscle-weak: #7d3a46;
+  --ng-muscle-wash: #331f24;
+
+  --ng-commit: #57b598;
+  --ng-caution: #e0a04a;
+  --ng-stop: #e07070;
+
+  --ng-focus: 2px solid var(--ng-ink);
+  color-scheme: dark;
+}
+
+/* ---- Base ------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--ng-paper);
+  color: var(--ng-ink);
+  font-family: var(--ng-font-text);
+  font-size: var(--ng-text-base);
+  line-height: var(--ng-leading-normal);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Every number in this interface is tabular. Readouts must not jitter as
+   digits change, and columns must align without manual width juggling. */
+.ng-num {
+  font-family: var(--ng-font-numeric);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  letter-spacing: -0.01em;
+}
+
+:where(a, button, [tabindex]):focus-visible {
+  outline: var(--ng-focus);
+  outline-offset: var(--ng-focus-offset);
+}
+
+/*
+ * The graticule. Applied only to elements that display measured data.
+ * Two superimposed grids: fine divisions and a heavier decade line, exactly as
+ * on chart-recorder paper, where the decade line is what you count by.
+ */
+.ng-graticule {
+  background-color: var(--ng-paper-sunk);
+  background-image:
+    linear-gradient(to right, var(--ng-graticule-decade) var(--ng-hairline), transparent var(--ng-hairline)),
+    linear-gradient(to bottom, var(--ng-graticule-decade) var(--ng-hairline), transparent var(--ng-hairline)),
+    linear-gradient(to right, var(--ng-graticule-fine) var(--ng-hairline), transparent var(--ng-hairline)),
+    linear-gradient(to bottom, var(--ng-graticule-fine) var(--ng-hairline), transparent var(--ng-hairline));
+  background-size:
+    var(--ng-graticule-decade-step) var(--ng-graticule-decade-step),
+    var(--ng-graticule-decade-step) var(--ng-graticule-decade-step),
+    var(--ng-graticule-step) var(--ng-graticule-step),
+    var(--ng-graticule-step) var(--ng-graticule-step);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

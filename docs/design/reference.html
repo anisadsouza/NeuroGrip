@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeuroGrip design reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/**
+ * NeuroGrip design tokens.
+ *
+ * The instrument this interface imitates is a chart recorder, not a dashboard.
+ * Two rules follow from that and are enforced throughout:
+ *
+ *   1. The graticule means measurement. A grid appears only behind data that
+ *      has a real scale -- signal lanes, the cartograph, the commitment bar.
+ *      It is never chrome. If you see the grid, you are looking at measured
+ *      values, and the grid is their ruler.
+ *
+ *   2. Carmine means muscle. The one chromatic hue in the palette encodes
+ *      activation intensity, following anatomical illustration convention. It
+ *      is never used to emphasise a heading, a link, or a button.
+ *
+ * No gradients. No glows. No shadows beyond a single hairline. Depth comes
+ * from rules and spacing.
+ */
+
+:root {
+  /* ---- Ground and ink ------------------------------------------------- */
+  /* A cool green-grey, the colour of clinical laminate and glassware.
+     Deliberately not a warm cream. */
+  --ng-paper: #f3f4f2;
+  --ng-paper-sunk: #eaece9; /* recessed wells: signal lanes, plot beds */
+  --ng-paper-raised: #f9faf8; /* the one surface that sits above the ground */
+  --ng-ink: #16191a;
+  --ng-ink-muted: #5a6163;
+  --ng-ink-faint: #868d8f;
+
+  /* ---- Rules ---------------------------------------------------------- */
+  --ng-rule: #d8dbd8;
+  --ng-rule-strong: #b9bebb;
+  /* Graticule: fine divisions plus a heavier line every decade, as on chart
+     paper. Both sit far below text contrast so they never compete with data. */
+  --ng-graticule-fine: #e2e5e1;
+  --ng-graticule-decade: #cfd4cf;
+
+  /* ---- Muscle activation ---------------------------------------------- */
+  /* Carmine, the anatomical convention for muscle. Encodes activation only. */
+  --ng-muscle: #a8324a;
+  --ng-muscle-weak: #d9a2ae;
+  --ng-muscle-wash: #f2dfe3;
+
+  /* ---- State ---------------------------------------------------------- */
+  --ng-commit: #1f5c4c; /* latched: the gesture is held */
+  /* Ochre. Darkened from #b26a00, which measured 3.84:1 on the light ground
+     and failed the 4.5:1 text minimum. Amber is the hardest hue to make
+     legible on a light ground; it has to go this deep to qualify. */
+  --ng-caution: #9a5b00; /* drift, fatigue, degraded signal */
+  --ng-stop: #8c1d1d; /* rejected window, detached electrode */
+
+  /* ---- Type ----------------------------------------------------------- */
+  /* Atkinson Hyperlegible was designed for maximum character distinction at
+     low vision. The intended users of this system are people with
+     disabilities, so this is an argument from the brief, not a preference. */
+  --ng-font-text: 'Atkinson Hyperlegible', 'Helvetica Neue', Arial, sans-serif;
+  /* Numerals only. Instrument readouts must align and must never reflow. */
+  --ng-font-numeric: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+
+  /* A modest scale. An instrument has few type sizes; it is not a magazine. */
+  --ng-text-xs: 0.6875rem; /* 11px - axis ticks, units */
+  --ng-text-sm: 0.8125rem; /* 13px - table cells, secondary */
+  --ng-text-base: 0.9375rem; /* 15px - body */
+  --ng-text-lg: 1.125rem; /* 18px - panel titles */
+  --ng-text-xl: 1.5rem; /* 24px - screen title */
+  --ng-text-readout: 2rem; /* 32px - the one big number per panel */
+
+  --ng-leading-tight: 1.25;
+  --ng-leading-normal: 1.55;
+  --ng-measure: 68ch; /* prose never runs wider than this */
+
+  /* ---- Space ---------------------------------------------------------- */
+  /* A 4px base, because the graticule is 8px and everything must land on it. */
+  --ng-space-1: 0.25rem;
+  --ng-space-2: 0.5rem;
+  --ng-space-3: 0.75rem;
+  --ng-space-4: 1rem;
+  --ng-space-6: 1.5rem;
+  --ng-space-8: 2rem;
+  --ng-space-12: 3rem;
+  --ng-graticule-step: 8px;
+  --ng-graticule-decade-step: 40px;
+
+  /* ---- Geometry ------------------------------------------------------- */
+  /* Square. A measuring instrument does not have rounded corners; the one
+     exception is the pill on a live status dot. */
+  --ng-radius: 0;
+  --ng-radius-dot: 999px;
+  --ng-hairline: 1px;
+  --ng-stroke-icon: 1.5px;
+
+  /* ---- Motion --------------------------------------------------------- */
+  /* Motion is only ever used to show a value changing. Nothing enters, fades
+     or slides for effect. */
+  --ng-duration-fast: 90ms;
+  --ng-duration: 140ms;
+  --ng-duration-slow: 200ms;
+  --ng-ease: cubic-bezier(0.2, 0, 0.13, 1);
+
+  --ng-focus: 2px solid var(--ng-ink);
+  --ng-focus-offset: 2px;
+
+  color-scheme: light;
+}
+
+/*
+ * Dark counterpart. Designed as its own palette, not an inversion: the ground
+ * is a warm-neutral graphite rather than the light theme's cool grey, because
+ * a cool dark ground makes carmine read as purple. Carmine is lifted and
+ * desaturated to hold its identity against dark, and the graticule is dimmed
+ * relative to the ground so it stays subordinate to the trace.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --ng-paper: #1a1b1a;
+    --ng-paper-sunk: #131413;
+    --ng-paper-raised: #242624;
+    --ng-ink: #e8eae6;
+    --ng-ink-muted: #9aa19c;
+    --ng-ink-faint: #6d7570;
+
+    --ng-rule: #333634;
+    --ng-rule-strong: #4a4e4b;
+    --ng-graticule-fine: #262825;
+    --ng-graticule-decade: #33362f;
+
+    --ng-muscle: #e4697f;
+    --ng-muscle-weak: #7d3a46;
+    --ng-muscle-wash: #331f24;
+
+    --ng-commit: #57b598;
+    --ng-caution: #e0a04a;
+    --ng-stop: #e07070;
+
+    --ng-focus: 2px solid var(--ng-ink);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --ng-paper: #1a1b1a;
+  --ng-paper-sunk: #131413;
+  --ng-paper-raised: #242624;
+  --ng-ink: #e8eae6;
+  --ng-ink-muted: #9aa19c;
+  --ng-ink-faint: #6d7570;
+
+  --ng-rule: #333634;
+  --ng-rule-strong: #4a4e4b;
+  --ng-graticule-fine: #262825;
+  --ng-graticule-decade: #33362f;
+
+  --ng-muscle: #e4697f;
+  --ng-muscle-weak: #7d3a46;
+  --ng-muscle-wash: #331f24;
+
+  --ng-commit: #57b598;
+  --ng-caution: #e0a04a;
+  --ng-stop: #e07070;
+
+  --ng-focus: 2px solid var(--ng-ink);
+  color-scheme: dark;
+}
+
+/* ---- Base ------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--ng-paper);
+  color: var(--ng-ink);
+  font-family: var(--ng-font-text);
+  font-size: var(--ng-text-base);
+  line-height: var(--ng-leading-normal);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Every number in this interface is tabular. Readouts must not jitter as
+   digits change, and columns must align without manual width juggling. */
+.ng-num {
+  font-family: var(--ng-font-numeric);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  letter-spacing: -0.01em;
+}
+
+:where(a, button, [tabindex]):focus-visible {
+  outline: var(--ng-focus);
+  outline-offset: var(--ng-focus-offset);
+}
+
+/*
+ * The graticule. Applied only to elements that display measured data.
+ * Two superimposed grids: fine divisions and a heavier decade line, exactly as
+ * on chart-recorder paper, where the decade line is what you count by.
+ */
+.ng-graticule {
+  background-color: var(--ng-paper-sunk);
+  background-image:
+    linear-gradient(to right, var(--ng-graticule-decade) var(--ng-hairline), transparent var(--ng-hairline)),
+    linear-gradient(to bottom, var(--ng-graticule-decade) var(--ng-hairline), transparent var(--ng-hairline)),
+    linear-gradient(to right, var(--ng-graticule-fine) var(--ng-hairline), transparent var(--ng-hairline)),
+    linear-gradient(to bottom, var(--ng-graticule-fine) var(--ng-hairline), transparent var(--ng-hairline));
+  background-size:
+    var(--ng-graticule-decade-step) var(--ng-graticule-decade-step),
+    var(--ng-graticule-decade-step) var(--ng-graticule-decade-step),
+    var(--ng-graticule-step) var(--ng-graticule-step),
+    var(--ng-graticule-step) var(--ng-graticule-step);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+.sheet { padding: var(--ng-space-8); max-width: 1100px; margin: 0 auto; }
+h1 { font-size: var(--ng-text-xl); font-weight: 700; margin: 0 0 var(--ng-space-2); letter-spacing: -0.01em; }
+.lede { color: var(--ng-ink-muted); max-width: var(--ng-measure); margin: 0 0 var(--ng-space-8); }
+h2 { font-size: var(--ng-text-lg); font-weight: 700; margin: var(--ng-space-12) 0 var(--ng-space-1); }
+.section-note { color: var(--ng-ink-muted); font-size: var(--ng-text-sm); max-width: var(--ng-measure); margin: 0 0 var(--ng-space-4); }
+hr { border: 0; border-top: var(--ng-hairline) solid var(--ng-rule); margin: var(--ng-space-4) 0; }
+
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--ng-space-4); }
+.chip { height: 48px; border: var(--ng-hairline) solid var(--ng-rule-strong); }
+/* A hairline colour shown as a 48px block misrepresents it. Show it as a line. */
+.chip-rule { border: 0; border-top-width: var(--ng-hairline); border-top-style: solid; height: 48px; background: transparent; }
+.swatch-name { font-size: var(--ng-text-xs); margin-top: var(--ng-space-2); }
+.swatch-role { font-size: var(--ng-text-xs); color: var(--ng-ink-muted); }
+
+.type-row { display: flex; align-items: baseline; gap: var(--ng-space-4); padding: var(--ng-space-2) 0; border-bottom: var(--ng-hairline) solid var(--ng-rule); }
+.type-label { font-size: var(--ng-text-xs); color: var(--ng-ink-faint); width: 90px; flex: none; }
+
+.bed { height: 132px; position: relative; border: var(--ng-hairline) solid var(--ng-rule-strong); }
+.bed svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cal { position: absolute; right: var(--ng-space-3); bottom: var(--ng-space-2); font-size: var(--ng-text-xs); color: var(--ng-ink-muted); }
+
+.icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 0; border-top: var(--ng-hairline) solid var(--ng-rule); }
+.icon { display: flex; gap: var(--ng-space-3); margin: 0; padding: var(--ng-space-3); border-bottom: var(--ng-hairline) solid var(--ng-rule); border-right: var(--ng-hairline) solid var(--ng-rule); align-items: flex-start; }
+.icon-cell { width: 24px; height: 24px; flex: none; color: var(--ng-ink); }
+.icon-name { display: block; font-size: var(--ng-text-sm); font-weight: 700; }
+.icon-note { display: block; font-size: var(--ng-text-xs); color: var(--ng-ink-muted); line-height: 1.4; }
+
+.readout { display: flex; gap: var(--ng-space-8); flex-wrap: wrap; }
+.metric-value { font-size: var(--ng-text-readout); line-height: 1; }
+.metric-label { font-size: var(--ng-text-xs); color: var(--ng-ink-muted); margin-top: var(--ng-space-1); }
+.metric-unit { font-size: var(--ng-text-sm); color: var(--ng-ink-muted); }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <h1>NeuroGrip design reference</h1>
+  <p class="lede">The instrument this interface imitates is a chart recorder, not a dashboard. Two rules follow: the graticule appears only behind measured data, and carmine encodes muscle activation and nothing else.</p>
+
+  <h2>Palette</h2>
+  <p class="section-note">Achromatic, with one meaning-bearing hue. Carmine follows anatomical illustration convention for muscle; it is never used to emphasise a heading or a control.</p>
+  <div class="swatches">
+  <div class="swatch">
+    <div class="chip" style="background: var(--ng-paper)"></div>
+    <div class="swatch-name ng-num">paper</div>
+    <div class="swatch-role">ground</div>
+  </div>
+  <div class="swatch">
+    <div class="chip" style="background: var(--ng-paper-sunk)"></div>
+    <div class="swatch-name ng-num">paper-sunk</div>
+    <div class="swatch-role">measurement well</div>
+  </div>
+  <div class="swatch">
+    <div class="chip" style="background: var(--ng-paper-raised)"></div>
+    <div class="swatch-name ng-num">paper-raised</div>
+    <div class="swatch-role">raised surface</div>
+  </div>
+  <div class="swatch">
+    <div class="chip" style="background: var(--ng-ink)"></div>
+    <div class="swatch-name ng-num">ink</div>
+    <div class="swatch-role">text</div>
+  </div>
+  <div class="swatch">
+    <div class="chip" style="background: var(--ng-ink-muted)"></div>
+    <div class="swatch-name ng-num">ink-muted</div>
+    <div class="swatch-role">secondary text</div>
+  </div>
+  <div class="swatch">
+    <div class="chip chip-rule" style="border-top-color: var(--ng-rule)"></div>
+    <div class="swatch-name ng-num">rule</div>
+    <div class="swatch-role">hairline</div>
+  </div>
+  <div class="swatch">
+    <div class="chip" style="background: var(--ng-muscle)"></div>
+    <div class="swatch-name ng-num">muscle</div>
+    <div class="swatch-role">muscle activation</div>
+  </div>
+  <div class="swatch">
+    <div class="chip" style="background: var(--ng-commit)"></div>
+    <div class="swatch-name ng-num">commit</div>
+    <div class="swatch-role">latched</div>
+  </div>
+  <div class="swatch">
+    <div class="chip" style="background: var(--ng-caution)"></div>
+    <div class="swatch-name ng-num">caution</div>
+    <div class="swatch-role">drift, fatigue</div>
+  </div>
+  <div class="swatch">
+    <div class="chip" style="background: var(--ng-stop)"></div>
+    <div class="swatch-name ng-num">stop</div>
+    <div class="swatch-role">rejected</div>
+  </div></div>
+
+  <h2>Type</h2>
+  <p class="section-note">Atkinson Hyperlegible for interface text, because it was designed for maximum character distinction at low vision and the intended users of this system are people with disabilities. IBM Plex Mono for numerals only, where tabular alignment is a functional requirement.</p>
+  <div class="type-row"><span class="type-label">xl / 24</span><span style="font-size: var(--ng-text-xl); font-weight: 700">Live decoding</span></div>
+  <div class="type-row"><span class="type-label">lg / 18</span><span style="font-size: var(--ng-text-lg); font-weight: 700">Commitment</span></div>
+  <div class="type-row"><span class="type-label">base / 15</span><span>The hand begins moving as evidence accrues, and latches only at full commitment.</span></div>
+  <div class="type-row"><span class="type-label">sm / 13</span><span style="font-size: var(--ng-text-sm)">Held-out subject 4 of 8</span></div>
+  <div class="type-row"><span class="type-label">xs / 11</span><span style="font-size: var(--ng-text-xs)">microvolts, RMS per channel</span></div>
+  <div class="type-row"><span class="type-label">numerals</span><span class="ng-num" style="font-size: var(--ng-text-lg)">0123456789 · 95.63 % · 1.91 ms · 158–354 µV</span></div>
+
+  <h2>Readout</h2>
+  <p class="section-note">One large number per panel, in tabular figures so the digits do not jitter as the value changes.</p>
+  <div class="readout">
+    <div><div class="metric-value ng-num">1.91<span class="metric-unit"> ms</span></div><div class="metric-label">end-to-end latency, P95</div></div>
+    <div><div class="metric-value ng-num">95.63<span class="metric-unit"> %</span></div><div class="metric-label">leave-one-subject-out accuracy</div></div>
+    <div><div class="metric-value ng-num" style="color: var(--ng-muscle)">312<span class="metric-unit"> µV</span></div><div class="metric-label">channel 4 activation</div></div>
+  </div>
+
+  <h2>Graticule</h2>
+  <p class="section-note">The grid means measurement. It appears here because there is a real trace with a real scale; it never appears as chrome.</p>
+  <div class="bed ng-graticule">
+    <svg viewBox="0 0 720 132" preserveAspectRatio="none"><polyline points="0,65.2 2,68.0 4,66.7 6,67.5 8,67.3 10,65.4 12,64.8 14,64.9 16,67.1 18,67.4 20,65.9 22,65.5 24,65.5 26,67.5 28,65.7 30,64.7 32,65.2 34,66.0 36,65.9 38,64.9 40,67.5 42,65.3 44,67.4 46,64.5 48,64.4 50,65.6 52,65.1 54,65.6 56,67.7 58,64.1 60,64.5 62,64.1 64,65.1 66,64.9 68,66.0 70,67.4 72,66.8 74,66.0 76,66.0 78,65.3 80,67.8 82,65.9 84,66.7 86,66.2 88,65.7 90,67.0 92,67.0 94,66.5 96,65.9 98,67.6 100,66.9 102,67.2 104,64.4 106,67.1 108,67.1 110,66.7 112,65.6 114,64.3 116,67.7 118,68.6 120,67.6 122,63.5 124,65.4 126,67.2 128,66.5 130,68.2 132,65.2 134,65.1 136,66.5 138,66.0 140,64.9 142,64.2 144,64.3 146,69.2 148,67.4 150,67.0 152,65.8 154,65.2 156,63.0 158,66.3 160,61.6 162,61.6 164,69.0 166,67.1 168,63.4 170,69.2 172,63.6 174,66.4 176,62.1 178,68.8 180,64.1 182,64.9 184,63.4 186,69.1 188,69.4 190,61.3 192,68.2 194,60.2 196,64.9 198,69.8 200,66.7 202,64.5 204,67.0 206,76.1 208,67.9 210,73.1 212,55.8 214,65.5 216,75.1 218,63.5 220,59.5 222,62.6 224,73.6 226,73.5 228,72.3 230,61.6 232,69.4 234,66.2 236,79.7 238,51.5 240,60.4 242,75.5 244,68.4 246,54.1 248,57.7 250,76.1 252,60.8 254,77.3 256,72.8 258,80.4 260,75.7 262,50.0 264,54.6 266,65.0 268,46.2 270,73.2 272,50.0 274,55.7 276,66.5 278,67.8 280,80.6 282,73.3 284,55.6 286,70.5 288,79.6 290,44.8 292,82.4 294,51.1 296,76.6 298,61.0 300,91.7 302,65.5 304,67.6 306,77.8 308,53.5 310,40.0 312,85.4 314,54.5 316,46.0 318,83.1 320,93.6 322,79.6 324,93.4 326,74.0 328,81.7 330,75.2 332,88.3 334,41.0 336,43.8 338,92.5 340,61.2 342,88.7 344,74.9 346,82.5 348,58.5 350,76.1 352,42.6 354,63.0 356,72.8 358,46.7 360,70.8 362,72.3 364,54.1 366,44.9 368,46.2 370,80.7 372,66.9 374,46.3 376,73.7 378,42.9 380,53.6 382,80.4 384,54.0 386,55.9 388,45.4 390,58.0 392,62.7 394,48.0 396,79.3 398,68.5 400,75.7 402,49.6 404,81.5 406,62.9 408,57.9 410,62.1 412,65.5 414,65.8 416,65.2 418,69.3 420,74.6 422,62.2 424,56.9 426,61.2 428,73.4 430,65.0 432,76.6 434,63.2 436,73.2 438,76.5 440,73.8 442,68.7 444,62.0 446,60.7 448,60.4 450,61.3 452,58.7 454,69.1 456,70.8 458,72.1 460,61.9 462,61.7 464,68.7 466,69.6 468,70.0 470,68.2 472,67.0 474,66.1 476,63.6 478,70.3 480,69.9 482,66.6 484,64.8 486,68.0 488,61.9 490,63.7 492,65.0 494,67.6 496,64.2 498,66.0 500,64.7 502,64.6 504,62.5 506,67.1 508,67.9 510,67.2 512,65.5 514,65.6 516,66.5 518,66.6 520,65.1 522,66.4 524,64.3 526,64.8 528,65.8 530,65.5 532,68.0 534,67.6 536,66.6 538,66.0 540,65.0 542,65.8 544,67.0 546,67.0 548,67.3 550,67.6 552,64.4 554,68.4 556,65.4 558,64.3 560,65.1 562,65.7 564,65.1 566,66.4 568,65.7 570,65.6 572,64.9 574,67.1 576,64.4 578,67.4 580,66.8 582,65.1 584,67.9 586,67.4 588,66.6 590,65.9 592,68.0 594,64.2 596,64.6 598,67.2 600,66.7 602,65.1 604,66.6 606,66.9 608,65.3 610,67.8 612,65.6 614,67.6 616,67.0 618,64.7 620,66.6 622,66.0 624,66.7 626,67.7 628,67.1 630,64.3 632,66.3 634,65.7 636,66.1 638,65.5 640,66.1 642,64.2 644,67.4 646,66.5 648,67.1 650,65.3 652,65.6 654,65.7 656,64.5 658,65.0 660,67.0 662,67.1 664,67.8 666,65.5 668,64.4 670,64.6 672,65.2 674,65.5 676,65.1 678,66.4 680,64.9 682,65.9 684,64.1 686,66.9 688,65.7 690,67.4 692,66.9 694,67.5 696,67.0 698,64.1 700,65.9 702,64.2 704,64.9 706,67.2 708,67.4 710,66.1 712,64.7 714,66.8 716,64.9 718,65.0 720,66.7" fill="none" stroke="var(--ng-muscle)" stroke-width="1.25"/></svg>
+    <div class="cal ng-num">200 µV · 40 ms/div</div>
+  </div>
+
+  <h2>Icons</h2>
+  <p class="section-note">Constructed on a 24-pixel grid at 1.5 stroke with butt caps and miter joins. The vocabulary comes from the subject — action potential, electrode ring, forearm cross-section — not from a generic UI kit.</p>
+  <div class="icons">
+  <figure class="icon">
+    <div class="icon-cell"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg></div>
+    <figcaption>
+      <span class="icon-name">electrode</span>
+      <span class="icon-note">A seated electrode: contact ring with the conductive centre filled.</span>
+    </figcaption>
+  </figure>
+  <figure class="icon">
+    <div class="icon-cell"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor"/><path d="M19.5 12L21.8 12" fill="none" stroke="currentColor"/><path d="M17.3 17.3L18.93 18.93" fill="none" stroke="currentColor"/><path d="M12 19.5L12 21.8" fill="none" stroke="currentColor"/><path d="M6.7 17.3L5.07 18.93" fill="none" stroke="currentColor"/><path d="M4.5 12L2.2 12" fill="none" stroke="currentColor"/><path d="M6.7 6.7L5.07 5.07" fill="none" stroke="currentColor"/><path d="M12 4.5L12 2.2" fill="none" stroke="currentColor"/><path d="M17.3 6.7L18.93 5.07" fill="none" stroke="currentColor"/></svg></div>
+    <figcaption>
+      <span class="icon-name">forearm</span>
+      <span class="icon-note">Forearm cross-section with the eight-electrode ring, viewed distally.</span>
+    </figcaption>
+  </figure>
+  <figure class="icon">
+    <div class="icon-cell"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true" focusable="false"><path d="M2 13 H7 L9 6 L12 20 L14 11 L16 13 H22" fill="none" stroke="currentColor"/></svg></div>
+    <figcaption>
+      <span class="icon-name">waveform</span>
+      <span class="icon-note">A biphasic motor-unit action potential -- the signature trace of this field.</span>
+    </figcaption>
+  </figure>
+  <figure class="icon">
+    <div class="icon-cell"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true" focusable="false"><path d="M2 20 H22" fill="none" stroke="currentColor"/><path d="M5 20 V10" fill="none" stroke="currentColor"/><path d="M9 20 V6" fill="none" stroke="currentColor"/><path d="M12 20 V12" fill="none" stroke="currentColor"/><path d="M16 20 V15" fill="none" stroke="currentColor"/><path d="M19 20 V17" fill="none" stroke="currentColor"/></svg></div>
+    <figcaption>
+      <span class="icon-name">spectrum</span>
+      <span class="icon-note">Power spectral density: band powers over a baseline.</span>
+    </figcaption>
+  </figure>
+  <figure class="icon">
+    <div class="icon-cell"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true" focusable="false"><path d="M3 9 H21 V15 H3 Z" fill="none" stroke="currentColor"/><path d="M3 9 H12 V15 H3 Z" fill="currentColor" stroke="none"/><path d="M17 5.5 V18.5" fill="none" stroke="currentColor"/></svg></div>
+    <figcaption>
+      <span class="icon-name">commitment</span>
+      <span class="icon-note">The commitment bar: a track filled part-way, with the risk boundary standing beyond the fill.</span>
+    </figcaption>
+  </figure>
+  <figure class="icon">
+    <div class="icon-cell"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true" focusable="false"><path d="M12 4.5 C17.5 4.5 20.5 8 20 12.5 C19.5 17 15.5 19.5 11 19.5 C6.5 19.5 3.5 16 3.5 11.5 C3.5 7 7 4.5 12 4.5 Z" fill="none" stroke="currentColor"/><path d="M11 8.5 C14 8.5 15.5 10 15.5 12 C15.5 14 13.5 15.5 11 15.5 C8.5 15.5 7.5 14 7.5 12 C7.5 10 8.5 8.5 11 8.5 Z" fill="none" stroke="currentColor"/><circle cx="11.4" cy="12" r="1.1" fill="currentColor" stroke="none"/></svg></div>
+    <figcaption>
+      <span class="icon-name">manifold</span>
+      <span class="icon-note">The cartograph: nested reachability contours around an off-centre peak.</span>
+    </figcaption>
+  </figure>
+  <figure class="icon">
+    <div class="icon-cell"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true" focusable="false"><path d="M2 16 H22" fill="none" stroke="currentColor"/><path d="M2 16 L9 15 L15 10.5 L22 4" fill="none" stroke="currentColor"/></svg></div>
+    <figcaption>
+      <span class="icon-name">drift</span>
+      <span class="icon-note">A trace departing from its baseline: the drift and fatigue indicator.</span>
+    </figcaption>
+  </figure>
+  <figure class="icon">
+    <div class="icon-cell"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true" focusable="false"><path d="M8 4 L19 12 L8 20 Z" fill="none" stroke="currentColor"/></svg></div>
+    <figcaption>
+      <span class="icon-name">play</span>
+      <span class="icon-note">Start the stream. A hard-edged triangle; rounding it would soften the whole set.</span>
+    </figcaption>
+  </figure>
+  <figure class="icon">
+    <div class="icon-cell"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true" focusable="false"><path d="M9 5 V19" fill="none" stroke="currentColor"/><path d="M15 5 V19" fill="none" stroke="currentColor"/></svg></div>
+    <figcaption>
+      <span class="icon-name">pause</span>
+      <span class="icon-note">Hold the stream. Two bars at the same weight as every other stroke.</span>
+    </figcaption>
+  </figure>
+  <figure class="icon">
+    <div class="icon-cell"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true" focusable="false"><path d="M6 6 H18 V18 H6 Z" fill="none" stroke="currentColor"/></svg></div>
+    <figcaption>
+      <span class="icon-name">stop</span>
+      <span class="icon-note">End the session. A hollow square, so stopping reads as less final than recording.</span>
+    </figcaption>
+  </figure>
+  <figure class="icon">
+    <div class="icon-cell"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="6" fill="currentColor" stroke="none"/></svg></div>
+    <figcaption>
+      <span class="icon-name">record</span>
+      <span class="icon-note">Capturing. Filled, because filled is what distinguishes live from idle.</span>
+    </figcaption>
+  </figure>
+  <figure class="icon">
+    <div class="icon-cell"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true" focusable="false"><path d="M12 4 A8 8 0 1 0 20 12" fill="none" stroke="currentColor"/><path d="M9 1 L12 4 L9 7" fill="none" stroke="currentColor"/></svg></div>
+    <figcaption>
+      <span class="icon-name">reset</span>
+      <span class="icon-note">Return to the starting state: a three-quarter turn back to the origin.</span>
+    </figcaption>
+  </figure>
+  <figure class="icon">
+    <div class="icon-cell"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true" focusable="false"><path d="M12 3 L22 20 H2 Z" fill="none" stroke="currentColor"/><path d="M12 9 V14" fill="none" stroke="currentColor"/><circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none"/></svg></div>
+    <figcaption>
+      <span class="icon-name">alert</span>
+      <span class="icon-note">Something needs attention. Triangle, because triangles mean caution.</span>
+    </figcaption>
+  </figure>
+  <figure class="icon">
+    <div class="icon-cell"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true" focusable="false"><path d="M4 13 L9.5 18.5 L20 6" fill="none" stroke="currentColor"/></svg></div>
+    <figcaption>
+      <span class="icon-name">check</span>
+      <span class="icon-note">Passed, within tolerance, accepted.</span>
+    </figcaption>
+  </figure>
+  <figure class="icon">
+    <div class="icon-cell"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true" focusable="false"><path d="M5 5 L19 19" fill="none" stroke="currentColor"/><path d="M19 5 L5 19" fill="none" stroke="currentColor"/></svg></div>
+    <figcaption>
+      <span class="icon-name">close</span>
+      <span class="icon-note">Dismiss. A true diagonal cross rather than a rotated plus, so it cannot be misread as add.</span>
+    </figcaption>
+  </figure>
+  <figure class="icon">
+    <div class="icon-cell"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true" focusable="false"><path d="M5 9 L12 16 L19 9" fill="none" stroke="currentColor"/></svg></div>
+    <figcaption>
+      <span class="icon-name">chevronDown</span>
+      <span class="icon-note">Disclose the detail beneath.</span>
+    </figcaption>
+  </figure>
+  <figure class="icon">
+    <div class="icon-cell"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor"/><path d="M12 4.5 A7.5 7.5 0 0 1 12 19.5 Z" fill="currentColor" stroke="none"/></svg></div>
+    <figcaption>
+      <span class="icon-name">theme</span>
+      <span class="icon-note">Light and dark, as one disc half-filled.</span>
+    </figcaption>
+  </figure>
+  <figure class="icon">
+    <div class="icon-cell"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true" focusable="false"><path d="M2 7 H22" fill="none" stroke="currentColor"/><path d="M2 12 H22" fill="none" stroke="currentColor"/><path d="M2 17 H22" fill="none" stroke="currentColor"/><path d="M8 4.5 V9.5" fill="none" stroke="currentColor"/><path d="M16 9.5 V14.5" fill="none" stroke="currentColor"/><path d="M6 14.5 V19.5" fill="none" stroke="currentColor"/></svg></div>
+    <figcaption>
+      <span class="icon-name">sliders</span>
+      <span class="icon-note">Adjust parameters. Sliders, not a gear -- these are continuous values.</span>
+    </figcaption>
+  </figure></div>
+</div>
+</body>
+</html>
