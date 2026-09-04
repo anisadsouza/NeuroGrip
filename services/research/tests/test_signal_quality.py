@@ -1,6 +1,6 @@
 import numpy as np
 
-from pclm.signal_quality import check_signal_quality
+from neurogrip.signal_quality import check_signal_quality
 
 
 def test_quality_rejects_flat_channel():

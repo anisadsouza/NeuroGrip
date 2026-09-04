@@ -1,6 +1,6 @@
 import numpy as np
 
-from pclm.features import FeatureConfig, extract_features, feature_vector
+from neurogrip.features import FeatureConfig, extract_features, feature_vector
 
 
 def test_extract_features_returns_stable_vector():
