@@ -30,9 +30,7 @@ dist/
 data/
 datasets/
 models/
-artifacts/
 mlruns/
-*.onnx
 *.joblib
 *.pkl
 

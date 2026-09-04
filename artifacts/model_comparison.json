@@ -1,0 +1,129 @@
+{
+  "corpus": {
+    "n_subjects": 8,
+    "reps_per_gesture": 4,
+    "rep_seconds": 1.0,
+    "n_electrodes": 8,
+    "window_ms": 200,
+    "hop_ms": 20,
+    "max_fatigue": 0.5,
+    "base_seed": 1000,
+    "n_windows": 13120,
+    "n_features": 136
+  },
+  "calibration_folds": 3,
+  "models": {
+    "lda": {
+      "model": "lda",
+      "mean_accuracy": 0.9045,
+      "std_accuracy": 0.0996,
+      "min_accuracy": 0.7189,
+      "ci95_low": 0.8155,
+      "ci95_high": 0.9935,
+      "baseline_accuracy": 0.1,
+      "expected_calibration_error": 0.2633,
+      "per_fold_accuracy": [
+        0.9396,
+        0.7189,
+        0.989,
+        0.9616,
+        0.7622,
+        0.9945,
+        0.8963,
+        0.9738
+      ],
+      "per_gesture_recall": {
+        "rest": 1.0,
+        "fist": 0.8247,
+        "open_hand": 0.9634,
+        "pinch": 0.8689,
+        "point": 0.872,
+        "wrist_flexion": 0.9733,
+        "wrist_extension": 0.9962,
+        "thumb_up": 0.9985,
+        "two_finger": 0.6715,
+        "spherical_grip": 0.8765
+      }
+    },
+    "linear_svm": {
+      "model": "linear_svm",
+      "mean_accuracy": 0.9048,
+      "std_accuracy": 0.1087,
+      "min_accuracy": 0.714,
+      "ci95_low": 0.8076,
+      "ci95_high": 1.0,
+      "baseline_accuracy": 0.1,
+      "expected_calibration_error": 0.0704,
+      "per_fold_accuracy": [
+        0.9409,
+        0.7311,
+        0.9841,
+        0.9957,
+        0.714,
+        0.9945,
+        0.9689,
+        0.9091
+      ],
+      "per_gesture_recall": {
+        "rest": 1.0,
+        "fist": 0.8765,
+        "open_hand": 0.9947,
+        "pinch": 0.8841,
+        "point": 0.8468,
+        "wrist_flexion": 0.9421,
+        "wrist_extension": 0.9123,
+        "thumb_up": 0.9947,
+        "two_finger": 0.7515,
+        "spherical_grip": 0.8453
+      }
+    },
+    "rbf_svm": {
+      "model": "rbf_svm",
+      "mean_accuracy": 0.9563,
+      "std_accuracy": 0.0563,
+      "min_accuracy": 0.8378,
+      "ci95_low": 0.9059,
+      "ci95_high": 1.0,
+      "baseline_accuracy": 0.1,
+      "expected_calibration_error": 0.0225,
+      "per_fold_accuracy": [
+        0.9738,
+        0.8866,
+        0.9988,
+        0.9957,
+        0.8378,
+        0.997,
+        0.9817,
+        0.9787
+      ],
+      "per_gesture_recall": {
+        "rest": 1.0,
+        "fist": 0.8895,
+        "open_hand": 1.0,
+        "pinch": 0.9352,
+        "point": 0.968,
+        "wrist_flexion": 0.9962,
+        "wrist_extension": 0.9855,
+        "thumb_up": 1.0,
+        "two_finger": 0.8598,
+        "spherical_grip": 0.9284
+      }
+    }
+  },
+  "best_model": "rbf_svm",
+  "paired_significance": {
+    "rbf_svm_vs_lda": {
+      "statistic": 0.0,
+      "p_value": 0.007812,
+      "mean_difference": 0.0518
+    },
+    "rbf_svm_vs_linear_svm": {
+      "statistic": 0.0,
+      "p_value": 0.015625,
+      "mean_difference": 0.0514
+    }
+  },
+  "source": "simulator",
+  "caveat": "Accuracy here is measured on simulated sEMG. The simulator has no motion artefact, no skin-impedance drift and no cross-session electrode replacement, so these figures are optimistic relative to recorded data such as NinaPro. Report them as simulator results.",
+  "elapsed_seconds": 67.7
+}
