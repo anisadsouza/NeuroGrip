@@ -2,6 +2,19 @@
 
 Software starter for a college prosthetic-limb gesture-control project using windowed multi-channel sEMG signals.
 
+## Use Case
+
+This project is a software brain for a prosthetic hand. It takes EMG muscle-signal data, predicts the intended hand gesture, and outputs a virtual prosthetic command such as `open_hand`, `fist`, or `pinch`.
+
+For this college project, it is a software-only academic prototype, not a certified medical product. Even without hardware, it can be used to demonstrate how EMG signals can control a virtual prosthetic hand. In the future, the same prediction output could be connected to motors in a real prosthetic device after proper hardware testing, clinical validation, and safety approval.
+
+Main users:
+
+- students and researchers testing EMG gesture recognition
+- clinicians or prosthetic labs using it as a simulation tool
+- developers building future prosthetic-control systems
+- prosthetic companies as a possible commercial direction after certification
+
 The current version focuses on the software pipeline:
 
 - signal-quality validation
