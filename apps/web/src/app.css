@@ -1,0 +1,409 @@
+/**
+ * Live screen layout.
+ *
+ * Every colour, size and duration here comes from a token. A literal value in
+ * this file is a bug: it means something escaped the design system and will
+ * not follow the theme.
+ */
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Permanent, not dismissible. See the note in App.tsx. */
+.safety {
+  margin: 0;
+  padding: var(--ng-space-2) var(--ng-space-4);
+  background: var(--ng-paper-sunk);
+  border-bottom: var(--ng-hairline) solid var(--ng-rule);
+  color: var(--ng-ink-muted);
+  font-size: var(--ng-text-xs);
+  text-align: center;
+}
+
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ng-space-4);
+  padding: var(--ng-space-4);
+  border-bottom: var(--ng-hairline) solid var(--ng-rule);
+}
+
+.masthead-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ng-space-3);
+}
+.masthead-title .icon {
+  align-self: center;
+}
+.masthead h1 {
+  font-size: var(--ng-text-xl);
+  line-height: var(--ng-leading-tight);
+  margin: 0;
+  letter-spacing: -0.015em;
+}
+.masthead-sub {
+  margin: 0;
+  color: var(--ng-ink-muted);
+  font-size: var(--ng-text-sm);
+}
+
+.theme-toggle {
+  background: none;
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  color: var(--ng-ink);
+  padding: var(--ng-space-2);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  border-radius: var(--ng-radius);
+}
+.theme-toggle:hover {
+  border-color: var(--ng-ink);
+}
+
+main {
+  flex: 1;
+  padding: var(--ng-space-6) var(--ng-space-4) var(--ng-space-12);
+}
+
+.live {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  grid-template-areas: 'main side' 'transport side';
+  gap: var(--ng-space-6);
+  align-items: start;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+.live-main {
+  grid-area: main;
+  min-width: 0;
+  display: grid;
+  gap: var(--ng-space-6);
+}
+.live-side {
+  grid-area: side;
+  display: grid;
+  gap: var(--ng-space-4);
+}
+.live-transport {
+  grid-area: transport;
+  display: flex;
+  gap: var(--ng-space-3);
+}
+
+.panel {
+  border: var(--ng-hairline) solid var(--ng-rule);
+  background: var(--ng-paper-raised);
+  padding: var(--ng-space-4);
+  border-radius: var(--ng-radius-lg);
+}
+.panel h2 {
+  font-size: var(--ng-text-lg);
+  margin: 0 0 var(--ng-space-2);
+  line-height: var(--ng-leading-tight);
+}
+.muted {
+  color: var(--ng-ink-muted);
+}
+.small {
+  font-size: var(--ng-text-sm);
+}
+
+/* ---- Oscilloscope ------------------------------------------------------ */
+
+.scope {
+  margin: 0;
+}
+.scope-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: var(--ng-text-sm);
+  color: var(--ng-ink-muted);
+  padding-bottom: var(--ng-space-2);
+}
+.scope-cal {
+  font-size: var(--ng-text-xs);
+}
+.scope-bed {
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  height: 260px;
+  border-radius: var(--ng-radius);
+  overflow: hidden;
+}
+.scope-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---- Commitment bar ---------------------------------------------------- */
+
+.commitment {
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  background: var(--ng-paper-raised);
+  padding: var(--ng-space-4);
+  border-radius: var(--ng-radius-lg);
+}
+.commitment-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--ng-space-3);
+}
+.commitment-head h2 {
+  font-size: var(--ng-text-lg);
+  margin: 0;
+}
+.commitment-state {
+  margin: 0;
+  font-size: var(--ng-text-sm);
+  color: var(--ng-ink-muted);
+}
+.commitment-state[data-state='latched'] {
+  color: var(--ng-commit);
+  font-weight: 700;
+}
+
+.commitment-track {
+  position: relative;
+  height: 72px;
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  /* One step down from the panel containing it. */
+  border-radius: var(--ng-radius);
+  overflow: hidden;
+}
+
+.commitment-fill {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  background: var(--ng-muscle-wash);
+  border-right: 2px solid var(--ng-muscle);
+  /* Motion here is the value changing, which is the one thing motion is for. */
+  transition: width var(--ng-duration-fast) linear;
+}
+.commitment-fill[data-latched] {
+  background: color-mix(in srgb, var(--ng-commit) 16%, transparent);
+  border-right-color: var(--ng-commit);
+}
+
+/* Where the hand starts to move. */
+.commitment-onset {
+  position: absolute;
+  inset-block: 0;
+  width: var(--ng-hairline);
+  background: var(--ng-ink-faint);
+}
+
+/* Each gesture's boundary. The leader's is drawn full height and solid; the
+   rest are recessed, so the asymmetry is visible without shouting. */
+.commitment-post {
+  position: absolute;
+  top: 25%;
+  bottom: 25%;
+  width: var(--ng-hairline);
+  background: var(--ng-rule-strong);
+}
+.commitment-post[data-leader] {
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--ng-ink);
+}
+
+.commitment-rival {
+  position: absolute;
+  top: 62%;
+  bottom: 8%;
+  width: var(--ng-hairline);
+  background: var(--ng-ink-faint);
+}
+
+.commitment-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: var(--ng-space-3);
+}
+.commitment-leader {
+  font-size: var(--ng-text-lg);
+  font-weight: 700;
+}
+.commitment-percent {
+  font-size: var(--ng-text-readout);
+  line-height: 1;
+}
+.commitment-unit {
+  font-size: var(--ng-text-sm);
+  color: var(--ng-ink-muted);
+}
+.commitment-legend {
+  margin: var(--ng-space-2) 0 0;
+  font-size: var(--ng-text-sm);
+  color: var(--ng-ink-muted);
+  max-width: var(--ng-measure);
+}
+
+/* ---- Activation ring --------------------------------------------------- */
+
+.ring {
+  margin: 0;
+  display: grid;
+  justify-items: center;
+  gap: var(--ng-space-2);
+}
+.ring-caption {
+  font-size: var(--ng-text-lg);
+  font-weight: 700;
+  justify-self: start;
+}
+.ring-index {
+  font-size: 7px;
+}
+
+/* ---- Controls ---------------------------------------------------------- */
+
+.gesture-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ng-space-1);
+  margin-top: var(--ng-space-3);
+}
+.gesture-choice {
+  font: inherit;
+  font-size: var(--ng-text-sm);
+  text-align: left;
+  padding: var(--ng-space-2);
+  background: var(--ng-paper);
+  color: var(--ng-ink);
+  border: var(--ng-hairline) solid var(--ng-rule);
+  border-radius: var(--ng-radius);
+  cursor: pointer;
+}
+.gesture-choice:hover {
+  border-color: var(--ng-ink-muted);
+}
+.gesture-choice[data-selected] {
+  border-color: var(--ng-ink);
+  background: var(--ng-paper-sunk);
+  font-weight: 700;
+}
+
+.transport {
+  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ng-space-2);
+  padding: var(--ng-space-3) var(--ng-space-4);
+  background: var(--ng-ink);
+  color: var(--ng-paper);
+  border: var(--ng-hairline) solid var(--ng-ink);
+  border-radius: var(--ng-radius);
+  cursor: pointer;
+}
+.transport:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.transport-quiet {
+  background: transparent;
+  color: var(--ng-ink);
+  border-color: var(--ng-rule-strong);
+}
+
+.readout-list {
+  margin: 0;
+  display: grid;
+  gap: var(--ng-space-2);
+}
+.readout-list > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--ng-space-3);
+  border-bottom: var(--ng-hairline) solid var(--ng-rule);
+  padding-bottom: var(--ng-space-2);
+}
+.readout-list dt {
+  color: var(--ng-ink-muted);
+  font-size: var(--ng-text-sm);
+}
+.readout-list dd {
+  margin: 0;
+  font-size: var(--ng-text-sm);
+  text-align: right;
+}
+.readout-list dd[data-correct='true'] {
+  color: var(--ng-commit);
+  font-weight: 700;
+}
+.readout-list dd[data-correct='false'] {
+  color: var(--ng-caution);
+  font-weight: 700;
+}
+
+.notice {
+  border-radius: var(--ng-radius);
+  display: flex;
+  gap: var(--ng-space-3);
+  align-items: flex-start;
+  padding: var(--ng-space-3);
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  font-size: var(--ng-text-sm);
+}
+.notice-stop {
+  border-color: var(--ng-stop);
+  color: var(--ng-stop);
+}
+.notice h2 {
+  margin: 0 0 var(--ng-space-1);
+  font-size: var(--ng-text-base);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- Narrow ------------------------------------------------------------ */
+
+@media (max-width: 900px) {
+  .live {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'main' 'side' 'transport';
+  }
+  .scope-bed {
+    height: 200px;
+  }
+  .commitment-percent {
+    font-size: var(--ng-text-xl);
+  }
+}
+
+@media (max-width: 520px) {
+  main {
+    padding: var(--ng-space-4) var(--ng-space-3) var(--ng-space-8);
+  }
+  .gesture-choices {
+    grid-template-columns: 1fr;
+  }
+  .live-transport {
+    flex-direction: column;
+  }
+  .transport {
+    justify-content: center;
+  }
+}

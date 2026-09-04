@@ -11,8 +11,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:conformance": "vitest run packages/core/test/conformance.test.ts",
-    "typecheck": "tsc --noEmit -p packages/core/tsconfig.json",
-    "fixtures": "python -m neurogrip.fixtures --out fixtures/conformance/golden.json"
+    "typecheck": "tsc --noEmit -p packages/core/tsconfig.json && tsc --noEmit -p packages/design/tsconfig.json && tsc --noEmit -p apps/web/tsconfig.json",
+    "fixtures": "python -m neurogrip.fixtures --out fixtures/conformance/golden.json",
+    "build:assets": "node scripts/build-assets.mjs",
+    "dev:web": "npm run dev --workspace @neurogrip/web"
   },
   "devDependencies": {
     "@types/node": "^26.4.1",

@@ -71,9 +71,9 @@ Measured one window at a time on CPU, never batched: the deployed system decodes
 
 | Stage | Mean | P50 | P95 | P99 | Max |
 | --- | --- | --- | --- | --- | --- |
-| Feature extraction | 0.86 ms | 0.81 ms | 1.08 ms | 2.14 ms | 2.72 ms |
-| ONNX inference | 0.54 ms | 0.49 ms | 0.72 ms | 1.53 ms | 2.25 ms |
-| **End to end** | 1.41 ms | 1.31 ms | 1.91 ms | 3.06 ms | 4.71 ms |
+| Feature extraction | 0.96 ms | 0.90 ms | 1.29 ms | 1.74 ms | 2.68 ms |
+| ONNX inference | 0.65 ms | 0.61 ms | 0.96 ms | 1.20 ms | 1.99 ms |
+| **End to end** | 1.61 ms | 1.52 ms | 2.22 ms | 2.86 ms | 4.16 ms |
 
 Budget 10 ms at P95 over 1,000 windows — **PASS**.
 

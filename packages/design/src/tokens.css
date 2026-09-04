@@ -83,10 +83,14 @@
   --ng-graticule-decade-step: 40px;
 
   /* ---- Geometry ------------------------------------------------------- */
-  /* Square. A measuring instrument does not have rounded corners; the one
-     exception is the pill on a live status dot. */
-  --ng-radius: 0;
-  --ng-radius-dot: 999px;
+  /* A scale, not a single value. Nested surfaces need a smaller radius than
+     the surface containing them or the corners look concentric-but-wrong: the
+     eye reads the inner curve as too loose. Rule of thumb applied throughout:
+     an inner radius is roughly the outer radius minus the gap between them. */
+  --ng-radius-sm: 3px; /* chips, ticks, small marks */
+  --ng-radius: 6px; /* default: buttons, inputs, nested beds */
+  --ng-radius-lg: 10px; /* panels and other outermost surfaces */
+  --ng-radius-dot: 999px; /* status dots only */
   --ng-hairline: 1px;
   --ng-stroke-icon: 1.5px;
 

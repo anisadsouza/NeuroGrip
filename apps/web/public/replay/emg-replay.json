@@ -1,0 +1,27 @@
+{
+  "formatVersion": 1,
+  "featureSpecVersion": 1,
+  "samplingRateHz": 2000,
+  "nChannels": 8,
+  "samplesPerGesture": 3000,
+  "voltsPerCount": 4e-07,
+  "dtype": "int16",
+  "layout": "gesture-major, then channel-major, then time",
+  "gestures": [
+    "rest",
+    "fist",
+    "open_hand",
+    "pinch",
+    "point",
+    "wrist_flexion",
+    "wrist_extension",
+    "thumb_up",
+    "two_finger",
+    "spherical_grip"
+  ],
+  "subjectSeed": 8080,
+  "peakCounts": 6731,
+  "source": "neurogrip.simulator",
+  "caveat": "Simulated signal, not a human recording. Present it as such wherever it is played back.",
+  "byteLength": 480000
+}

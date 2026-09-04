@@ -139,9 +139,31 @@ describe('palette discipline', () => {
     expect(css).not.toMatch(/filter:\s*.*blur/);
   });
 
-  it('keeps corners square', () => {
-    expect(light['--ng-radius']).toBeUndefined(); // not a hex token
-    expect(css).toMatch(/--ng-radius:\s*0;/);
+  it('defines a radius scale that increases with surface size', () => {
+    // Corners are rounded on request. What still has to hold is that the scale
+    // is ordered: a nested surface must never carry a larger radius than the
+    // surface containing it, or the nesting reads as a mistake.
+    // Parsed by line scan rather than a constructed regex: the escaping needed
+    // to build one inside a template literal is a reliable source of silent
+    // no-match bugs.
+    const radius = (name: string): number => {
+      for (const line of css.split('\n')) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith(`${name}:`)) continue;
+        const value = Number.parseInt(trimmed.slice(name.length + 1).trim(), 10);
+        if (Number.isFinite(value)) return value;
+      }
+      throw new Error(`${name} is not defined`);
+    };
+
+    const small = radius('--ng-radius-sm');
+    const base = radius('--ng-radius');
+    const large = radius('--ng-radius-lg');
+    expect(small).toBeGreaterThan(0);
+    expect(base).toBeGreaterThan(small);
+    expect(large).toBeGreaterThan(base);
+    // Nothing so round it stops reading as an instrument panel.
+    expect(large).toBeLessThanOrEqual(16);
   });
 
   it('respects reduced motion', () => {
