@@ -1,0 +1,22 @@
+{
+  "name": "neurogrip",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:conformance": "vitest run packages/core/test/conformance.test.ts",
+    "typecheck": "tsc --noEmit -p packages/core/tsconfig.json",
+    "fixtures": "python -m neurogrip.fixtures --out fixtures/conformance/golden.json"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.1",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}
