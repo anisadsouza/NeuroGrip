@@ -1,3 +1,5 @@
+import itertools
+
 import numpy as np
 import pytest
 
@@ -22,6 +24,44 @@ def test_vocabulary_is_ten_gestures_with_synergies_for_each():
     for gesture in GESTURES:
         assert len(GESTURE_SYNERGIES[gesture]) == 6
         assert all(0.0 <= v <= 1.0 for v in GESTURE_SYNERGIES[gesture])
+
+
+def test_no_two_gestures_are_gain_degenerate():
+    """Two gestures separated only by overall amplitude are indistinguishable.
+
+    Per-subject amplitude gain spans 0.7-1.4x, so a pair differing only by a
+    scalar multiple cannot be separated under leave-one-subject-out by any
+    decoder. Cosine similarity is scale-invariant, so it detects exactly that
+    failure. `rest` is exempt: at 0.02 excitation no motor unit passes its
+    recruitment threshold, so rest is legitimately distinguished by amplitude.
+
+    This property test exists because `point` and `two_finger` originally
+    differed by a uniform 0.05 offset (cosine 0.993) and confused at 32% in
+    both directions under LOSO.
+    """
+    active = [g for g in GESTURES if g != "rest"]
+    for first, second in itertools.combinations(active, 2):
+        a = np.asarray(GESTURE_SYNERGIES[first], dtype=float)
+        b = np.asarray(GESTURE_SYNERGIES[second], dtype=float)
+        cosine = float(a @ b / (np.linalg.norm(a) * np.linalg.norm(b)))
+        assert cosine < 0.98, (
+            f"{first} and {second} differ mainly by gain (cosine {cosine:.4f}); "
+            f"they must differ in which muscle dominates"
+        )
+
+
+def test_every_gesture_recruits_more_than_rest():
+    """Every non-rest gesture must actually recruit motor units."""
+    config = SimulatorConfig()
+    subject = make_subject("s01", seed=1)
+    rest = float(np.sqrt(np.mean(simulate("rest", 0.5, config, subject, seed=3) ** 2)))
+    for gesture in GESTURES:
+        if gesture == "rest":
+            continue
+        rms = float(
+            np.sqrt(np.mean(simulate(gesture, 0.5, config, subject, seed=3) ** 2))
+        )
+        assert rms > rest * 2.0, f"{gesture} is not distinguishable from rest"
 
 
 def test_output_shape_matches_electrodes_and_duration(subject):
