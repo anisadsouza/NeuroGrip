@@ -7,7 +7,10 @@ import numpy as np
 
 @dataclass(frozen=True)
 class SignalQualityConfig:
-    min_channel_rms: float = 1e-4
+    # Electrode-detachment gate, in volts. Must sit below the ~15 uV baseline
+    # noise floor: a detached electrode reads near zero, whereas a genuine
+    # rest window still carries baseline noise and must not be rejected.
+    min_channel_rms: float = 5e-6
     max_abs_amplitude: float = 5.0
 
 
