@@ -23,6 +23,8 @@ Everything runs on-device. No signal is uploaded, and none is stored.
 ## Quick start
 
 ```bash
+python -m venv .venv
+source .venv/Scripts/activate      # POSIX: source .venv/bin/activate
 pip install -e "./services/research[dev,ml]"
 npm install
 npm run dev:web
@@ -40,9 +42,9 @@ every number on it means.
 | --- | --- |
 | Decoder | RBF SVM, 95.6% leave-one-subject-out, ECE 0.022 |
 | Latency | 2.2 ms P95 measured, against a 10 ms budget |
-| Tests | 248 — 126 Python, 122 TypeScript |
-| Built | Simulator, feature pipeline, decoder, evidence accumulation, Live screen |
-| Not built | Virtual hand, cartography, error attribution, clinician mode |
+| Tests | 288 — 126 Python, 162 TypeScript |
+| Built | Simulator, feature pipeline, decoder, evidence accumulation, Live screen, virtual hand |
+| Not built | Cartography, error attribution, clinician mode |
 
 **The accuracy figure comes from simulated data** and is optimistic relative to
 recorded human sEMG. There is no amputee stratum yet. See
@@ -63,7 +65,7 @@ limitations.
 ## Tests
 
 ```bash
-python -m pytest services/research/tests -q
+python -m pytest services/research/tests -q   # needs the virtualenv active
 npm test
 npm run typecheck
 npm run test:conformance   # proves Python and TypeScript agree on features

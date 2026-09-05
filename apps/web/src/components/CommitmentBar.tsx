@@ -25,7 +25,10 @@
 import { useEffect, useRef } from 'react';
 
 export interface CommitmentBarProps {
+  /** Model class names. Used as keys, never shown. */
   readonly gestures: readonly string[];
+  /** Plain-language names, parallel to `gestures`. What the wearer reads. */
+  readonly labels: readonly string[];
   readonly leader: number;
   readonly commitment: number;
   readonly latched: boolean;
@@ -44,6 +47,7 @@ export interface CommitmentBarProps {
 
 export function CommitmentBar({
   gestures,
+  labels,
   leader,
   commitment,
   latched,
@@ -67,7 +71,7 @@ export function CommitmentBar({
   );
   const toPercent = (value: number) => Math.min(100, (value / maxThreshold) * 100);
 
-  const leaderName = gestures[leader] ?? 'unknown';
+  const leaderName = labels[leader] ?? gestures[leader] ?? 'unknown';
   const boundaryPercent = toPercent(effectiveThreshold);
   const fillPercent = toPercent(evidence[leader] ?? 0);
   const onsetPercent = boundaryPercent * motionOnset;

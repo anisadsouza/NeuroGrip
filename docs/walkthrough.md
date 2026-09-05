@@ -88,6 +88,13 @@ contact.
 The forearm in cross-section, viewed as if looking down your own arm, with the
 eight electrodes around it.
 
+The ring sits around the **forearm just below the elbow**, level with the elbow
+joint itself. That is where the muscles that move your fingers actually are:
+they sit near the elbow and pull on long tendons running down to the hand. An
+armband further down the forearm would be sitting over tendon, and one on the
+upper arm would be reading biceps and triceps, which say nothing about what the
+fingers are doing.
+
 Each electrode fills toward deep red in proportion to how hard the muscle
 beneath it is working. This is the one place in the interface where colour is a
 measurement rather than a label.
@@ -133,6 +140,29 @@ You can see this directly. Select `Close fist`, start, and watch how far the bar
 travels before it locks. Then do the same with `Open hand`. The open hand
 commits sooner from the same quality of evidence.
 
+### Hand
+
+What the prosthesis is actually doing. The commitment bar is the evidence; this
+is the consequence. They are driven by the same number.
+
+The hand does not move at all until the bar passes its first mark. From there it
+travels continuously, reaching the full gesture exactly when the bar reaches
+that gesture's post. So the two panels always agree — if the bar is at half, the
+hand is halfway there.
+
+**While the hand is still moving, a faint dashed outline sits behind it.** That
+is the resting hand: where it returns to if the evidence turns. It disappears
+the moment the gesture locks, because at that moment the hand is no longer going
+back on its own. That appearing-and-vanishing outline is the clearest single
+signal of whether you can still change your mind.
+
+When the gesture locks, the whole hand turns green.
+
+The hand is drawn from the palm side, turned slightly so you can see fingers
+curl toward you rather than straight at you. Wrist bending is shown at a
+somewhat smaller angle than a real wrist reaches; at the true angle the hand
+turns edge-on to you and becomes impossible to read.
+
 ### Decoder
 
 | Row | Meaning |
@@ -156,6 +186,11 @@ real time.
 
 **See the risk asymmetry.** Compare how far `Close fist` travels before locking
 against `Open hand`. Same decoder, different cost of being wrong.
+
+**Watch the hand and the bar together.** Pick any gesture and watch both at
+once. The hand stays completely still while the bar fills to its first mark,
+then starts closing. Nothing on a conventional prosthesis does this: it would
+sit still through the whole deliberation and then jump.
 
 **Change your mind mid-gesture.** Start one gesture, and while the bar is still
 filling — before it reads *held* — switch to another. The accumulated evidence
@@ -220,7 +255,6 @@ If something here does not work with your assistive technology, that is a bug.
 
 The Live screen is one screen of a planned application. Still to come:
 
-- A virtual hand driven by the commitment fraction
 - **Cartography** — mapping your reachable activation space and synthesising
   gestures suited to it
 - **Coaching** — diagnosing whether an error was physiological, behavioural, a

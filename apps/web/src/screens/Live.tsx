@@ -2,15 +2,18 @@
  * Live decoding.
  *
  * The wearer picks an intended gesture, the replay feeds that signal, and the
- * decoder responds in real time. Three things are on screen at once and they
- * answer three different questions:
+ * decoder responds in real time. Four things are on screen at once and they
+ * answer four different questions:
  *
  *   Signal      is my hardware working?
  *   Activation  which muscles am I using?
- *   Commitment  what is the hand about to do, and can I still stop it?
+ *   Commitment  how much evidence is there, and against what boundary?
+ *   Hand        what is the prosthesis doing right now, and can I still stop it?
  *
- * The commitment panel gets the most weight because it is the only one that
- * answers a question about the future.
+ * The last two share a row because they are one story told twice: the bar is
+ * the quantity, the hand is its physical consequence, and both are driven by
+ * the same commitment fraction. They get the most weight on the screen because
+ * they are the only parts that answer a question about the future.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -18,6 +21,7 @@ import { DEFAULT_EVIDENCE_CONFIG } from '@neurogrip/core';
 import { ActivationRing } from '../components/ActivationRing.js';
 import { CommitmentBar } from '../components/CommitmentBar.js';
 import { Oscilloscope } from '../components/Oscilloscope.js';
+import { NO_DRIVE, VirtualHand, type MuscleDrive } from '../components/VirtualHand.js';
 import { Icon } from '../components/Icon.js';
 import { ReplaySource, loadReplayBundle, type ReplayBundle } from '../sources/replaySource.js';
 import type { DecisionResponse, WorkerRequest, WorkerResponse } from '../worker/protocol.js';
@@ -58,6 +62,35 @@ const GESTURE_LABEL: Readonly<Record<string, string>> = {
   spherical_grip: 'Hold a ball',
 };
 
+/**
+ * Channel RMS that reads as full activation on the electrode ring, in volts.
+ *
+ * Measured off the replay bundle rather than assumed: across every gesture,
+ * a single channel peaks at 953 uV and a resting one sits at 16 uV. One
+ * millivolt puts the loudest electrode just under saturation and leaves rest
+ * essentially dark.
+ *
+ * Defined here and passed to the ring rather than left to the ring's own
+ * default, so the two views of this signal cannot drift apart.
+ */
+const FULL_SCALE_VOLTS = 1e-3;
+
+/**
+ * The same idea for a muscle group rather than a single electrode.
+ *
+ * A group's drive is a weighted mean over the ring. The weights concentrate on
+ * the electrodes nearest that muscle, so the mean tracks the loudest channel
+ * fairly closely rather than being dragged down by the far side of the
+ * forearm -- measured, the group drive peaks at 656 uV against a per-channel
+ * peak of 953. Seven hundred puts the loudest gesture in the vocabulary at
+ * about 0.94 and pins nothing.
+ *
+ * Two earlier values were guessed at from the simulator's stated RMS range and
+ * both saturated on a power grip, which made a strong contraction and a
+ * fatigued one draw the same colour. This one comes from the signal.
+ */
+const FULL_DRIVE_VOLTS = 7e-4;
+
 interface Status {
   ready: boolean;
   threaded: boolean;
@@ -90,6 +123,38 @@ export function Live() {
     () => gestures.map((name) => COMMIT_COST[name] ?? 0.5),
     [gestures],
   );
+  const gestureLabels = useMemo(
+    () => gestures.map((name) => GESTURE_LABEL[name] ?? name),
+    [gestures],
+  );
+
+  /**
+   * Muscle-group drive, straight off the electrodes.
+   *
+   * This deliberately does not pass through the decoder. The hand's shape is
+   * what the decoder concluded; its colour is what the muscles are doing, and
+   * the two are worth being able to disagree. The weighting comes from the
+   * replay manifest, which computes it from the same forearm anatomy the
+   * simulator mixes through.
+   */
+  const drive = useMemo<MuscleDrive>(() => {
+    const groups = bundle?.manifest.muscleGroups;
+    const rms = decision?.channelRms;
+    if (!groups || !rms) return NO_DRIVE;
+
+    const project = (weights: readonly number[]) => {
+      let total = 0;
+      for (let i = 0; i < weights.length; i++) total += weights[i]! * (rms[i] ?? 0);
+      return Math.min(1, Math.max(0, total / FULL_DRIVE_VOLTS));
+    };
+
+    return {
+      digitFlexor: project(groups.digit_flexor),
+      digitExtensor: project(groups.digit_extensor),
+      wristFlexor: project(groups.wrist_flexor),
+      wristExtensor: project(groups.wrist_extensor),
+    };
+  }, [bundle, decision]);
 
   useEffect(() => {
     let disposed = false;
@@ -229,26 +294,77 @@ export function Live() {
           </p>
         ) : null}
 
-        {gestures.length > 0 && decision ? (
-          <CommitmentBar
-            gestures={gestures}
-            leader={decision.leader}
-            commitment={decision.commitment}
-            latched={decision.latched}
-            reversible={decision.reversible}
-            timedOut={decision.timedOut}
-            evidence={decision.evidence}
-            effectiveThreshold={decision.effectiveThreshold}
-            risks={risks}
-            baseThreshold={DEFAULT_EVIDENCE_CONFIG.baseThreshold}
-            riskWeight={DEFAULT_EVIDENCE_CONFIG.riskWeight}
-            motionOnset={DEFAULT_EVIDENCE_CONFIG.motionOnset}
+        <div className="actuation">
+          {/* The hand is shown from the first frame, at rest, so the wearer
+              sees what it looks like before anything is decoded. */}
+          <VirtualHand
+            gesture={decision ? (gestures[decision.leader] ?? '') : 'rest'}
+            label={
+              decision
+                ? (GESTURE_LABEL[gestures[decision.leader] ?? ''] ?? 'this gesture')
+                : 'Rest'
+            }
+            commitment={decision?.commitment ?? 0}
+            latched={decision?.latched ?? false}
+            reversible={decision?.reversible ?? false}
+            timedOut={decision?.timedOut ?? false}
+            drive={drive}
           />
-        ) : (
-          <p className="panel muted">
-            {status.ready ? 'Press start to begin decoding.' : 'Loading the decoder…'}
-          </p>
-        )}
+
+          <div className="actuation-readout">
+            {gestures.length > 0 && decision ? (
+              <CommitmentBar
+                gestures={gestures}
+                labels={gestureLabels}
+                leader={decision.leader}
+                commitment={decision.commitment}
+                latched={decision.latched}
+                reversible={decision.reversible}
+                timedOut={decision.timedOut}
+                evidence={decision.evidence}
+                effectiveThreshold={decision.effectiveThreshold}
+                risks={risks}
+                baseThreshold={DEFAULT_EVIDENCE_CONFIG.baseThreshold}
+                riskWeight={DEFAULT_EVIDENCE_CONFIG.riskWeight}
+                motionOnset={DEFAULT_EVIDENCE_CONFIG.motionOnset}
+              />
+            ) : (
+              <p className="panel muted">
+                {status.ready ? 'Press start to begin decoding.' : 'Loading the decoder…'}
+              </p>
+            )}
+
+            <div className="panel">
+              <h2>Decoder</h2>
+              <dl className="readout-list">
+                <div>
+                  <dt>Decoded</dt>
+                  <dd data-correct={decision?.latched ? correct : undefined}>
+                    {decision?.latched
+                      ? decision.timedOut
+                        ? 'No clear intent'
+                        : (GESTURE_LABEL[gestures[decision.latchedClass ?? 0] ?? ''] ?? '—')
+                      : '—'}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Latency, this window</dt>
+                  <dd className="ng-num">
+                    {decision ? `${decision.latencyMs.toFixed(2)} ms` : '—'}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Latency, P95</dt>
+                  <dd className="ng-num">{p95 ? `${p95.toFixed(2)} ms` : 'measuring…'}</dd>
+                </div>
+                <div>
+                  <dt>WASM threads</dt>
+                  <dd className="ng-num">{status.threaded ? 'enabled' : 'single'}</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+        </div>
       </div>
 
       <aside className="live-side">
@@ -277,39 +393,11 @@ export function Live() {
         <div className="panel">
           <ActivationRing
             channelRms={decision?.channelRms ?? new Array(nChannels).fill(0)}
+            fullScaleVolts={FULL_SCALE_VOLTS}
             failedChannel={status.rejected?.channel ?? null}
           />
         </div>
 
-        <div className="panel">
-          <h2>Decoder</h2>
-          <dl className="readout-list">
-            <div>
-              <dt>Decoded</dt>
-              <dd data-correct={decision?.latched ? correct : undefined}>
-                {decision?.latched
-                  ? decision.timedOut
-                    ? 'No clear intent'
-                    : (GESTURE_LABEL[gestures[decision.latchedClass ?? 0] ?? ''] ?? '—')
-                  : '—'}
-              </dd>
-            </div>
-            <div>
-              <dt>Latency, this window</dt>
-              <dd className="ng-num">
-                {decision ? `${decision.latencyMs.toFixed(2)} ms` : '—'}
-              </dd>
-            </div>
-            <div>
-              <dt>Latency, P95</dt>
-              <dd className="ng-num">{p95 ? `${p95.toFixed(2)} ms` : 'measuring…'}</dd>
-            </div>
-            <div>
-              <dt>WASM threads</dt>
-              <dd className="ng-num">{status.threaded ? 'enabled' : 'single'}</dd>
-            </div>
-          </dl>
-        </div>
       </aside>
 
       <div className="live-transport">

@@ -18,7 +18,9 @@ full design and the prior-art analysis behind each claim.
    repeatability and effort, and teach them back. *Not built yet (Phase 2).*
 2. **Risk-weighted evidence accumulation** — the hand begins moving reversibly
    as evidence accrues and latches only at full commitment; high-cost gestures
-   must clear a higher evidence bar than cheap ones. **Built.**
+   must clear a higher evidence bar than cheap ones. **Built**, and visible:
+   the commitment bar shows the evidence, the virtual hand shows what it is
+   doing to the prosthesis.
 3. **Error-attribution router** — decompose each error into physiological,
    behavioural, model-capacity and drift components and route each to a
    different remedy. *Not built yet (Phase 3).*
@@ -36,16 +38,16 @@ full design and the prior-art analysis behind each claim.
 | --- | --- | --- |
 | 0 | Simulator, feature pipeline in both languages, conformance gate, CI | Complete |
 | 1a | Corpus, LOSO evaluation, model comparison, calibration, ONNX export, latency | Complete |
-| 1b | Evidence accumulator, design system, browser app, Live screen | Vertical slice running |
+| 1b | Evidence accumulator, design system, browser app, Live screen, virtual hand | Vertical slice running |
 | 2 | Neuromotor Cartography | Not started |
 | 3 | Error-attribution router, anatomical coaching | Not started |
 | 4 | Clinician mode, amputee stratum, robustness | Not started |
 | 5 | Azure deployment, patent disclosures | Not started |
 
-**248 tests** — 126 Python, 122 TypeScript.
+**288 tests** — 126 Python, 162 TypeScript.
 
-Not yet built: the virtual hand, Cartography, the attribution router, clinician
-mode, and deployment.
+Not yet built: Cartography, the attribution router, clinician mode, and
+deployment.
 
 ---
 
@@ -54,7 +56,7 @@ mode, and deployment.
 | Path | Holds |
 | --- | --- |
 | `services/research/` | Python: simulator, features, training, evaluation, export |
-| `packages/core/` | TypeScript: the same DSP and features, plus the evidence accumulator |
+| `packages/core/` | TypeScript: the same DSP and features, plus the evidence accumulator and the hand kinematics |
 | `packages/design/` | Design tokens and the icon set |
 | `apps/web/` | The browser application |
 | `fixtures/conformance/` | Golden vectors pinning the two feature implementations together |
@@ -238,6 +240,63 @@ safety judgement about how hard each mistake is to undo, not a tuning parameter.
 
 ---
 
+## The virtual hand
+
+`packages/core/src/posture.ts` and `packages/core/src/handPaths.ts`, drawn by
+`apps/web/src/components/VirtualHand.tsx`. The commitment bar is the quantity;
+the hand is its physical consequence. Both are driven by the same number.
+
+`actuatorExcursion` maps commitment to travel: zero below the motion onset, one
+at commitment, linear between. It defaults to the **same** `motionOnset` the bar
+draws its mark from, and a test asserts that. If they diverged, the bar would
+promise motion at a point where the hand had not started.
+
+**Kinematics are solved in three dimensions, then projected obliquely.** Finger
+flexion and wrist flexion are both sagittal motions and are therefore invisible
+in a true palmar view, so a flat drawing must either hide the dominant motion in
+this vocabulary or misrepresent it as sideways deviation. The frame is: origin
+at the wrist, `+x` toward the little finger, `+y` toward the fingertips, `+z` out
+of the palm. Lengths are in millimetres and roughly anatomical.
+
+Three things the drawing does that a stick figure does not:
+
+- Each phalanx is the convex hull of the circles at its two joints, tapering
+  distally, so a digit has volume. Drawn distal-over-proximal with an opaque
+  fill, the seam between two capsules is the joint.
+- Parts are painted back to front by projected depth, so a digit that has curled
+  toward the viewer covers the palm it is closing over. Without that a fist is a
+  tangle of crossing outlines.
+- While the motion is still reversible the rest posture is drawn behind it as a
+  hairline skeleton — where the hand returns to if the evidence turns. It
+  disappears the moment the gesture latches, because at that moment it stops
+  being true.
+
+The whole drawing costs **32 µs per frame**, about 0.16% of one core at 50 Hz.
+
+`DEFAULT_HAND_VIEW` has **pitch zero, deliberately.** Pitch rotates about the
+same axis the wrist turns about, so any non-zero value foreshortens flexion and
+extension by different amounts and makes one of the two look broken.
+`WRIST_RANGE` is 42°, less than a wrist can do, because past roughly forty
+degrees the hand foreshortens into an unreadable edge-on smear. The display
+understates the angle so that it can show it at all.
+
+Three tests are the gates worth knowing about:
+
+- `HAND_VIEWBOX` is fixed, never fitted per frame — a fitted box would rescale
+  the hand as it moved, so a closing fist would appear to grow. One test sweeps
+  every gesture across its whole travel and asserts nothing leaves the box,
+  **including each joint's drawn half-width**. A second asserts the box is no
+  more than 12 units larger than the drawing on any side, so an overflow cannot
+  be fixed by quietly enlarging the frame.
+- Phalanx lengths are asserted invariant under any flexion. Bone does not
+  stretch.
+- No two gestures may render to the same hand, the same argument as the
+  simulator's gain-degeneracy test one layer up: two gestures the decoder can
+  separate but the display cannot would make the instrument worse than the
+  decoder behind it.
+
+---
+
 ## Design system
 
 `packages/design/`. Two rules, both enforced by tests:
@@ -307,10 +366,13 @@ optimistic number.
 
 ```bash
 # Setup
+python -m venv .venv
+source .venv/Scripts/activate      # POSIX: source .venv/bin/activate
 pip install -e "./services/research[dev,ml]"
 npm install
 
-# Tests
+# Tests  (the Python ones need that virtualenv active; `npm run build:assets`
+#          finds the interpreter itself, `pytest` does not)
 python -m pytest services/research/tests -q
 npm test
 npm run typecheck

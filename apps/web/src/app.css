@@ -251,6 +251,180 @@ main {
   max-width: var(--ng-measure);
 }
 
+/* ---- The hand ---------------------------------------------------------- */
+
+/* The hand and the readouts beside it are one story: what the prosthesis is
+   doing, how much evidence there is for it, and what the decoder called it.
+   The hand is portrait and the readouts are wide and short, so the readouts
+   stack into a column of matching height rather than leaving a void. */
+.actuation {
+  display: grid;
+  grid-template-columns: 244px minmax(0, 1fr);
+  gap: var(--ng-space-6);
+  align-items: start;
+}
+.actuation-readout {
+  display: grid;
+  gap: var(--ng-space-4);
+  min-width: 0;
+}
+
+.hand {
+  margin: 0;
+  height: 100%;
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  background: var(--ng-paper-raised);
+  padding: var(--ng-space-4);
+  border-radius: var(--ng-radius-lg);
+  display: grid;
+  gap: var(--ng-space-2);
+}
+.hand-caption {
+  font-size: var(--ng-text-lg);
+  font-weight: 700;
+}
+.hand-figure {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* No graticule behind the hand. It is a picture of a mechanism, not a
+     measurement on a scale, and the grid in this interface means measurement. */
+}
+
+/* Every part is opaque and painted back to front, so a digit that has curled
+   toward the viewer covers what it closes over. Fills are the paper colour
+   rather than white: on the dark palette a white hand would be a lamp. */
+.hand-link,
+.hand-chassis,
+.hand-housing,
+.hand-pad {
+  fill: var(--ng-paper-raised);
+  stroke: var(--ng-ink);
+  vector-effect: non-scaling-stroke;
+}
+
+/* Weight hierarchy, as on a mechanical drawing: the chassis silhouette is the
+   heaviest line, the bearings next, the shafts inside them lighter still. */
+.hand-chassis {
+  stroke-width: 2;
+  stroke-linejoin: miter;
+  stroke-miterlimit: 4;
+}
+.hand-link {
+  stroke-width: 1.5;
+}
+.hand-housing {
+  fill: none;
+  stroke-width: 1;
+  stroke: var(--ng-rule-strong);
+}
+
+/* The pivot, drawn inside the link rather than proud of it. Unfilled, so the
+   drive wash beneath it still shows through. */
+.hand-pivot {
+  fill: none;
+  stroke: var(--ng-ink-faint);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Axle pins and contact pads read as solid hardware, not outlines. */
+.hand-axle {
+  fill: var(--ng-ink-muted);
+  stroke: none;
+}
+.hand-pad {
+  fill: var(--ng-paper-sunk);
+  stroke: var(--ng-rule-strong);
+  stroke-width: 1;
+}
+
+.hand-seam {
+  fill: none;
+  stroke: var(--ng-rule-strong);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.hand-tendon {
+  fill: none;
+  stroke: var(--ng-muscle);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The signal layer. Carmine is the palette's one chromatic hue and it encodes
+   muscle activation, which is exactly what this is: opacity set per frame from
+   the electrode ring, over geometry set by the decoder. */
+.hand-drive {
+  fill: var(--ng-muscle);
+  stroke: none;
+  pointer-events: none;
+}
+
+.hand-forearm {
+  fill: var(--ng-paper-raised);
+  stroke: var(--ng-rule-strong);
+  stroke-width: 1.5;
+  stroke-linejoin: miter;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Where the hand goes back to if the evidence turns. A hairline skeleton, not
+   a second outlined hand: dashing every part produced a cloud of dashes. */
+.hand-ghost path {
+  fill: none;
+  stroke: var(--ng-ink-faint);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+  vector-effect: non-scaling-stroke;
+}
+
+.hand[data-latched] .hand-link,
+.hand[data-latched] .hand-chassis {
+  stroke: var(--ng-commit);
+}
+.hand[data-latched] .hand-pivot,
+.hand[data-latched] .hand-housing {
+  stroke: color-mix(in srgb, var(--ng-commit) 55%, transparent);
+}
+.hand[data-latched] .hand-seam {
+  stroke: color-mix(in srgb, var(--ng-commit) 45%, transparent);
+}
+
+.hand-legend {
+  margin: 0;
+  font-size: var(--ng-text-xs);
+  color: var(--ng-ink-faint);
+  line-height: var(--ng-leading-tight);
+}
+/* The legend names the colour by showing it, which is shorter and less
+   ambiguous than naming a hue in words. */
+.hand-legend-key {
+  display: inline-block;
+  width: 0.7em;
+  height: 0.7em;
+  border-radius: var(--ng-radius-dot);
+  background: var(--ng-muscle);
+  vertical-align: baseline;
+}
+
+.hand-state {
+  margin: 0;
+  font-size: var(--ng-text-sm);
+  color: var(--ng-ink-muted);
+  min-height: 2.6em;
+}
+.hand-state[data-latched] {
+  color: var(--ng-commit);
+  font-weight: 700;
+}
+.hand-missing {
+  font-size: var(--ng-text-sm);
+}
+
 /* ---- Activation ring --------------------------------------------------- */
 
 .ring {
@@ -384,6 +558,16 @@ main {
   .live {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: 'main' 'side' 'transport';
+  }
+  .actuation {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hand {
+    height: auto;
+  }
+  .hand-figure {
+    max-width: 240px;
+    justify-self: center;
   }
   .scope-bed {
     height: 200px;

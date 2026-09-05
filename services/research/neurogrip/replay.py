@@ -31,6 +31,7 @@ import pathlib
 import numpy as np
 
 from neurogrip import FEATURE_SPEC_VERSION
+from neurogrip.anatomy import muscle_group_weights
 from neurogrip.simulator import (
     GESTURES,
     SimulatorConfig,
@@ -90,6 +91,10 @@ def build_bundle(
         "featureSpecVersion": FEATURE_SPEC_VERSION,
         "samplingRateHz": sampling_rate_hz,
         "nChannels": n_electrodes,
+        # Per-electrode weighting for each functional muscle group, so the
+        # browser can show which muscles are driving the hand without carrying
+        # a second copy of the forearm anatomy.
+        "muscleGroups": muscle_group_weights(n_electrodes),
         "samplesPerGesture": n_samples,
         "voltsPerCount": VOLTS_PER_COUNT,
         "dtype": "int16",

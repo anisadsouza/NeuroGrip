@@ -18,6 +18,21 @@ export interface ReplayManifest {
   readonly samplesPerGesture: number;
   readonly voltsPerCount: number;
   readonly gestures: readonly string[];
+  /**
+   * Per-electrode weighting for each functional muscle group, computed from
+   * the forearm volume-conduction model in `neurogrip.anatomy`.
+   *
+   * Carried in the manifest rather than reimplemented here for the same reason
+   * the simulator is not ported to the browser: a second copy of the anatomy
+   * would be a second thing to keep in step. Optional, so a bundle written
+   * before this field existed still loads and the hand simply shows no drive.
+   */
+  readonly muscleGroups?: {
+    readonly digit_flexor: readonly number[];
+    readonly digit_extensor: readonly number[];
+    readonly wrist_flexor: readonly number[];
+    readonly wrist_extensor: readonly number[];
+  };
   readonly source: string;
   readonly caveat: string;
 }

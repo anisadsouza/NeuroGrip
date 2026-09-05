@@ -1,0 +1,20 @@
+- generic [active] [ref=e1]:
+  - heading "postures, tinted by the muscle drive that gesture produces" [level=2] [ref=e2]
+  - generic [ref=e3]:
+    - figure "rest" [ref=e4]
+    - figure "fist" [ref=e47]
+    - figure "open_hand" [ref=e90]
+    - figure "pinch" [ref=e133]
+    - figure "point" [ref=e176]
+    - figure "wrist_flexion" [ref=e219]
+    - figure "wrist_extension" [ref=e262]
+    - figure "thumb_up" [ref=e305]
+    - figure "two_finger" [ref=e348]
+    - figure "spherical_grip" [ref=e391]
+  - heading "travel, with the retract ghost and rising flexor drive" [level=2] [ref=e434]
+  - generic [ref=e435]:
+    - figure "fist 0%" [ref=e436]
+    - figure "fist 25%" [ref=e479]
+    - figure "fist 50%" [ref=e529]
+    - figure "fist 75%" [ref=e579]
+    - figure "fist 100%" [ref=e629]
