@@ -7,7 +7,7 @@ name = "neurogrip"
 version = "0.2.0"
 description = "NeuroGrip research toolkit: sEMG simulation, features, training, evaluation"
 requires-python = ">=3.12"
-dependencies = ["numpy>=2.0", "scipy>=1.13","scikit-learn"]
+dependencies = ["numpy>=2.0", "scipy>=1.13","scikit-learn", "onnxruntime>=1.20", "skl2onnx>=1.17", "onnx>=1.16"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
