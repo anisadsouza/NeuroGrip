@@ -20,11 +20,13 @@ import {
   DEFAULT_WINDOW_CONFIG,
   EvidenceAccumulator,
   MultiChannelRingBuffer,
+  assertFeatureSpecCompatible,
   checkSignalQuality,
   featureVector,
   hopSamples,
   windowSamples,
 } from '@neurogrip/core';
+import { channelRms, decimate, deinterleave } from './frames.js';
 import {
   DISPLAY_POINTS,
   type DecisionResponse,
@@ -70,15 +72,32 @@ async function init(
   // isolation. Where that is unavailable the runtime still works, single
   // threaded and roughly twice as slow, so report which one we got rather than
   // quietly publishing an optimistic latency number.
-  const threaded = typeof SharedArrayBuffer !== 'undefined';
+  // crossOriginIsolated, not `typeof SharedArrayBuffer`. The constructor can
+  // exist while isolation is absent, in which case the threads never
+  // materialise and the readout would claim 'enabled' over single-threaded
+  // inference -- an optimistic number, which is the one thing this readout
+  // exists to avoid.
+  const threaded = self.crossOriginIsolated === true;
   ort.env.wasm.numThreads = threaded
     ? Math.min(4, navigator.hardwareConcurrency || 1)
     : 1;
   ort.env.wasm.simd = true;
-  ort.env.wasm.wasmPaths = `${self.location.origin}/ort/`;
+  // Respecting BASE_URL, as the model and replay URLs already do. Hard-coding
+  // the origin root breaks the moment the app is served from a subpath.
+  ort.env.wasm.wasmPaths = new URL(`${import.meta.env.BASE_URL}ort/`, self.location.href).href;
 
   const metadataUrl = modelUrl.replace(/\.onnx$/, '.json');
   const metadata = await fetch(metadataUrl).then((r) => r.json());
+
+  // Before the session loads, not after. A decoder exported under a different
+  // feature specification runs perfectly happily on a vector whose columns
+  // mean something else, and the only evidence is degraded accuracy.
+  assertFeatureSpecCompatible({
+    source: 'decoder.json',
+    featureSpecVersion: metadata.feature_spec_version,
+    nChannels: metadata.n_channels,
+    nFeatures: metadata.n_features,
+  });
 
   const session = await ort.InferenceSession.create(modelUrl, {
     executionProviders: ['wasm'],
@@ -112,47 +131,6 @@ async function init(
   });
 }
 
-/**
- * Decimate a window for drawing, preserving the envelope.
- *
- * Min/max decimation, not peak-picking. Taking the largest-magnitude sample in
- * each bucket loses the sign alternation that makes a waveform look like a
- * waveform: consecutive buckets can both land on positive peaks and the trace
- * drifts off the baseline into smooth undulation. Emitting the minimum and the
- * maximum of each bucket in order keeps both extremes, so the drawn envelope
- * matches what an oscilloscope would show.
- */
-function decimate(channels: Float64Array[], points: number): Float32Array {
-  const out = new Float32Array(channels.length * points);
-  const width = channels[0]!.length;
-  const buckets = Math.max(1, Math.floor(points / 2));
-  const stride = width / buckets;
-
-  for (let c = 0; c < channels.length; c++) {
-    const source = channels[c]!;
-    const base = c * points;
-    for (let b = 0; b < buckets; b++) {
-      const start = Math.floor(b * stride);
-      const end = Math.max(start + 1, Math.min(width, Math.floor((b + 1) * stride)));
-
-      let low = source[start]!;
-      let high = source[start]!;
-      for (let i = start + 1; i < end; i++) {
-        const value = source[i]!;
-        if (value < low) low = value;
-        if (value > high) high = value;
-      }
-
-      // Alternate the order bucket to bucket so the polyline zig-zags through
-      // the envelope rather than doubling back on itself every other point.
-      const first = b % 2 === 0 ? low : high;
-      const second = b % 2 === 0 ? high : low;
-      out[base + b * 2] = first;
-      if (b * 2 + 1 < points) out[base + b * 2 + 1] = second;
-    }
-  }
-  return out;
-}
 
 async function decodeWindow(active: Runtime): Promise<void> {
   const window = active.ring.readLatestWindow(active.windowWidth);
@@ -190,12 +168,7 @@ async function decodeWindow(active: Runtime): Promise<void> {
 
   const decision = active.accumulator.update(posteriors);
 
-  const channelRms: number[] = [];
-  for (const channel of window) {
-    let sum = 0;
-    for (let i = 0; i < channel.length; i++) sum += channel[i]! * channel[i]!;
-    channelRms.push(Math.sqrt(sum / channel.length));
-  }
+  const rms = channelRms(window);
 
   const display = decimate(window, DISPLAY_POINTS);
 
@@ -212,7 +185,7 @@ async function decodeWindow(active: Runtime): Promise<void> {
     effectiveThreshold: decision.effectiveThreshold,
     evidence: decision.evidence,
     posteriors,
-    channelRms,
+    channelRms: rms,
     display,
     latencyMs: inferenceEnd - featureStart,
     featureMs: featureEnd - featureStart,
@@ -222,8 +195,25 @@ async function decodeWindow(active: Runtime): Promise<void> {
   post(message, [display.buffer]);
 }
 
-self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
-  const request = event.data;
+/**
+ * Messages are handled strictly one at a time.
+ *
+ * `MultiChannelRingBuffer.readLatestWindow` returns views into a shared
+ * scratch buffer, invalidated by the next call. An async handler makes the
+ * worker concurrent by accident: a second `samples` message arriving while the
+ * first is awaiting `session.run` reads the ring again, overwrites the scratch,
+ * and the first decode then computes its RMS and its display trace from the
+ * wrong window. It is reachable in ordinary use -- after a frame stall the
+ * replay source delivers up to a quarter second of samples, which is twelve
+ * hops of sequential decoding and longer than one frame -- and the symptom is
+ * a garbled trace and a wrong drive colour with no error anywhere.
+ *
+ * Chaining rather than copying: this is a serial pipeline, and the `async`
+ * keyword was the only thing that ever made it otherwise.
+ */
+let queue: Promise<void> = Promise.resolve();
+
+async function handle(request: WorkerRequest): Promise<void> {
   try {
     switch (request.type) {
       case 'init':
@@ -249,14 +239,8 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
         const active = runtime;
         if (!active) return;
 
-        const perChannel = active.nChannels;
-        const count = request.samples.length / perChannel;
-        const channels: Float64Array[] = [];
-        for (let c = 0; c < perChannel; c++) {
-          const view = new Float64Array(count);
-          for (let i = 0; i < count; i++) view[i] = request.samples[c * count + i]!;
-          channels.push(view);
-        }
+        const channels = deinterleave(request.samples, active.nChannels);
+        const count = channels[0]?.length ?? 0;
         active.ring.push(channels);
 
         // Decode on exact hop boundaries. Decoding per message would tie the
@@ -272,4 +256,8 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
   } catch (error) {
     fail(error);
   }
+}
+
+self.onmessage = (event: MessageEvent<WorkerRequest>) => {
+  queue = queue.then(() => handle(event.data));
 };

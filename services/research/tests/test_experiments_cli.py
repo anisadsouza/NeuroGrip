@@ -21,8 +21,9 @@ from neurogrip import experiments
 def spy(monkeypatch):
     calls: dict[str, object] = {}
 
-    def fake_compare(config, calibration_folds=3):
+    def fake_compare(config, calibration_folds=3, posteriors_stem=None):
         calls["compare"] = config
+        calls["posteriors_stem"] = posteriors_stem
         return {"best_model": "stub", "models": {}, "paired_significance": {}}
 
     def fake_export(config, model_name, out_dir):
@@ -100,3 +101,20 @@ def test_defaults_do_not_require_out(monkeypatch, spy, tmp_path):
     monkeypatch.chdir(tmp_path)
     _run(monkeypatch, "compare")
     assert (tmp_path / "artifacts" / "model_comparison.json").exists()
+
+
+def test_posteriors_flag_reaches_the_experiment(monkeypatch, spy, tmp_path):
+    """The posterior export is what TTUM is computed from, and it is opt-in.
+
+    A flag that parsed but never reached compare_models would leave the TTUM
+    run reading a stale file from a previous corpus, which is worse than
+    reading none: the numbers would be wrong rather than absent.
+    """
+    stem = tmp_path / "posteriors"
+    _run(monkeypatch, "compare", "--out", str(tmp_path / "c.json"), "--posteriors", str(stem))
+    assert spy["posteriors_stem"] == stem
+
+
+def test_posteriors_are_not_written_unless_asked(monkeypatch, spy, tmp_path):
+    _run(monkeypatch, "compare", "--out", str(tmp_path / "c.json"))
+    assert spy["posteriors_stem"] is None

@@ -111,6 +111,10 @@
     }
   },
   "best_model": "rbf_svm",
+  "posteriors": {
+    "trials": 320,
+    "path": "artifacts\\posteriors.bin"
+  },
   "paired_significance": {
     "rbf_svm_vs_lda": {
       "statistic": 0.0,
@@ -125,5 +129,5 @@
   },
   "source": "simulator",
   "caveat": "Accuracy here is measured on simulated sEMG. The simulator has no motion artefact, no skin-impedance drift and no cross-session electrode replacement, so these figures are optimistic relative to recorded data such as NinaPro. Report them as simulator results.",
-  "elapsed_seconds": 67.7
+  "elapsed_seconds": 66.0
 }

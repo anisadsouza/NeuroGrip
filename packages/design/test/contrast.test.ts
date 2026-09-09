@@ -77,6 +77,16 @@ const GRAPHIC_PAIRS: ReadonlyArray<[string, string, number, string]> = [
   ['--ng-muscle', '--ng-paper-sunk', 3, 'the signal trace against its bed'],
   ['--ng-commit', '--ng-paper-sunk', 3, 'the commitment bar fill'],
   ['--ng-ink', '--ng-paper-sunk', 3, 'plotted lines'],
+  // Listed here and NOT in TEXT_PAIRS, which is the whole point of the token:
+  // --ng-ink-faint clears 3:1 for a mark and does not clear 4.5:1 for prose.
+  // It is for hairlines, ghost outlines and the rest posture behind a moving
+  // hand. Setting body copy in it produces text a low-vision reader cannot
+  // read, which is how it was found -- axe caught it on the hand legend, where
+  // the token file alone could not see the misuse.
+  // Against paper-raised, which is the ground the hand figure is actually
+  // drawn on. It does NOT clear 3:1 on paper-sunk, so a faint mark must not be
+  // moved into a plot bed without being restated in a darker ink.
+  ['--ng-ink-faint', '--ng-paper-raised', 3, 'the rest posture behind a moving hand'],
   // Deliberately NOT listed: --ng-rule / --ng-rule-strong against the ground.
   // WCAG 1.4.11 covers graphics needed to *understand content* and the visual
   // boundaries of *interactive controls*. A structural separator between two

@@ -10,5 +10,15 @@
       "@neurogrip/design": ["../../packages/design/src/index.ts"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "test/**/*.ts",
+    "test/**/*.tsx",
+    "e2e/**/*.ts",
+    "aliases.ts",
+    "vite.config.ts",
+    "vitest.unit.config.ts",
+    "vitest.dom.config.ts"
+  ]
 }

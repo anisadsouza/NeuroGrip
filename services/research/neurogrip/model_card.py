@@ -16,11 +16,25 @@ import pathlib
 from datetime import date
 
 
+def _fmt_ms(value: float | None) -> str:
+    """Milliseconds, or an em dash where a trial never got there.
+
+    Never a zero: a censored measurement and an instantaneous one are opposite
+    findings, and printing both as 0 ms would merge them.
+    """
+    return "—" if value is None else f"{value:.0f} ms"
+
+
 def _fmt_pct(value: float | None) -> str:
     return "-" if value is None else f"{value * 100:.1f}%"
 
 
-def render(comparison: dict, decoder: dict, generated_on: str) -> str:
+def render(
+    comparison: dict,
+    decoder: dict,
+    generated_on: str,
+    ttum: dict | None = None,
+) -> str:
     best = comparison["best_model"]
     models = comparison["models"]
     chosen = models[best]
@@ -147,6 +161,63 @@ def render(comparison: dict, decoder: dict, generated_on: str) -> str:
     )
     add("")
 
+    if ttum is not None:
+        add("### Time to useful motion (TTUM)")
+        add("")
+        add(
+            "Accuracy says whether the decoder was right. TTUM says how long the "
+            "wearer pushed before the hand did anything, which is the quantity "
+            "progressive actuation exists to improve and the one accuracy cannot "
+            "see."
+        )
+        add("")
+        add(ttum["definition"])
+        add("")
+        add(
+            f"Measured over {ttum['nTrials']:,} out-of-fold trials of "
+            f"{ttum['hopsPerTrial']} hops each, replayed through the deployed "
+            f"evidence accumulator."
+        )
+        add("")
+        add("| | Moved | Censored | P50 | P90 | P95 | Max |")
+        add("| --- | --- | --- | --- | --- | --- | --- |")
+        for label, key in (("Any motion", "anyMotion"), ("Correct motion", "correctMotion")):
+            block = ttum[key]
+            add(
+                f"| {label} | {block['nMoved']} | {block['nCensored']} | "
+                f"{_fmt_ms(block['p50Ms'])} | {_fmt_ms(block['p90Ms'])} | "
+                f"{_fmt_ms(block['p95Ms'])} | {_fmt_ms(block['maxMs'])} |"
+            )
+        add("")
+        latch = ttum["latch"]
+        add(
+            f"Commitment latched in {latch['nLatched']} of {ttum['nTrials']} trials "
+            f"at a median of {_fmt_ms(latch['p50Ms'])}, correct in "
+            f"{_fmt_pct(latch['accuracyAtLatch'])} of those; "
+            f"{latch['nTimedOut']} fell back to rest."
+        )
+        add("")
+        add(
+            "Ordered by commit cost, so the risk weighting is visible as a trend "
+            "rather than asserted. A costly gesture has a further boundary, so it "
+            "reaches the motion onset later on the same quality of evidence."
+        )
+        add("")
+        add("| Gesture | Commit cost | Trials | Moved | P50 |")
+        add("| --- | --- | --- | --- | --- |")
+        for name, block in sorted(
+            ttum["perGesture"].items(), key=lambda kv: (-kv[1]["risk"], kv[0])
+        ):
+            add(
+                f"| `{name}` | {block['risk']} | {block['nTrials']} | "
+                f"{block['nMoved']} | {_fmt_ms(block['p50Ms'])} |"
+            )
+        add("")
+        add(ttum["reachability"])
+        add("")
+        add(f"**Caveat.** {ttum['caveat']}")
+        add("")
+
     add("### Python-to-ONNX parity")
     add("")
     parity = decoder["onnx_parity"]
@@ -186,7 +257,13 @@ def render(comparison: dict, decoder: dict, generated_on: str) -> str:
     add("## Reproducing")
     add("")
     add("```bash")
-    add("python -m neurogrip.experiments compare --out artifacts/model_comparison.json")
+    add(
+        "python -m neurogrip.experiments compare --out artifacts/model_comparison.json"
+        + (" \
+    --posteriors artifacts/posteriors" if ttum is not None else "")
+    )
+    if ttum is not None:
+        add("npm run ttum")
     add("python -m neurogrip.experiments export  --out artifacts/ --model " + best)
     add("python -m neurogrip.model_card --artifacts artifacts --out docs/model_card.md")
     add("```")
@@ -206,9 +283,14 @@ def main() -> None:
     )
     decoder = json.loads((args.artifacts / "decoder.json").read_text(encoding="utf-8"))
 
+    # Optional: the card still renders without a TTUM run, because the run
+    # needs the Node toolchain and the card must not require it.
+    ttum_path = args.artifacts / "ttum.json"
+    ttum = json.loads(ttum_path.read_text(encoding="utf-8")) if ttum_path.exists() else None
+
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(
-        render(comparison, decoder, date.today().isoformat()), encoding="utf-8"
+        render(comparison, decoder, date.today().isoformat(), ttum), encoding="utf-8"
     )
     print(f"wrote {args.out}")
 

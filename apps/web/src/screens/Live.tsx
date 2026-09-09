@@ -21,46 +21,16 @@ import { DEFAULT_EVIDENCE_CONFIG } from '@neurogrip/core';
 import { ActivationRing } from '../components/ActivationRing.js';
 import { CommitmentBar } from '../components/CommitmentBar.js';
 import { Oscilloscope } from '../components/Oscilloscope.js';
-import { NO_DRIVE, VirtualHand, type MuscleDrive } from '../components/VirtualHand.js';
+import { VirtualHand, type MuscleDrive } from '../components/VirtualHand.js';
+import { GestureChoices } from '../components/GestureChoices.js';
 import { Icon } from '../components/Icon.js';
+import { GESTURE_LABEL, labelsFor, risksFor } from '../decode/commitCost.js';
+import { percentile95, trimRing } from '../decode/latency.js';
+import { projectDrive } from '../decode/muscleDrive.js';
 import { ReplaySource, loadReplayBundle, type ReplayBundle } from '../sources/replaySource.js';
 import type { DecisionResponse, WorkerRequest, WorkerResponse } from '../worker/protocol.js';
 
-/**
- * Commit cost per gesture, in the model's class order.
- *
- * This is a safety judgement, not a tuning parameter. The question for each
- * gesture is how hard the mistake is to undo: a power grip closing on
- * something fragile, or on a person, is the expensive error. Opening a hand
- * drops what you were holding, which is recoverable. Rest costs nothing, which
- * is why it is also the fallback when nothing else commits.
- */
-const COMMIT_COST: Readonly<Record<string, number>> = {
-  rest: 0,
-  fist: 1.0,
-  spherical_grip: 1.0,
-  pinch: 0.6,
-  two_finger: 0.6,
-  wrist_flexion: 0.3,
-  wrist_extension: 0.3,
-  point: 0.2,
-  thumb_up: 0.2,
-  open_hand: 0.1,
-};
 
-/** Plain-language names. The model's identifiers are not wearer-facing copy. */
-const GESTURE_LABEL: Readonly<Record<string, string>> = {
-  rest: 'Rest',
-  fist: 'Close fist',
-  open_hand: 'Open hand',
-  pinch: 'Pinch',
-  point: 'Point',
-  wrist_flexion: 'Bend wrist in',
-  wrist_extension: 'Bend wrist back',
-  thumb_up: 'Thumb up',
-  two_finger: 'Two-finger grip',
-  spherical_grip: 'Hold a ball',
-};
 
 /**
  * Channel RMS that reads as full activation on the electrode ring, in volts.
@@ -75,21 +45,7 @@ const GESTURE_LABEL: Readonly<Record<string, string>> = {
  */
 const FULL_SCALE_VOLTS = 1e-3;
 
-/**
- * The same idea for a muscle group rather than a single electrode.
- *
- * A group's drive is a weighted mean over the ring. The weights concentrate on
- * the electrodes nearest that muscle, so the mean tracks the loudest channel
- * fairly closely rather than being dragged down by the far side of the
- * forearm -- measured, the group drive peaks at 656 uV against a per-channel
- * peak of 953. Seven hundred puts the loudest gesture in the vocabulary at
- * about 0.94 and pins nothing.
- *
- * Two earlier values were guessed at from the simulator's stated RMS range and
- * both saturated on a power grip, which made a strong contraction and a
- * fatigued one draw the same colour. This one comes from the signal.
- */
-const FULL_DRIVE_VOLTS = 7e-4;
+
 
 interface Status {
   ready: boolean;
@@ -119,13 +75,14 @@ export function Live() {
   });
   const [latency, setLatency] = useState<number[]>([]);
 
-  const risks = useMemo(
-    () => gestures.map((name) => COMMIT_COST[name] ?? 0.5),
-    [gestures],
-  );
+  const risks = useMemo(() => risksFor(gestures), [gestures]);
+  // The worker's class list is authoritative once it has loaded -- it is the
+  // order the decoder actually emits. Until then the manifest's list stands in,
+  // so the wearer can pick a gesture while the model is still loading. The
+  // compatibility gate guarantees the two agree.
   const gestureLabels = useMemo(
-    () => gestures.map((name) => GESTURE_LABEL[name] ?? name),
-    [gestures],
+    () => labelsFor(gestures.length > 0 ? gestures : (bundle?.manifest.gestures ?? [])),
+    [gestures, bundle],
   );
 
   /**
@@ -137,24 +94,10 @@ export function Live() {
    * replay manifest, which computes it from the same forearm anatomy the
    * simulator mixes through.
    */
-  const drive = useMemo<MuscleDrive>(() => {
-    const groups = bundle?.manifest.muscleGroups;
-    const rms = decision?.channelRms;
-    if (!groups || !rms) return NO_DRIVE;
-
-    const project = (weights: readonly number[]) => {
-      let total = 0;
-      for (let i = 0; i < weights.length; i++) total += weights[i]! * (rms[i] ?? 0);
-      return Math.min(1, Math.max(0, total / FULL_DRIVE_VOLTS));
-    };
-
-    return {
-      digitFlexor: project(groups.digit_flexor),
-      digitExtensor: project(groups.digit_extensor),
-      wristFlexor: project(groups.wrist_flexor),
-      wristExtensor: project(groups.wrist_extensor),
-    };
-  }, [bundle, decision]);
+  const drive = useMemo<MuscleDrive>(
+    () => projectDrive(bundle?.manifest.muscleGroups, decision?.channelRms),
+    [bundle, decision],
+  );
 
   useEffect(() => {
     let disposed = false;
@@ -175,10 +118,7 @@ export function Live() {
         case 'decision':
           setDecision(message);
           setStatus((s) => (s.rejected ? { ...s, rejected: null } : s));
-          setLatency((previous) => {
-            const next = [...previous, message.latencyMs];
-            return next.length > 200 ? next.slice(-200) : next;
-          });
+          setLatency((previous) => trimRing(previous, message.latencyMs));
           break;
         case 'rejected':
           setStatus((s) => ({
@@ -201,7 +141,7 @@ export function Live() {
           modelUrl: `${import.meta.env.BASE_URL}models/decoder.onnx`,
           nChannels: loaded.manifest.nChannels,
           samplingRateHz: loaded.manifest.samplingRateHz,
-          risks: loaded.manifest.gestures.map((name) => COMMIT_COST[name] ?? 0.5),
+          risks: risksFor(loaded.manifest.gestures),
         };
         worker.postMessage(request);
       })
@@ -247,11 +187,7 @@ export function Live() {
     workerRef.current?.postMessage({ type: 'reset' } satisfies WorkerRequest);
   }, []);
 
-  const p95 = useMemo(() => {
-    if (latency.length < 20) return null;
-    const sorted = [...latency].sort((a, b) => a - b);
-    return sorted[Math.floor(sorted.length * 0.95)]!;
-  }, [latency]);
+  const p95 = useMemo(() => percentile95(latency), [latency]);
 
   const nChannels = bundle?.manifest.nChannels ?? 8;
   const correct = decision !== null && decision.latched && decision.latchedClass === intended;
@@ -329,7 +265,7 @@ export function Live() {
                 motionOnset={DEFAULT_EVIDENCE_CONFIG.motionOnset}
               />
             ) : (
-              <p className="panel muted">
+              <p className="panel muted" aria-busy={!status.ready}>
                 {status.ready ? 'Press start to begin decoding.' : 'Loading the decoder…'}
               </p>
             )}
@@ -373,21 +309,12 @@ export function Live() {
           <p className="muted small">
             Choose what you are attempting. The decoder is not told your choice.
           </p>
-          <div className="gesture-choices" role="radiogroup" aria-label="Intended gesture">
-            {(bundle?.manifest.gestures ?? []).map((name, index) => (
-              <button
-                key={name}
-                type="button"
-                role="radio"
-                aria-checked={index === intended}
-                className="gesture-choice"
-                data-selected={index === intended || undefined}
-                onClick={() => chooseGesture(index)}
-              >
-                {GESTURE_LABEL[name] ?? name}
-              </button>
-            ))}
-          </div>
+          <GestureChoices
+            labels={gestureLabels}
+            selected={intended}
+            onSelect={chooseGesture}
+            legend="Intended gesture"
+          />
         </div>
 
         <div className="panel">

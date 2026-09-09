@@ -217,6 +217,15 @@ models that lost, is in [`model_card.md`](model_card.md).
 
 **That figure is optimistic and should not be quoted as a clinical result.**
 
+Alongside it sits the number progressive actuation is actually for: across 320
+held-out trials the hand **begins moving at a median of 40 ms** after the first
+decodable window, and commits at a median of 260 ms. The gap between those two
+is the reversible window — the time in which you can still change your mind.
+Both come from `artifacts/ttum.json`, and both exclude the 200 ms the system
+spends filling its first window, so what you would feel is roughly 200 ms more
+than either. The simulator holds each contraction steady with no onset, so this
+measures how fast evidence accrues, not how fast a person reacts.
+
 The signal is simulated. The simulator produces physiologically shaped muscle
 activity — real motor-unit recruitment, real fatigue behaviour, real
 volume-conduction crosstalk between channels — but it has no motion artefact, no
@@ -236,7 +245,9 @@ is available.
 
 ## Accessibility
 
-- Every control is reachable by keyboard, with a visible focus ring.
+- Every control is reachable by keyboard, with a visible focus ring. The
+  gesture picker is a single tab stop: arrow keys move through the options and
+  select as they go, and Home and End jump to either end.
 - The commitment bar exposes its state to screen readers as a meter, and
   announces committed and abandoned gestures — not every 20 ms update, which
   would be unusable.

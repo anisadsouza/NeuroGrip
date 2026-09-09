@@ -34,7 +34,11 @@ export interface InitRequest {
 
 export interface SamplesRequest {
   readonly type: 'samples';
-  /** Interleaved channel-major samples, in volts. */
+  /**
+   * Channel-major blocks of samples, in volts: every sample of channel 0,
+   * then every sample of channel 1. Not interleaved. Reading it the other way
+   * transposes the electrode ring without erroring.
+   */
   readonly samples: Float32Array;
   readonly nChannels: number;
 }

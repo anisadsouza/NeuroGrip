@@ -38,13 +38,13 @@ full design and the prior-art analysis behind each claim.
 | --- | --- | --- |
 | 0 | Simulator, feature pipeline in both languages, conformance gate, CI | Complete |
 | 1a | Corpus, LOSO evaluation, model comparison, calibration, ONNX export, latency | Complete |
-| 1b | Evidence accumulator, design system, browser app, Live screen, virtual hand | Vertical slice running |
+| 1b | Evidence accumulator, design system, browser app, Live screen, virtual hand, verification layer, TTUM | Complete |
 | 2 | Neuromotor Cartography | Not started |
 | 3 | Error-attribution router, anatomical coaching | Not started |
 | 4 | Clinician mode, amputee stratum, robustness | Not started |
 | 5 | Azure deployment, patent disclosures | Not started |
 
-**288 tests** — 126 Python, 162 TypeScript.
+**410 tests** — 144 Python, 246 TypeScript, 20 browser.
 
 Not yet built: Cartography, the attribution router, clinician mode, and
 deployment.
@@ -184,18 +184,22 @@ Latency, measured one window at a time on CPU, never batched:
 
 | Stage | P95 |
 | --- | --- |
-| Feature extraction | 1.29 ms |
-| ONNX inference | 0.96 ms |
-| **End to end** | **2.22 ms** (budget 10 ms) |
+| Feature extraction | 1.19 ms |
+| ONNX inference | 0.79 ms |
+| **End to end** | **2.01 ms** (budget 10 ms) |
 
 These come from the most recent `npm run build:assets` and are re-measured every
 time it runs, so they move by a few tenths of a millisecond between runs on a
 busy machine. The authoritative copy is always `artifacts/decoder.json`; the
 table above is a snapshot of it. Observed range across runs: 1.9-2.2 ms.
 
-In the browser the same path measured 2.4-3.2 ms P95 across several runs with
-WASM threads enabled. The spread is real: it is a shared machine, and the Live
-screen reports what it actually measured rather than a best case.
+In the browser the same path measures **2.0 ms P95 over 1,000 windows** with
+WASM threads enabled. That figure is no longer read off the screen by hand:
+`npm run test:e2e` drives the real worker through `apps/web/bench.html` and
+writes `artifacts/browser_latency.json`, asserting both the budget and that
+cross-origin isolation actually delivered threads. Without isolation the app
+still runs, roughly twice as slow and silently, which is why the threading
+assertion is a gate rather than a note.
 
 **These figures come from simulated data.** The simulator has no motion
 artefact, no skin-impedance drift, and no cross-session electrode replacement.
@@ -235,8 +239,45 @@ an unintended grip is a physical event and an unintended rest is not.
 reversible window and making "progressive" actuation indistinguishable from a
 threshold.
 
-Commit costs live in `apps/web/src/screens/Live.tsx` (`COMMIT_COST`). They are a
-safety judgement about how hard each mistake is to undo, not a tuning parameter.
+Commit costs live in `apps/web/src/decode/commitCost.ts` (`COMMIT_COST`). They
+are a safety judgement about how hard each mistake is to undo, not a tuning
+parameter. Three things read that one table — the accumulator in the worker,
+the commitment bar, and the TTUM run — so it is imported rather than restated.
+A gesture the table does not name costs 0.5, not 0: an unknown gesture is not
+known to be safe.
+
+### Time to useful motion
+
+The metric the mechanism is for. Accuracy cannot see it: it says whether the
+decoder was right, not how long the wearer pushed before the hand moved.
+
+`packages/core/src/ttum.ts` replays out-of-fold posteriors through the real
+accumulator — the same class the worker runs, not a copy, because a Python
+reimplementation would be a second accumulator owing a second conformance gate.
+Python writes what the decoder believed (`--posteriors`), TypeScript decides
+when the hand would have moved (`npm run ttum`), and `artifacts/ttum.json` is
+the result.
+
+Measured over 320 out-of-fold trials: motion begins at a **median of 40 ms**,
+the hand latches at a median of 260 ms, and the risk weighting shows as a trend
+— `fist` and `spherical_grip` at cost 1.0 start moving at 60–80 ms where
+`open_hand` at cost 0.1 starts at 40.
+
+Three properties of the number, all of which change what it means:
+
+- Trials that never move are **censored** — counted, never given a finite
+  value, never dropped. There is no mean in the summary, because under
+  censoring a mean is either wrong or an unstated imputation.
+- It **excludes** the 200 ms of window fill before the first decision. A wearer
+  experiences roughly TTUM + 200 ms.
+- The simulator applies **no onset envelope**: excitation is constant for a
+  whole repetition. So this measures evidence accrual from an already-active
+  contraction, not reaction time from the moment of intent. It is a lower
+  bound, and the figure must not travel without that sentence.
+
+CWER is deliberately not computed yet. It needs the Phase 3 attribution work to
+mean anything, and a half-defined safety metric quoted once becomes the number
+people remember.
 
 ---
 
@@ -380,6 +421,7 @@ npm run typecheck
 # The gates
 npm run test:conformance     # Python vs TypeScript features
 npm run fixtures             # regenerate golden vectors
+npm run test:e2e             # the browser tier: latency, a11y, keyboard, layout
 
 # Run the app
 npm run dev:web              # http://localhost:5173
@@ -388,10 +430,54 @@ npm run dev:web              # http://localhost:5173
 npm run build:assets
 
 # Experiments (minutes, not milliseconds)
-python -m neurogrip.experiments compare --out artifacts/model_comparison.json
+python -m neurogrip.experiments compare --out artifacts/model_comparison.json     --posteriors artifacts/posteriors     # --posteriors is what TTUM reads
+npm run ttum                              # replay them through the accumulator
 python -m neurogrip.experiments export  --out artifacts --model rbf_svm
 python -m neurogrip.model_card --artifacts artifacts --out docs/model_card.md
 ```
+
+---
+
+---
+
+## The verification layers
+
+Four of them, and they check different things. Which layer a test belongs in is
+usually decided by what it is physically able to observe.
+
+| Layer | Command | What only it can see |
+| --- | --- | --- |
+| Python | `pytest` | The simulator, the corpus, training, export, the model card |
+| Core (node) | `npm test` | Pure DSP, features, evidence, kinematics, TTUM |
+| Web unit (node) | `npm test` | Decode logic lifted out of React: risks, drive, frames, replay pacing |
+| Web DOM (jsdom) | `npm test` | ARIA contracts that depend on real focus and tabIndex |
+| Browser (Playwright) | `npm run test:e2e` | WASM threads, canvas pixels, layout, axe, tab order |
+
+`npm test` runs the first four through one vitest config with `projects`. The
+browser tier is a separate command on purpose: it downloads a browser, and a
+contributor changing one function should not pay for that.
+
+**Some things cannot be tested below the browser, and pretending otherwise is
+worse than not testing them.** `Oscilloscope.tsx` returns early when its
+container has no layout, which is unconditionally true under jsdom — a
+component test of it would render, assert, pass, and exercise none of the
+drawing. That is why the canvas is checked in `oscilloscope.spec.ts` and the
+jsdom test covers only the caption and the stated scale, with a comment saying
+where the rest lives.
+
+Three gates are worth knowing by name:
+
+- **`packages/core/test/artifacts.test.ts`** reads the committed
+  `artifacts/decoder.json` and the replay manifest and asserts both against
+  `FEATURE_SPEC_VERSION`. Bump the version without regenerating and this fails,
+  rather than the app silently feeding a decoder a vector it was not fitted on.
+- **`latency.spec.ts`** asserts `threaded === true`. Cross-origin isolation is
+  one header away from vanishing, and when it goes the app still works at half
+  speed with no error.
+- **`gestureChoices.test.tsx`** drives the gesture picker with real key events.
+  The group claims `role="radiogroup"`, which promises arrow-key navigation and
+  a single tab stop; the promise went unimplemented for a while, and a
+  synthesised `keydown` would not have caught it because focus never moved.
 
 ---
 

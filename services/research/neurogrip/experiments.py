@@ -21,12 +21,17 @@ from neurogrip.datasets import CorpusConfig, build_corpus
 from neurogrip.evaluation import paired_fold_test
 from neurogrip.export import export_to_onnx, load_session, predict_onnx, verify_parity
 from neurogrip.features import FeatureConfig, extract_features, feature_vector
+from neurogrip.posteriors import write_posteriors
 from neurogrip.simulator import SimulatorConfig, make_subject, simulate
 from neurogrip.train import MODEL_ZOO, evaluate_model, fit_final_model, model_by_name, select_best
 from neurogrip.windowing import WindowConfig, frame_windows
 
 
-def compare_models(config: CorpusConfig, calibration_folds: int = 3) -> dict:
+def compare_models(
+    config: CorpusConfig,
+    calibration_folds: int = 3,
+    posteriors_stem: pathlib.Path | None = None,
+) -> dict:
     started = time.perf_counter()
     print(
         f"building corpus: {config.n_subjects} subjects x "
@@ -52,6 +57,19 @@ def compare_models(config: CorpusConfig, calibration_folds: int = 3) -> dict:
         )
 
     best = select_best(results)
+
+    # The winner's out-of-fold posteriors, which evaluate_model already
+    # computed and which every previous run discarded. They are what the
+    # TypeScript accumulator replays to produce TTUM.
+    posteriors_manifest = None
+    if posteriors_stem is not None:
+        posteriors_manifest = write_posteriors(
+            corpus, results[best].probabilities, best, posteriors_stem
+        )
+        print(
+            f"  posteriors: {posteriors_manifest['nWindows']} windows in "
+            f"{len(posteriors_manifest['trials'])} trials -> {posteriors_stem}.bin"
+        )
 
     # Is the winner actually better than the others, or is the gap noise?
     significance = {}
@@ -85,6 +103,14 @@ def compare_models(config: CorpusConfig, calibration_folds: int = 3) -> dict:
         "calibration_folds": calibration_folds,
         "models": {name: result.summary() for name, result in results.items()},
         "best_model": best,
+        "posteriors": (
+            None
+            if posteriors_manifest is None
+            else {
+                "trials": len(posteriors_manifest["trials"]),
+                "path": str(posteriors_stem) + ".bin",
+            }
+        ),
         "paired_significance": significance,
         "source": "simulator",
         "caveat": (
@@ -230,6 +256,15 @@ def main() -> None:
     parser.add_argument("--reps", type=int, default=4)
     parser.add_argument("--seconds", type=float, default=1.0)
     parser.add_argument("--model", default="rbf_svm")
+    parser.add_argument(
+        "--posteriors",
+        type=pathlib.Path,
+        default=None,
+        help=(
+            "compare: path stem for the winner's out-of-fold posteriors "
+            "(writes <stem>.bin and <stem>.json). Feeds `npm run ttum`."
+        ),
+    )
     args = parser.parse_args()
 
     config = CorpusConfig(
@@ -242,7 +277,7 @@ def main() -> None:
         out = args.out or pathlib.Path("artifacts/model_comparison.json")
         if out.suffix != ".json":
             parser.error(f"compare --out must be a .json path, got {out}")
-        payload = compare_models(config)
+        payload = compare_models(config, posteriors_stem=args.posteriors)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         print()

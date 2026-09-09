@@ -2,7 +2,7 @@
 
 **Research prototype. Not a medical device. Not validated for clinical use.**
 
-Generated 2026-09-04 from recorded experiment artifacts.
+Generated 2026-09-10 from recorded experiment artifacts.
 
 ## Intended use
 
@@ -71,11 +71,45 @@ Measured one window at a time on CPU, never batched: the deployed system decodes
 
 | Stage | Mean | P50 | P95 | P99 | Max |
 | --- | --- | --- | --- | --- | --- |
-| Feature extraction | 0.96 ms | 0.90 ms | 1.29 ms | 1.74 ms | 2.68 ms |
-| ONNX inference | 0.65 ms | 0.61 ms | 0.96 ms | 1.20 ms | 1.99 ms |
-| **End to end** | 1.61 ms | 1.52 ms | 2.22 ms | 2.86 ms | 4.16 ms |
+| Feature extraction | 0.89 ms | 0.83 ms | 1.19 ms | 1.69 ms | 2.72 ms |
+| ONNX inference | 0.55 ms | 0.50 ms | 0.79 ms | 1.04 ms | 2.38 ms |
+| **End to end** | 1.44 ms | 1.33 ms | 2.01 ms | 2.68 ms | 4.71 ms |
 
 Budget 10 ms at P95 over 1,000 windows — **PASS**.
+
+### Time to useful motion (TTUM)
+
+Accuracy says whether the decoder was right. TTUM says how long the wearer pushed before the hand did anything, which is the quantity progressive actuation exists to improve and the one accuracy cannot see.
+
+Time to Useful Motion: hops from a trial first decodable window to the first hop at which the leading gesture reaches motionOnset of its risk-weighted boundary, reported in milliseconds at the stated hop. "Correct motion" additionally requires the leader to be the trial true class. Trials that never reach the onset are censored: counted, never assigned a finite value, never dropped. No mean is reported, because under censoring a mean is either wrong or an unstated imputation. The 200 ms of window fill before the first decision is excluded and is additive: a wearer experiences roughly TTUM plus 200 ms.
+
+Measured over 320 out-of-fold trials of 41 hops each, replayed through the deployed evidence accumulator.
+
+| | Moved | Censored | P50 | P90 | P95 | Max |
+| --- | --- | --- | --- | --- | --- | --- |
+| Any motion | 320 | 0 | 40 ms | 100 ms | 100 ms | 240 ms |
+| Correct motion | 318 | 2 | 40 ms | 100 ms | 140 ms | 720 ms |
+
+Commitment latched in 309 of 320 trials at a median of 260 ms, correct in 98.7% of those; 0 fell back to rest.
+
+Ordered by commit cost, so the risk weighting is visible as a trend rather than asserted. A costly gesture has a further boundary, so it reaches the motion onset later on the same quality of evidence.
+
+| Gesture | Commit cost | Trials | Moved | P50 |
+| --- | --- | --- | --- | --- |
+| `fist` | 1 | 32 | 32 | 80 ms |
+| `spherical_grip` | 1 | 32 | 32 | 60 ms |
+| `pinch` | 0.6 | 32 | 32 | 80 ms |
+| `two_finger` | 0.6 | 32 | 32 | 60 ms |
+| `wrist_extension` | 0.3 | 32 | 32 | 40 ms |
+| `wrist_flexion` | 0.3 | 32 | 32 | 60 ms |
+| `point` | 0.2 | 32 | 32 | 40 ms |
+| `thumb_up` | 0.2 | 32 | 32 | 40 ms |
+| `open_hand` | 0.1 | 32 | 32 | 40 ms |
+| `rest` | 0 | 32 | 32 | 40 ms |
+
+Each trial is 41 hops, and the urgency timeout fires at 75, so within a trial the timeout is structurally unreachable and censoring is the only failure mode. Lengthening the repetition past about 1.5 s would activate the timeout path and change what this metric measures.
+
+**Caveat.** Every repetition holds a constant excitation for its whole duration: the simulator applies no onset envelope. Evidence therefore accrues from an already-active steady contraction, so any time-to-motion derived from these sequences measures decoder accrual and not a wearer's reaction time. It is a lower bound on what a person would experience.
 
 ### Python-to-ONNX parity
 
@@ -91,7 +125,8 @@ Maximum absolute probability difference between scikit-learn and ONNX Runtime ac
 ## Reproducing
 
 ```bash
-python -m neurogrip.experiments compare --out artifacts/model_comparison.json
+python -m neurogrip.experiments compare --out artifacts/model_comparison.json     --posteriors artifacts/posteriors
+npm run ttum
 python -m neurogrip.experiments export  --out artifacts/ --model rbf_svm
 python -m neurogrip.model_card --artifacts artifacts --out docs/model_card.md
 ```

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>NeuroGrip — latency bench</title>
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <!--
+      A harness, not a screen. It exists so the browser latency figure comes
+      from the same worker the application uses rather than from a test hook
+      threaded through production code. Deliberately not linked from index.html.
+    -->
+    <h1>NeuroGrip latency bench</h1>
+    <p id="bench-status">running…</p>
+    <pre id="bench-result"></pre>
+    <script type="module" src="/src/bench/main.ts"></script>
+  </body>
+</html>

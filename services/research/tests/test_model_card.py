@@ -131,3 +131,85 @@ def test_card_reports_parity(comparison, decoder):
     card = render(comparison, decoder, "2026-09-04")
     assert "1.20e-07" in card
     assert "Within tolerance." in card
+
+
+@pytest.fixture
+def ttum() -> dict:
+    return {
+        "nTrials": 320,
+        "hopsPerTrial": 41,
+        "hopMs": 20,
+        "definition": "Time to Useful Motion: hops from a trial first decodable window ...",
+        "reachability": "Each trial is 41 hops, and the urgency timeout fires at 75 ...",
+        "caveat": "Every repetition holds a constant excitation for its whole duration ...",
+        "anyMotion": {
+            "nMoved": 320,
+            "nCensored": 0,
+            "p50Ms": 40,
+            "p90Ms": 100,
+            "p95Ms": 100,
+            "maxMs": 240,
+        },
+        "correctMotion": {
+            "nMoved": 318,
+            "nCensored": 2,
+            "p50Ms": 40,
+            "p90Ms": 100,
+            "p95Ms": 140,
+            "maxMs": 720,
+        },
+        "latch": {
+            "nLatched": 309,
+            "nCensored": 11,
+            "nTimedOut": 0,
+            "accuracyAtLatch": 0.9871,
+            "p50Ms": 260,
+            "p95Ms": 420,
+        },
+        "perGesture": {
+            "fist": {"nTrials": 32, "nMoved": 32, "p50Ms": 80, "risk": 1.0},
+            "open_hand": {"nTrials": 32, "nMoved": 32, "p50Ms": 40, "risk": 0.1},
+        },
+    }
+
+
+def test_ttum_section_appears_when_the_artifact_is_present(comparison, decoder, ttum):
+    card = render(comparison, decoder, "2026-09-09", ttum)
+    assert "### Time to useful motion (TTUM)" in card
+    assert "320 out-of-fold trials" in card
+
+
+def test_the_card_renders_without_a_ttum_run(comparison, decoder):
+    """The TTUM run needs the Node toolchain; the card must not.
+
+    A researcher regenerating the card from a Python checkout gets a card
+    without the section, rather than a traceback.
+    """
+    card = render(comparison, decoder, "2026-09-09")
+    assert "Time to useful motion" not in card
+    assert "### Latency" in card
+
+
+def test_the_ttum_section_orders_gestures_by_commit_cost(comparison, decoder, ttum):
+    """The risk weighting is the mechanism's claim, and a reader should be able
+    to see it as a trend down the table rather than take it on trust."""
+    card = render(comparison, decoder, "2026-09-09", ttum)
+    assert card.index("| `fist` | 1.0") < card.index("| `open_hand` | 0.1")
+
+
+def test_the_ttum_section_reports_censored_trials_and_the_caveat(comparison, decoder, ttum):
+    """Both are load-bearing. Censored trials are the slow ones by definition,
+    so a summary that omitted them would read better than the system behaves;
+    and the constant-excitation caveat is what stops the figure being quoted as
+    a wearer's reaction time."""
+    card = render(comparison, decoder, "2026-09-09", ttum)
+    assert "Censored" in card
+    assert "constant excitation" in card
+
+
+def test_ttum_never_prints_a_missing_measurement_as_zero(comparison, decoder, ttum):
+    """A censored measurement and an instantaneous one are opposite findings."""
+    ttum["anyMotion"] = {**ttum["anyMotion"], "nMoved": 0, "nCensored": 320, "p50Ms": None,
+                         "p90Ms": None, "p95Ms": None, "maxMs": None}
+    card = render(comparison, decoder, "2026-09-09", ttum)
+    assert "| Any motion | 0 | 320 | — | — | — | — |" in card

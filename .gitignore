@@ -43,3 +43,8 @@ mlruns/
 node_modules/
 dist/
 *.tsbuildinfo
+
+# Playwright
+/test-results/
+/playwright-report/
+/artifacts/screens/

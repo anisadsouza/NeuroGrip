@@ -397,7 +397,7 @@ main {
 .hand-legend {
   margin: 0;
   font-size: var(--ng-text-xs);
-  color: var(--ng-ink-faint);
+  color: var(--ng-ink-muted);
   line-height: var(--ng-leading-tight);
 }
 /* The legend names the colour by showing it, which is shorter and less

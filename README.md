@@ -41,8 +41,9 @@ every number on it means.
 | | |
 | --- | --- |
 | Decoder | RBF SVM, 95.6% leave-one-subject-out, ECE 0.022 |
-| Latency | 2.2 ms P95 measured, against a 10 ms budget |
-| Tests | 288 — 126 Python, 162 TypeScript |
+| Latency | 2.0 ms P95 in the browser, against a 10 ms budget, gated in CI |
+| Time to motion | 40 ms median before the hand starts moving, 260 ms to latch |
+| Tests | 410 — 144 Python, 246 TypeScript, 20 browser |
 | Built | Simulator, feature pipeline, decoder, evidence accumulation, Live screen, virtual hand |
 | Not built | Cartography, error attribution, clinician mode |
 
@@ -69,6 +70,7 @@ python -m pytest services/research/tests -q   # needs the virtualenv active
 npm test
 npm run typecheck
 npm run test:conformance   # proves Python and TypeScript agree on features
+npm run test:e2e           # the browser tier: latency budget, axe, keyboard, layout
 ```
 
 That last one is the gate that matters: Python trains the model and TypeScript

@@ -10,6 +10,8 @@
  * playing back in slow motion and flattering the latency figures.
  */
 
+import { assertFeatureSpecCompatible } from '@neurogrip/core';
+
 export interface ReplayManifest {
   readonly formatVersion: number;
   readonly featureSpecVersion: number;
@@ -43,17 +45,34 @@ export interface ReplayBundle {
   readonly segments: readonly Float32Array[];
 }
 
-export async function loadReplayBundle(baseUrl: string): Promise<ReplayBundle> {
+/**
+ * How the bundle is fetched. Defaulted, so no caller changes; present so a
+ * test can hand in the committed bytes rather than patching a global.
+ */
+export type FetchLike = (url: string) => Promise<Response>;
+
+export async function loadReplayBundle(
+  baseUrl: string,
+  fetchLike: FetchLike = (url) => fetch(url),
+): Promise<ReplayBundle> {
   const [manifest, buffer] = await Promise.all([
-    fetch(`${baseUrl}/emg-replay.json`).then((r) => {
+    fetchLike(`${baseUrl}/emg-replay.json`).then((r) => {
       if (!r.ok) throw new Error(`replay manifest not found at ${baseUrl}`);
       return r.json() as Promise<ReplayManifest>;
     }),
-    fetch(`${baseUrl}/emg-replay.bin`).then((r) => {
+    fetchLike(`${baseUrl}/emg-replay.bin`).then((r) => {
       if (!r.ok) throw new Error(`replay samples not found at ${baseUrl}`);
       return r.arrayBuffer();
     }),
   ]);
+
+  // A bundle generated under a different feature specification would feed the
+  // decoder a signal it was not fitted on. Refused here rather than in the
+  // worker, so the failure names the bundle that caused it.
+  assertFeatureSpecCompatible({
+    source: 'emg-replay.json',
+    featureSpecVersion: manifest.featureSpecVersion,
+  });
 
   const perGesture = manifest.nChannels * manifest.samplesPerGesture;
   const expected = manifest.gestures.length * perGesture * 2;
@@ -79,6 +98,26 @@ export async function loadReplayBundle(baseUrl: string): Promise<ReplayBundle> {
 
 export type SampleSink = (samples: Float32Array, nChannels: number) => void;
 
+/**
+ * The clock and scheduler the source paces itself against.
+ *
+ * Injected rather than reached for globally so that a test can advance time
+ * deliberately and assert what the source does with a stall. Wall-clock pacing
+ * is the whole point of this class, and a behaviour that only ever runs
+ * against a real clock cannot be tested at all without waiting for one.
+ */
+export interface ReplayClock {
+  now(): number;
+  schedule(callback: () => void): number;
+  cancel(handle: number): void;
+}
+
+export const WALL_CLOCK: ReplayClock = {
+  now: () => performance.now(),
+  schedule: (callback) => requestAnimationFrame(callback),
+  cancel: (handle) => cancelAnimationFrame(handle),
+};
+
 export class ReplaySource {
   private gestureIndex = 0;
   private cursor = 0;
@@ -89,6 +128,7 @@ export class ReplaySource {
   constructor(
     private readonly bundle: ReplayBundle,
     private readonly sink: SampleSink,
+    private readonly clock: ReplayClock = WALL_CLOCK,
   ) {}
 
   get isRunning(): boolean {
@@ -116,14 +156,14 @@ export class ReplaySource {
   start(): void {
     if (this.running) return;
     this.running = true;
-    this.lastTick = performance.now();
+    this.lastTick = this.clock.now();
     this.tick();
   }
 
   stop(): void {
     this.running = false;
     if (this.frame !== null) {
-      cancelAnimationFrame(this.frame);
+      this.clock.cancel(this.frame);
       this.frame = null;
     }
   }
@@ -131,7 +171,7 @@ export class ReplaySource {
   private tick = (): void => {
     if (!this.running) return;
 
-    const now = performance.now();
+    const now = this.clock.now();
     const elapsed = now - this.lastTick;
     this.lastTick = now;
 
@@ -157,6 +197,6 @@ export class ReplaySource {
       this.sink(chunk, nChannels);
     }
 
-    this.frame = requestAnimationFrame(this.tick);
+    this.frame = this.clock.schedule(this.tick);
   };
 }

@@ -13,9 +13,10 @@
  */
 
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, existsSync, mkdirSync, statSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { stageModel } from './stage-model.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -74,10 +75,7 @@ run(
 );
 
 const models = join(root, 'apps', 'web', 'public', 'models');
-mkdirSync(models, { recursive: true });
-for (const name of ['decoder.onnx', 'decoder.json']) {
-  copyFileSync(join(root, 'artifacts', name), join(models, name));
-}
+stageModel();
 
 // Verify rather than assume: an empty or missing file here produces a runtime
 // error in the browser that looks nothing like its cause.
