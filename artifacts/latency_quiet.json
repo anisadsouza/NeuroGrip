@@ -1,0 +1,27 @@
+{
+  "n_windows": 1000,
+  "batched": false,
+  "feature_extraction": {
+    "mean_ms": 1.1711,
+    "p50_ms": 0.8981,
+    "p95_ms": 2.2355,
+    "p99_ms": 2.81,
+    "max_ms": 2.9985
+  },
+  "onnx_inference": {
+    "mean_ms": 1.8186,
+    "p50_ms": 1.4712,
+    "p95_ms": 3.1152,
+    "p99_ms": 3.6791,
+    "max_ms": 4.1539
+  },
+  "end_to_end": {
+    "mean_ms": 2.9897,
+    "p50_ms": 2.3846,
+    "p95_ms": 5.3307,
+    "p99_ms": 6.2977,
+    "max_ms": 6.8043
+  },
+  "budget_ms": 10.0,
+  "meets_budget": true
+}

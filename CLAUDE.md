@@ -5,33 +5,66 @@ Harsh Bavaskar · Anisa D'Souza · Shruti Shanklesha — BTECH CAP 501.
 
 **Research prototype. Not a medical device. Not validated for clinical use.**
 
+---
+
 ## What this is
 
 A dual-mode application (prosthesis wearer + clinician) built around four novel
-mechanisms. See `docs/superpowers/specs/2026-09-04-neurogrip-design.md` for the
+mechanisms. `docs/superpowers/specs/2026-09-04-neurogrip-design.md` holds the
 full design and the prior-art analysis behind each claim.
 
 1. **Neuromotor Cartography** — map a user's reachable muscle-activation
-   manifold, then synthesise gesture prototypes optimised for separability,
-   repeatability and effort, and teach them back.
+   manifold, synthesise gesture prototypes optimised for separability,
+   repeatability and effort, and teach them back. *Not built yet (Phase 2).*
 2. **Risk-weighted evidence accumulation** — the hand begins moving reversibly
    as evidence accrues and latches only at full commitment; high-cost gestures
-   must clear a higher evidence bar than cheap ones.
+   must clear a higher evidence bar than cheap ones. **Built**, and visible:
+   the commitment bar shows the evidence, the virtual hand shows what it is
+   doing to the prosthesis.
 3. **Error-attribution router** — decompose each error into physiological,
-   behavioural, model-capacity and drift components, and route each to a
-   different remedy.
+   behavioural, model-capacity and drift components and route each to a
+   different remedy. *Not built yet (Phase 3).*
 4. **Anatomical attribution** — back-project feature attributions onto forearm
-   anatomy and convert them into plain-language motor coaching.
+   anatomy and convert them into plain-language coaching. *Not built yet
+   (Phase 3).*
+
+**How to use the application: `docs/walkthrough.md`.**
+
+---
+
+## Status
+
+| Phase | Scope | State |
+| --- | --- | --- |
+| 0 | Simulator, feature pipeline in both languages, conformance gate, CI | Complete |
+| 1a | Corpus, LOSO evaluation, model comparison, calibration, ONNX export, latency | Complete |
+| 1b | Evidence accumulator, design system, browser app, Live screen, virtual hand, verification layer, TTUM | Complete |
+| 2 | Neuromotor Cartography | Not started |
+| 3 | Error-attribution router, anatomical coaching | Not started |
+| 4 | Clinician mode, amputee stratum, robustness | Not started |
+| 5 | Azure deployment, patent disclosures | Not started |
+
+**410 tests** — 144 Python, 246 TypeScript, 20 browser.
+
+Not yet built: Cartography, the attribution router, clinician mode, and
+deployment.
+
+---
 
 ## Layout
 
 | Path | Holds |
 | --- | --- |
-| `services/research/` | Python: simulator, features, training, evaluation |
-| `packages/core/` | TypeScript: the same DSP and features, for the browser |
-| `fixtures/conformance/` | Golden vectors pinning the two implementations together |
-| `docs/superpowers/specs/` | Design documents |
-| `docs/superpowers/plans/` | Implementation plans |
+| `services/research/` | Python: simulator, features, training, evaluation, export |
+| `packages/core/` | TypeScript: the same DSP and features, plus the evidence accumulator and the hand kinematics |
+| `packages/design/` | Design tokens and the icon set |
+| `apps/web/` | The browser application |
+| `fixtures/conformance/` | Golden vectors pinning the two feature implementations together |
+| `fixtures/simulator_signature.json` | Pins simulator behaviour against silent drift |
+| `artifacts/` | Trained model, experiment results, latency measurements |
+| `docs/` | Walkthrough, model card, design reference, specs and plans |
+
+---
 
 ## The rule that matters most
 
@@ -65,9 +98,25 @@ this order — these are the divergences this port is actually likely to hit:
    the classic port bug and it only shows at order 3 or above.
 3. `*_zc`, `*_ssc` — both sides must use the strict product tests, not sign
    comparison.
-4. `*_rms`, `*_mav`, `*_wl` — a mismatch here means float32 versus float64
+4. `*_rms`, `*_mav`, `*_wl` — a mismatch means float32 versus float64
    accumulation. Python casts input to float32 in `_as_channel_matrix`, then
    computes in float64.
+
+### The second gate
+
+The conformance fixtures store their own input waveforms, so they are blind to
+simulator changes. `fixtures/simulator_signature.json` closes that gap: it pins
+per-channel RMS per gesture at a fixed seed and catches a 0.01 change to a
+single muscle's excitation.
+
+```bash
+python -m neurogrip.signature --out fixtures/simulator_signature.json
+```
+
+If that test fails and the change was intended, regenerate and **review the
+diff** — every accuracy number in the repo was produced by the old simulator.
+
+---
 
 ## The feature set
 
@@ -78,6 +127,8 @@ Seventeen features per channel, in this fixed order:
 Ordering is **channel-major and never sorted**. `sorted()` places `ch10_rms`
 before `ch2_rms`; NinaPro DB2 has twelve channels, so lexicographic ordering
 would silently permute the vector between an 8-channel and a 12-channel run.
+
+---
 
 ## The simulator
 
@@ -92,30 +143,343 @@ Fatigue widens MUAPs, which compresses the spectrum and lowers median frequency.
 That emerges from the mechanism rather than being hard-coded, which is what makes
 it usable as a test bed for the drift and fatigue estimators.
 
-Output is calibrated to real voltages: about 15 µV at rest (baseline noise) and
-158–354 µV under contraction, matching published surface-EMG ranges.
+Output is calibrated to real voltages: about 15 µV at rest and 158–354 µV under
+contraction, matching published surface-EMG ranges.
 
-Everything is seeded. Nothing in the simulator may touch global RNG state, or
-tests stop being reproducible.
+**Gestures must differ in pattern, never by a uniform amplitude offset.**
+Per-subject gain spans 0.7–1.4×, so two classes separated only by overall level
+are mathematically indistinguishable under LOSO. `point` and `two_finger` once
+differed by a uniform 0.05 and confused at 32% in both directions.
+`test_no_two_gestures_are_gain_degenerate` enforces pairwise cosine < 0.98.
+
+Everything is seeded. Nothing in the simulator may touch global RNG state.
 
 **This is why no dataset download is needed.** NinaPro registration is optional,
 not blocking.
 
+---
+
+## The decoder
+
+Selected on evidence, not on the architecture named in the project report.
+
+| Model | LOSO accuracy | SD | Worst subject | ECE |
+| --- | --- | --- | --- | --- |
+| **rbf_svm (selected)** | **95.63%** | 0.056 | 83.8% | **0.022** |
+| linear_svm | 90.48% | 0.109 | 71.4% | 0.070 |
+| lda | 90.45% | 0.100 | 71.9% | 0.263 |
+
+RBF SVM beats both significantly (Wilcoxon p = 0.008 vs LDA, p = 0.016 vs linear
+SVM). Calibration is the decisive margin: LDA's ECE of 0.263 fails the project's
+NFR-5 requirement of ≤ 0.10 by more than 2.5×, and a decoder that abstains below
+a confidence threshold is unusable if its confidences mean nothing.
+
+**Calibration uses `ensemble=False`.** The ensemble form fits one classifier per
+calibration fold and averages them, which for an RBF SVM multiplies the stored
+support vectors by the fold count. Measured on the full corpus the single form
+was better on every axis at once — accuracy, ECE, 2.4× smaller, 2.3× faster —
+so there is no trade-off to weigh.
+
+Latency, measured one window at a time on CPU, never batched:
+
+| Stage | P95 |
+| --- | --- |
+| Feature extraction | 1.19 ms |
+| ONNX inference | 0.79 ms |
+| **End to end** | **2.01 ms** (budget 10 ms) |
+
+These come from the most recent `npm run build:assets` and are re-measured every
+time it runs, so they move by a few tenths of a millisecond between runs on a
+busy machine. The authoritative copy is always `artifacts/decoder.json`; the
+table above is a snapshot of it. Observed range across runs: 1.9-2.2 ms.
+
+In the browser the same path measures **2.0 ms P95 over 1,000 windows** with
+WASM threads enabled. That figure is no longer read off the screen by hand:
+`npm run test:e2e` drives the real worker through `apps/web/bench.html` and
+writes `artifacts/browser_latency.json`, asserting both the budget and that
+cross-origin isolation actually delivered threads. Without isolation the app
+still runs, roughly twice as slow and silently, which is why the threading
+assertion is a gate rather than a note.
+
+**These figures come from simulated data.** The simulator has no motion
+artefact, no skin-impedance drift, and no cross-session electrode replacement.
+Published NinaPro LOSO results for a ten-gesture vocabulary sit well below this.
+Report them as simulator results, and expect a drop on recorded data.
+
+---
+
+## Risk-weighted evidence accumulation
+
+`packages/core/src/evidence.ts`. A leaky competing race: each gesture accrues
+the log ratio of its probability to its strongest rival, decays toward zero, and
+is floored at zero so a class that fell behind recovers promptly.
+
+Two properties distinguish it from a confidence threshold:
+
+- Each gesture carries its own boundary, `θ_k = base + weight × risk_k`. A
+  closing power grip must clear a higher bar than an opening hand, because the
+  mistakes are not equally recoverable.
+- The actuator command is continuous. Motion begins at a fraction of the
+  boundary and retracts if the evidence turns.
+
+Measured behaviour at a 20 ms hop:
+
+| Confidence | Gesture | Risk | Motion | Latch | Reversible window |
+| --- | --- | --- | --- | --- | --- |
+| 0.95 | fist | 1.0 | 40 ms | 180 ms | 140 ms |
+| 0.95 | open_hand | 0.1 | 20 ms | 120 ms | 100 ms |
+| 0.60 | fist | 1.0 | 60 ms | 460 ms | 400 ms |
+| 0.40 | fist | 1.0 | 100 ms | 740 ms | 640 ms |
+
+Boundaries collapse with elapsed time so the system cannot hang. If nothing
+commits before `maxHops`, it falls back to `rest` — a refusal to guess, because
+an unintended grip is a physical event and an unintended rest is not.
+
+`baseThreshold` is 24. An earlier value of 6 latched in two hops, leaving no
+reversible window and making "progressive" actuation indistinguishable from a
+threshold.
+
+Commit costs live in `apps/web/src/decode/commitCost.ts` (`COMMIT_COST`). They
+are a safety judgement about how hard each mistake is to undo, not a tuning
+parameter. Three things read that one table — the accumulator in the worker,
+the commitment bar, and the TTUM run — so it is imported rather than restated.
+A gesture the table does not name costs 0.5, not 0: an unknown gesture is not
+known to be safe.
+
+### Time to useful motion
+
+The metric the mechanism is for. Accuracy cannot see it: it says whether the
+decoder was right, not how long the wearer pushed before the hand moved.
+
+`packages/core/src/ttum.ts` replays out-of-fold posteriors through the real
+accumulator — the same class the worker runs, not a copy, because a Python
+reimplementation would be a second accumulator owing a second conformance gate.
+Python writes what the decoder believed (`--posteriors`), TypeScript decides
+when the hand would have moved (`npm run ttum`), and `artifacts/ttum.json` is
+the result.
+
+Measured over 320 out-of-fold trials: motion begins at a **median of 40 ms**,
+the hand latches at a median of 260 ms, and the risk weighting shows as a trend
+— `fist` and `spherical_grip` at cost 1.0 start moving at 60–80 ms where
+`open_hand` at cost 0.1 starts at 40.
+
+Three properties of the number, all of which change what it means:
+
+- Trials that never move are **censored** — counted, never given a finite
+  value, never dropped. There is no mean in the summary, because under
+  censoring a mean is either wrong or an unstated imputation.
+- It **excludes** the 200 ms of window fill before the first decision. A wearer
+  experiences roughly TTUM + 200 ms.
+- The simulator applies **no onset envelope**: excitation is constant for a
+  whole repetition. So this measures evidence accrual from an already-active
+  contraction, not reaction time from the moment of intent. It is a lower
+  bound, and the figure must not travel without that sentence.
+
+CWER is deliberately not computed yet. It needs the Phase 3 attribution work to
+mean anything, and a half-defined safety metric quoted once becomes the number
+people remember.
+
+---
+
+## The virtual hand
+
+`packages/core/src/posture.ts` and `packages/core/src/handPaths.ts`, drawn by
+`apps/web/src/components/VirtualHand.tsx`. The commitment bar is the quantity;
+the hand is its physical consequence. Both are driven by the same number.
+
+`actuatorExcursion` maps commitment to travel: zero below the motion onset, one
+at commitment, linear between. It defaults to the **same** `motionOnset` the bar
+draws its mark from, and a test asserts that. If they diverged, the bar would
+promise motion at a point where the hand had not started.
+
+**Kinematics are solved in three dimensions, then projected obliquely.** Finger
+flexion and wrist flexion are both sagittal motions and are therefore invisible
+in a true palmar view, so a flat drawing must either hide the dominant motion in
+this vocabulary or misrepresent it as sideways deviation. The frame is: origin
+at the wrist, `+x` toward the little finger, `+y` toward the fingertips, `+z` out
+of the palm. Lengths are in millimetres and roughly anatomical.
+
+Three things the drawing does that a stick figure does not:
+
+- Each phalanx is the convex hull of the circles at its two joints, tapering
+  distally, so a digit has volume. Drawn distal-over-proximal with an opaque
+  fill, the seam between two capsules is the joint.
+- Parts are painted back to front by projected depth, so a digit that has curled
+  toward the viewer covers the palm it is closing over. Without that a fist is a
+  tangle of crossing outlines.
+- While the motion is still reversible the rest posture is drawn behind it as a
+  hairline skeleton — where the hand returns to if the evidence turns. It
+  disappears the moment the gesture latches, because at that moment it stops
+  being true.
+
+The whole drawing costs **32 µs per frame**, about 0.16% of one core at 50 Hz.
+
+`DEFAULT_HAND_VIEW` has **pitch zero, deliberately.** Pitch rotates about the
+same axis the wrist turns about, so any non-zero value foreshortens flexion and
+extension by different amounts and makes one of the two look broken.
+`WRIST_RANGE` is 42°, less than a wrist can do, because past roughly forty
+degrees the hand foreshortens into an unreadable edge-on smear. The display
+understates the angle so that it can show it at all.
+
+Three tests are the gates worth knowing about:
+
+- `HAND_VIEWBOX` is fixed, never fitted per frame — a fitted box would rescale
+  the hand as it moved, so a closing fist would appear to grow. One test sweeps
+  every gesture across its whole travel and asserts nothing leaves the box,
+  **including each joint's drawn half-width**. A second asserts the box is no
+  more than 12 units larger than the drawing on any side, so an overflow cannot
+  be fixed by quietly enlarging the frame.
+- Phalanx lengths are asserted invariant under any flexion. Bone does not
+  stretch.
+- No two gestures may render to the same hand, the same argument as the
+  simulator's gain-degeneracy test one layer up: two gestures the decoder can
+  separate but the display cannot would make the instrument worse than the
+  decoder behind it.
+
+---
+
+## Design system
+
+`packages/design/`. Two rules, both enforced by tests:
+
+1. **The graticule means measurement.** A grid appears only behind data with a
+   real scale — signal lanes, the commitment bar. Never as chrome.
+2. **Carmine means muscle.** The one chromatic hue encodes activation intensity,
+   following anatomical illustration convention. It is never used to emphasise a
+   heading or a control.
+
+Type is Atkinson Hyperlegible for interface text — designed by the Braille
+Institute for maximum character distinction at low vision, which matters because
+the intended users are people with disabilities — and IBM Plex Mono for numerals
+only, where tabular alignment is functional.
+
+No gradients, no glows, no shadows beyond a hairline. Corners are rounded on a
+scale: `sm 3px` for small marks, `6px` default, `lg 10px` for outermost
+surfaces. A nested surface always takes a smaller radius than its container.
+
+`packages/design/test/contrast.test.ts` parses the real token file and computes
+WCAG ratios for every foreground/background pair in both themes. A palette
+change that breaks legibility fails the build. It also asserts the two dark
+declarations (media query and `[data-theme]`) stay identical, because CSS cannot
+share them and duplication drifts.
+
+Icons are constructed on a 24-pixel grid at 1.5 stroke with butt caps and miter
+joins. Every icon must carry a note justifying its form.
+`packages/design/test/icons.test.ts` enforces the grid, rejects rounded caps and
+hard-coded colour, and holds fill to an allowlist with a reason per entry.
+
+Regenerate the visual reference sheet with:
+
+```bash
+npx vite-node packages/design/scripts/reference.ts   # -> docs/design/reference.html
+```
+
+---
+
+## The browser application
+
+`apps/web/`. Everything expensive runs in `src/worker/inference.worker.ts`:
+ring buffer, windowing, signal-quality gate, feature extraction, ONNX inference,
+and evidence accumulation. The UI thread receives a small decision every 20 ms
+and does nothing but draw.
+
+The signal source is `src/sources/replaySource.ts`, which streams a recorded
+bundle of **simulated** sEMG at the sampling rate. The simulator is Python and
+cannot run in the browser; porting it would mean a second implementation owing a
+second conformance gate, for a component that only produces test input. When
+real electrodes arrive they replace this source and nothing downstream changes.
+
+**On privacy.** The project requirement (ER-3 / NFR-6) is that raw sEMG is never
+persisted and never leaves the device. Samples *do* cross the worker→UI thread
+boundary, because the oscilloscope has to draw the wearer's own signal on their
+own screen. Nothing is written to storage or sent over the network anywhere in
+this application.
+
+The dev server sets `Cross-Origin-Opener-Policy` and
+`Cross-Origin-Embedder-Policy`. Without them `SharedArrayBuffer` is unavailable,
+ONNX Runtime silently falls back to single-threaded WASM, and inference roughly
+doubles. The Live screen reports which one it got rather than publishing an
+optimistic number.
+
+---
+
 ## Commands
 
 ```bash
-# Python
-pip install -e "./services/research[dev]"
-python -m pytest services/research/tests -q
-
-# TypeScript
+# Setup
+python -m venv .venv
+source .venv/Scripts/activate      # POSIX: source .venv/bin/activate
+pip install -e "./services/research[dev,ml]"
 npm install
+
+# Tests  (the Python ones need that virtualenv active; `npm run build:assets`
+#          finds the interpreter itself, `pytest` does not)
+python -m pytest services/research/tests -q
 npm test
 npm run typecheck
 
-# The gate
-npm run test:conformance
+# The gates
+npm run test:conformance     # Python vs TypeScript features
+npm run fixtures             # regenerate golden vectors
+npm run test:e2e             # the browser tier: latency, a11y, keyboard, layout
+
+# Run the app
+npm run dev:web              # http://localhost:5173
+
+# Regenerate model + replay assets the app consumes
+npm run build:assets
+
+# Experiments (minutes, not milliseconds)
+python -m neurogrip.experiments compare --out artifacts/model_comparison.json     --posteriors artifacts/posteriors     # --posteriors is what TTUM reads
+npm run ttum                              # replay them through the accumulator
+python -m neurogrip.experiments export  --out artifacts --model rbf_svm
+python -m neurogrip.model_card --artifacts artifacts --out docs/model_card.md
 ```
+
+---
+
+---
+
+## The verification layers
+
+Four of them, and they check different things. Which layer a test belongs in is
+usually decided by what it is physically able to observe.
+
+| Layer | Command | What only it can see |
+| --- | --- | --- |
+| Python | `pytest` | The simulator, the corpus, training, export, the model card |
+| Core (node) | `npm test` | Pure DSP, features, evidence, kinematics, TTUM |
+| Web unit (node) | `npm test` | Decode logic lifted out of React: risks, drive, frames, replay pacing |
+| Web DOM (jsdom) | `npm test` | ARIA contracts that depend on real focus and tabIndex |
+| Browser (Playwright) | `npm run test:e2e` | WASM threads, canvas pixels, layout, axe, tab order |
+
+`npm test` runs the first four through one vitest config with `projects`. The
+browser tier is a separate command on purpose: it downloads a browser, and a
+contributor changing one function should not pay for that.
+
+**Some things cannot be tested below the browser, and pretending otherwise is
+worse than not testing them.** `Oscilloscope.tsx` returns early when its
+container has no layout, which is unconditionally true under jsdom — a
+component test of it would render, assert, pass, and exercise none of the
+drawing. That is why the canvas is checked in `oscilloscope.spec.ts` and the
+jsdom test covers only the caption and the stated scale, with a comment saying
+where the rest lives.
+
+Three gates are worth knowing by name:
+
+- **`packages/core/test/artifacts.test.ts`** reads the committed
+  `artifacts/decoder.json` and the replay manifest and asserts both against
+  `FEATURE_SPEC_VERSION`. Bump the version without regenerating and this fails,
+  rather than the app silently feeding a decoder a vector it was not fitted on.
+- **`latency.spec.ts`** asserts `threaded === true`. Cross-origin isolation is
+  one header away from vanishing, and when it goes the app still works at half
+  speed with no error.
+- **`gestureChoices.test.tsx`** drives the gesture picker with real key events.
+  The group claims `role="radiogroup"`, which promises arrow-key navigation and
+  a single tab stop; the promise went unimplemented for a while, and a
+  synthesised `keydown` would not have caught it because focus never moved.
+
+---
 
 ## Deviations from the project report, and why
 
@@ -131,12 +495,22 @@ npm run test:conformance
   electrode-detachment gate from 100 µV to 5 µV so it sits below baseline noise
   rather than above it — at the old value a genuine rest window was rejected as
   a detached electrode.
+- **Model chosen by measurement, not by plan.** The report names an RBF SVM. It
+  won, but LDA and a linear SVM were evaluated first and the comparison is
+  recorded in `artifacts/model_comparison.json`.
+- **A TCN was not built.** The report anticipates an LSTM that may fail the
+  latency gate. The handcrafted-feature SVM meets it with 5× margin, so a
+  sequence model has not been needed yet.
 
-## Status
+---
 
-**Phase 0 (Foundations) complete.** Simulator, feature pipeline in both
-languages, conformance gate, CI.
+## Working conventions
 
-Not yet built: trained models, ONNX export, the browser application, and all
-four pillars' algorithms. Those are Phases 1–5, each with its own plan in
-`docs/superpowers/plans/`.
+- Tests first. Every gate in this repo was observed failing before it was
+  trusted — the conformance gate, the signature gate, the contrast tests.
+- Never weaken an assertion to make a failure pass. Fix the thing, or fix the
+  test's premise and say which.
+- Every number in the docs traces to a JSON artifact written by a runnable
+  command. `docs/model_card.md` is generated, never hand-edited.
+- Nothing here has been evaluated on a human recording. Say so wherever a number
+  appears.

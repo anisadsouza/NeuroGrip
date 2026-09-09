@@ -30,9 +30,7 @@ dist/
 data/
 datasets/
 models/
-artifacts/
 mlruns/
-*.onnx
 *.joblib
 *.pkl
 
@@ -45,3 +43,8 @@ mlruns/
 node_modules/
 dist/
 *.tsbuildinfo
+
+# Playwright
+/test-results/
+/playwright-report/
+/artifacts/screens/

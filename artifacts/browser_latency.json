@@ -1,0 +1,17 @@
+{
+  "measuredAt": "2026-09-09",
+  "budgetMs": 10,
+  "meetsBudget": true,
+  "n": 1000,
+  "threaded": true,
+  "backend": "wasm",
+  "meanMs": 2.084654999991879,
+  "p50Ms": 1.7799999993294477,
+  "p95Ms": 3.6049999985843897,
+  "p99Ms": 4.810000000521541,
+  "maxMs": 96.38500000163913,
+  "featureP95Ms": 0.8450000006705523,
+  "inferenceP95Ms": 2.8700000010430813,
+  "hopMs": 20,
+  "note": "Simulated signal. Latency covers feature extraction plus ONNX inference in the worker, measured one window at a time. Windows are pushed in lockstep rather than in real time, so this measures the decode path and not the scheduler. Latency excludes the postMessage round trip and the UI thread: it is what the worker spent, which is the part under the ten-millisecond budget."
+}

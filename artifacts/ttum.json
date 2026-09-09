@@ -1,0 +1,154 @@
+{
+  "formatVersion": 1,
+  "model": "rbf_svm",
+  "source": "simulator",
+  "outOfFold": true,
+  "windowMs": 200,
+  "hopsPerTrial": 41,
+  "evidenceConfig": {
+    "baseThreshold": 24,
+    "riskWeight": 12,
+    "motionOnset": 0.2,
+    "leak": 0.05,
+    "urgencyOnsetHops": 25,
+    "urgencyFloor": 0.35,
+    "maxHops": 75,
+    "safeClassIndex": 0,
+    "epsilon": 1e-12
+  },
+  "risks": {
+    "rest": 0,
+    "fist": 1,
+    "open_hand": 0.1,
+    "pinch": 0.6,
+    "point": 0.2,
+    "wrist_flexion": 0.3,
+    "wrist_extension": 0.3,
+    "thumb_up": 0.2,
+    "two_finger": 0.6,
+    "spherical_grip": 1
+  },
+  "nTrials": 320,
+  "hopMs": 20,
+  "anyMotion": {
+    "nMoved": 320,
+    "nCensored": 0,
+    "p50Ms": 40,
+    "p90Ms": 100,
+    "p95Ms": 100,
+    "maxMs": 240,
+    "histogramMs": {
+      "20": 32,
+      "40": 142,
+      "60": 82,
+      "80": 29,
+      "100": 23,
+      "120": 3,
+      "140": 4,
+      "160": 1,
+      "180": 2,
+      "200": 1,
+      "240": 1
+    }
+  },
+  "correctMotion": {
+    "nMoved": 318,
+    "nCensored": 2,
+    "p50Ms": 40,
+    "p90Ms": 100,
+    "p95Ms": 140,
+    "maxMs": 720,
+    "histogramMs": {
+      "20": 32,
+      "40": 140,
+      "60": 78,
+      "80": 28,
+      "100": 21,
+      "120": 2,
+      "140": 5,
+      "160": 2,
+      "180": 1,
+      "200": 1,
+      "220": 2,
+      "240": 1,
+      "260": 1,
+      "280": 1,
+      "360": 1,
+      "620": 1,
+      "720": 1
+    }
+  },
+  "latch": {
+    "nLatched": 309,
+    "nCensored": 11,
+    "nTimedOut": 0,
+    "accuracyAtLatch": 0.9870550161812298,
+    "p50Ms": 260,
+    "p95Ms": 700
+  },
+  "perGesture": {
+    "rest": {
+      "nTrials": 32,
+      "nMoved": 32,
+      "p50Ms": 40,
+      "risk": 0
+    },
+    "fist": {
+      "nTrials": 32,
+      "nMoved": 32,
+      "p50Ms": 80,
+      "risk": 1
+    },
+    "open_hand": {
+      "nTrials": 32,
+      "nMoved": 32,
+      "p50Ms": 40,
+      "risk": 0.1
+    },
+    "pinch": {
+      "nTrials": 32,
+      "nMoved": 32,
+      "p50Ms": 80,
+      "risk": 0.6
+    },
+    "point": {
+      "nTrials": 32,
+      "nMoved": 32,
+      "p50Ms": 40,
+      "risk": 0.2
+    },
+    "wrist_flexion": {
+      "nTrials": 32,
+      "nMoved": 32,
+      "p50Ms": 60,
+      "risk": 0.3
+    },
+    "wrist_extension": {
+      "nTrials": 32,
+      "nMoved": 32,
+      "p50Ms": 40,
+      "risk": 0.3
+    },
+    "thumb_up": {
+      "nTrials": 32,
+      "nMoved": 32,
+      "p50Ms": 40,
+      "risk": 0.2
+    },
+    "two_finger": {
+      "nTrials": 32,
+      "nMoved": 32,
+      "p50Ms": 60,
+      "risk": 0.6
+    },
+    "spherical_grip": {
+      "nTrials": 32,
+      "nMoved": 32,
+      "p50Ms": 60,
+      "risk": 1
+    }
+  },
+  "definition": "Time to Useful Motion: hops from a trial first decodable window to the first hop at which the leading gesture reaches motionOnset of its risk-weighted boundary, reported in milliseconds at the stated hop. \"Correct motion\" additionally requires the leader to be the trial true class. Trials that never reach the onset are censored: counted, never assigned a finite value, never dropped. No mean is reported, because under censoring a mean is either wrong or an unstated imputation. The 200 ms of window fill before the first decision is excluded and is additive: a wearer experiences roughly TTUM plus 200 ms.",
+  "reachability": "Each trial is 41 hops, and the urgency timeout fires at 75, so within a trial the timeout is structurally unreachable and censoring is the only failure mode. Lengthening the repetition past about 1.5 s would activate the timeout path and change what this metric measures.",
+  "caveat": "Every repetition holds a constant excitation for its whole duration: the simulator applies no onset envelope. Evidence therefore accrues from an already-active steady contraction, so any time-to-motion derived from these sequences measures decoder accrual and not a wearer's reaction time. It is a lower bound on what a person would experience."
+}

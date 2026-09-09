@@ -37,19 +37,32 @@ GESTURES: tuple[str, ...] = (
 )
 
 # Excitation of (fcr, fds, fcu, ecu, edc, ecr) in [0, 1] for each gesture.
-# fist/spherical_grip and pinch/two_finger are deliberately close: a trivially
-# separable vocabulary would give Pillars 1 and 3 nothing to work on.
+#
+# Gestures must differ in PATTERN - which muscle dominates - never by a uniform
+# amplitude offset. Per-subject amplitude gain spans 0.7-1.4x, so two classes
+# separated only by overall level are mathematically indistinguishable under
+# leave-one-subject-out, no matter how good the decoder is.
+#
+# test_no_two_gestures_are_gain_degenerate enforces this: cosine similarity
+# between any two non-rest synergy vectors must stay below 0.98. Cosine is
+# scale-invariant, so it detects gain-only separation exactly. `rest` is exempt
+# because it is legitimately distinguished by amplitude - at 0.02 excitation no
+# motor unit passes its recruitment threshold, so rest is baseline noise.
+#
+# fist/spherical_grip and pinch/point remain the deliberately hard pairs: a
+# trivially separable vocabulary would give Pillars 1 and 3 nothing to work on.
 GESTURE_SYNERGIES: dict[str, tuple[float, ...]] = {
-    "rest":            (0.02, 0.02, 0.02, 0.02, 0.02, 0.02),
-    "fist":            (0.50, 0.90, 0.60, 0.20, 0.10, 0.15),
-    "open_hand":       (0.10, 0.10, 0.10, 0.60, 0.90, 0.60),
-    "pinch":           (0.30, 0.55, 0.20, 0.15, 0.25, 0.20),
-    "point":           (0.25, 0.45, 0.25, 0.30, 0.55, 0.30),
-    "wrist_flexion":   (0.85, 0.35, 0.80, 0.10, 0.10, 0.10),
-    "wrist_extension": (0.10, 0.10, 0.10, 0.80, 0.35, 0.85),
-    "thumb_up":        (0.50, 0.20, 0.15, 0.20, 0.20, 0.55),
-    "two_finger":      (0.20, 0.50, 0.20, 0.25, 0.50, 0.25),
-    "spherical_grip":  (0.55, 0.70, 0.55, 0.40, 0.35, 0.45),
+    #                    fcr    fds    fcu    ecu    edc    ecr
+    "rest":            (0.02,  0.02,  0.02,  0.02,  0.02,  0.02),
+    "fist":            (0.45,  0.95,  0.50,  0.25,  0.10,  0.20),
+    "open_hand":       (0.10,  0.08,  0.10,  0.45,  0.95,  0.50),
+    "pinch":           (0.25,  0.55,  0.12,  0.20,  0.25,  0.18),
+    "point":           (0.20,  0.50,  0.25,  0.30,  0.65,  0.25),
+    "wrist_flexion":   (0.90,  0.25,  0.85,  0.08,  0.08,  0.10),
+    "wrist_extension": (0.10,  0.10,  0.08,  0.85,  0.30,  0.90),
+    "thumb_up":        (0.60,  0.15,  0.10,  0.15,  0.25,  0.65),
+    "two_finger":      (0.20,  0.55,  0.50,  0.20,  0.20,  0.15),
+    "spherical_grip":  (0.55,  0.65,  0.55,  0.45,  0.40,  0.50),
 }
 
 

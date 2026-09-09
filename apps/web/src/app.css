@@ -1,0 +1,678 @@
+/**
+ * Live screen layout.
+ *
+ * Every colour, size and duration here comes from a token. A literal value in
+ * this file is a bug: it means something escaped the design system and will
+ * not follow the theme.
+ */
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The wordmark is drawn, not set: see Wordmark.tsx for the grid. It sizes by
+   height and takes whatever width the construction gives it. */
+.wordmark {
+  display: block;
+  height: 0.92em;
+  width: auto;
+  color: var(--ng-ink);
+}
+
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ng-space-4);
+  padding: var(--ng-space-4);
+  border-bottom: var(--ng-hairline) solid var(--ng-rule);
+}
+
+.masthead-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ng-space-3);
+}
+.masthead-title .icon {
+  align-self: center;
+}
+.masthead h1 {
+  font-size: var(--ng-text-xl);
+  line-height: var(--ng-leading-tight);
+  margin: 0;
+  letter-spacing: -0.015em;
+}
+.masthead-sub {
+  margin: 0;
+  color: var(--ng-ink-muted);
+  font-size: var(--ng-text-sm);
+}
+
+.theme-toggle {
+  background: none;
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  color: var(--ng-ink);
+  padding: var(--ng-space-2);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  /* A disc, not a rounded square. It is the one control in the frame that
+     changes the whole surface rather than the decoding, so it is shaped
+     unlike anything in the instrument below it. */
+  border-radius: var(--ng-radius-dot);
+  width: 2.5rem;
+  height: 2.5rem;
+}
+.theme-toggle:hover {
+  border-color: var(--ng-ink);
+}
+
+main {
+  flex: 1;
+  padding: var(--ng-space-6) var(--ng-space-4) var(--ng-space-12);
+}
+
+.live {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  grid-template-areas: 'main side' 'transport side';
+  gap: var(--ng-space-6);
+  align-items: start;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+.live-main {
+  grid-area: main;
+  min-width: 0;
+  display: grid;
+  gap: var(--ng-space-6);
+}
+.live-side {
+  grid-area: side;
+  display: grid;
+  gap: var(--ng-space-4);
+}
+.live-transport {
+  grid-area: transport;
+  display: flex;
+  gap: var(--ng-space-3);
+}
+
+.panel {
+  border: var(--ng-hairline) solid var(--ng-rule);
+  background: var(--ng-paper-raised);
+  padding: var(--ng-space-4);
+  border-radius: var(--ng-radius-lg);
+}
+.panel h2 {
+  font-size: var(--ng-text-lg);
+  margin: 0 0 var(--ng-space-2);
+  line-height: var(--ng-leading-tight);
+}
+.muted {
+  color: var(--ng-ink-muted);
+}
+.small {
+  font-size: var(--ng-text-sm);
+}
+
+/* ---- Oscilloscope ------------------------------------------------------ */
+
+.scope {
+  margin: 0;
+}
+.scope-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: var(--ng-text-sm);
+  color: var(--ng-ink-muted);
+  padding-bottom: var(--ng-space-2);
+}
+.scope-cal {
+  font-size: var(--ng-text-xs);
+}
+.scope-bed {
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  height: 260px;
+  border-radius: var(--ng-radius);
+  overflow: hidden;
+}
+.scope-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---- Commitment bar ---------------------------------------------------- */
+
+.commitment {
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  background: var(--ng-paper-raised);
+  padding: var(--ng-space-4);
+  border-radius: var(--ng-radius-lg);
+}
+.commitment-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--ng-space-3);
+}
+.commitment-head h2 {
+  font-size: var(--ng-text-lg);
+  margin: 0;
+}
+.commitment-state {
+  margin: 0;
+  font-size: var(--ng-text-sm);
+  color: var(--ng-ink-muted);
+}
+.commitment-state[data-state='latched'] {
+  color: var(--ng-commit);
+  font-weight: 700;
+}
+
+.commitment-track {
+  position: relative;
+  height: 72px;
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  /* One step down from the panel containing it. */
+  border-radius: var(--ng-radius);
+  overflow: hidden;
+}
+
+.commitment-fill {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  background: var(--ng-muscle-wash);
+  border-right: 2px solid var(--ng-muscle);
+  /* Motion here is the value changing, which is the one thing motion is for. */
+  transition: width var(--ng-duration-fast) linear;
+}
+.commitment-fill[data-latched] {
+  background: color-mix(in srgb, var(--ng-commit) 16%, transparent);
+  border-right-color: var(--ng-commit);
+}
+
+/* Where the hand starts to move. */
+.commitment-onset {
+  position: absolute;
+  inset-block: 0;
+  width: var(--ng-hairline);
+  background: var(--ng-ink-faint);
+}
+
+/* Each gesture's boundary. The leader's is drawn full height and solid; the
+   rest are recessed, so the asymmetry is visible without shouting. */
+.commitment-post {
+  position: absolute;
+  top: 25%;
+  bottom: 25%;
+  width: var(--ng-hairline);
+  background: var(--ng-rule-strong);
+}
+.commitment-post[data-leader] {
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--ng-ink);
+}
+
+.commitment-rival {
+  position: absolute;
+  top: 62%;
+  bottom: 8%;
+  width: var(--ng-hairline);
+  background: var(--ng-ink-faint);
+}
+
+.commitment-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: var(--ng-space-3);
+}
+.commitment-leader {
+  font-size: var(--ng-text-lg);
+  font-weight: 700;
+}
+.commitment-percent {
+  font-size: var(--ng-text-readout);
+  line-height: 1;
+}
+.commitment-unit {
+  font-size: var(--ng-text-sm);
+  color: var(--ng-ink-muted);
+}
+.commitment-legend {
+  margin: var(--ng-space-2) 0 0;
+  font-size: var(--ng-text-sm);
+  color: var(--ng-ink-muted);
+  max-width: var(--ng-measure);
+}
+
+/* ---- The hand ---------------------------------------------------------- */
+
+/* The hand and the readouts beside it are one story: what the prosthesis is
+   doing, how much evidence there is for it, and what the decoder called it.
+   The hand is portrait and the readouts are wide and short, so the readouts
+   stack into a column of matching height rather than leaving a void. */
+.actuation {
+  display: grid;
+  grid-template-columns: 244px minmax(0, 1fr);
+  gap: var(--ng-space-6);
+  align-items: start;
+}
+.actuation-readout {
+  display: grid;
+  gap: var(--ng-space-4);
+  min-width: 0;
+}
+
+.hand {
+  margin: 0;
+  height: 100%;
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  background: var(--ng-paper-raised);
+  padding: var(--ng-space-4);
+  border-radius: var(--ng-radius-lg);
+  display: grid;
+  gap: var(--ng-space-2);
+}
+.hand-caption {
+  font-size: var(--ng-text-lg);
+  font-weight: 700;
+}
+.hand-figure {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* No graticule behind the hand. It is a picture of a mechanism, not a
+     measurement on a scale, and the grid in this interface means measurement. */
+}
+
+/* Every part is opaque and painted back to front, so a digit that has curled
+   toward the viewer covers what it closes over. Fills are the paper colour
+   rather than white: on the dark palette a white hand would be a lamp. */
+.hand-link,
+.hand-chassis,
+.hand-housing {
+  fill: var(--ng-paper-raised);
+  stroke: var(--ng-ink);
+  vector-effect: non-scaling-stroke;
+}
+
+/* Weight hierarchy, as on a mechanical drawing: the chassis silhouette is the
+   heaviest line, the bearings next, the shafts inside them lighter still. */
+.hand-chassis {
+  stroke-width: 2;
+  stroke-linejoin: miter;
+  stroke-miterlimit: 4;
+}
+.hand-link {
+  stroke-width: 1.5;
+}
+.hand-housing {
+  fill: none;
+  stroke-width: 1;
+  stroke: var(--ng-rule-strong);
+}
+
+/* The pivot, drawn inside the link rather than proud of it. Unfilled, so the
+   drive wash beneath it still shows through. */
+.hand-pivot {
+  fill: none;
+  stroke: var(--ng-ink-faint);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The outline pass that goes back over the shade, so the joint circles survive
+   it. Stroke only: the fill has already been laid down underneath. */
+.hand-edge,
+.hand-chassis-edge {
+  fill: none;
+  stroke: var(--ng-ink);
+  vector-effect: non-scaling-stroke;
+}
+.hand-edge {
+  stroke-width: 1.5;
+}
+.hand-chassis-edge {
+  stroke-width: 2;
+  stroke-linejoin: miter;
+  stroke-miterlimit: 4;
+}
+
+/* The turned-away face: one flat tone with a hard edge, cel shading rather
+   than a gradient. See LIGHT_OFFSET in VirtualHand.tsx. */
+.hand-shade {
+  fill: var(--ng-paper-sunk);
+  stroke: none;
+  pointer-events: none;
+}
+
+.hand-seam {
+  fill: none;
+  stroke: var(--ng-rule-strong);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.hand-tendon {
+  fill: none;
+  stroke: var(--ng-muscle);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The signal layer. Carmine is the palette's one chromatic hue and it encodes
+   muscle activation, which is exactly what this is: opacity set per frame from
+   the electrode ring, over geometry set by the decoder. */
+.hand-drive {
+  fill: var(--ng-muscle);
+  stroke: none;
+  pointer-events: none;
+}
+
+.hand-forearm {
+  fill: var(--ng-paper-raised);
+  stroke: var(--ng-rule-strong);
+  stroke-width: 1.5;
+  stroke-linejoin: miter;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Where the hand goes back to if the evidence turns. A hairline skeleton, not
+   a second outlined hand: dashing every part produced a cloud of dashes. */
+.hand-ghost path {
+  fill: none;
+  stroke: var(--ng-ink-faint);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+  vector-effect: non-scaling-stroke;
+}
+
+.hand[data-latched] .hand-link,
+.hand[data-latched] .hand-chassis,
+.hand[data-latched] .hand-edge,
+.hand[data-latched] .hand-chassis-edge {
+  stroke: var(--ng-commit);
+}
+.hand[data-latched] .hand-pivot,
+.hand[data-latched] .hand-housing {
+  stroke: color-mix(in srgb, var(--ng-commit) 55%, transparent);
+}
+.hand[data-latched] .hand-seam {
+  stroke: color-mix(in srgb, var(--ng-commit) 45%, transparent);
+}
+
+.hand-legend {
+  margin: 0;
+  font-size: var(--ng-text-xs);
+  color: var(--ng-ink-muted);
+  line-height: var(--ng-leading-tight);
+}
+/* The legend names the colour by showing it, which is shorter and less
+   ambiguous than naming a hue in words. */
+.hand-legend-key {
+  display: inline-block;
+  width: 0.7em;
+  height: 0.7em;
+  border-radius: var(--ng-radius-dot);
+  background: var(--ng-muscle);
+  vertical-align: baseline;
+}
+
+.hand-state {
+  margin: 0;
+  font-size: var(--ng-text-sm);
+  color: var(--ng-ink-muted);
+  min-height: 2.6em;
+}
+.hand-state[data-latched] {
+  color: var(--ng-commit);
+  font-weight: 700;
+}
+.hand-missing {
+  font-size: var(--ng-text-sm);
+}
+
+/* ---- Activation ring --------------------------------------------------- */
+
+.ring {
+  margin: 0;
+  display: grid;
+  justify-items: center;
+  gap: var(--ng-space-2);
+}
+.ring-caption {
+  font-size: var(--ng-text-lg);
+  font-weight: 700;
+  justify-self: start;
+}
+.ring-index {
+  font-size: 7px;
+}
+
+/* ---- Controls ---------------------------------------------------------- */
+
+.gesture-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ng-space-1);
+  margin-top: var(--ng-space-3);
+}
+.gesture-choice {
+  font: inherit;
+  font-size: var(--ng-text-sm);
+  text-align: left;
+  padding: var(--ng-space-2);
+  background: var(--ng-paper);
+  color: var(--ng-ink);
+  border: var(--ng-hairline) solid var(--ng-rule);
+  border-radius: var(--ng-radius);
+  cursor: pointer;
+}
+.gesture-choice:hover {
+  border-color: var(--ng-ink-muted);
+}
+.gesture-choice[data-selected] {
+  border-color: var(--ng-ink);
+  background: var(--ng-paper-sunk);
+  font-weight: 700;
+}
+
+.transport {
+  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ng-space-2);
+  padding: var(--ng-space-3) var(--ng-space-4);
+  background: var(--ng-ink);
+  color: var(--ng-paper);
+  border: var(--ng-hairline) solid var(--ng-ink);
+  border-radius: var(--ng-radius);
+  cursor: pointer;
+}
+.transport:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.transport-quiet {
+  background: transparent;
+  color: var(--ng-ink);
+  border-color: var(--ng-rule-strong);
+}
+
+.readout-list {
+  margin: 0;
+  display: grid;
+  gap: var(--ng-space-2);
+}
+.readout-list > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--ng-space-3);
+  border-bottom: var(--ng-hairline) solid var(--ng-rule);
+  padding-bottom: var(--ng-space-2);
+}
+.readout-list dt {
+  color: var(--ng-ink-muted);
+  font-size: var(--ng-text-sm);
+}
+.readout-list dd {
+  margin: 0;
+  font-size: var(--ng-text-sm);
+  text-align: right;
+}
+.readout-list dd[data-correct='true'] {
+  color: var(--ng-commit);
+  font-weight: 700;
+}
+.readout-list dd[data-correct='false'] {
+  color: var(--ng-caution);
+  font-weight: 700;
+}
+
+.notice {
+  border-radius: var(--ng-radius);
+  display: flex;
+  gap: var(--ng-space-3);
+  align-items: flex-start;
+  padding: var(--ng-space-3);
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  font-size: var(--ng-text-sm);
+}
+.notice-stop {
+  border-color: var(--ng-stop);
+  color: var(--ng-stop);
+}
+.notice h2 {
+  margin: 0 0 var(--ng-space-1);
+  font-size: var(--ng-text-base);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- Narrow ------------------------------------------------------------ */
+
+@media (max-width: 900px) {
+  .live {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'main' 'side' 'transport';
+  }
+  .actuation {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hand {
+    height: auto;
+  }
+  .hand-figure {
+    max-width: 240px;
+    justify-self: center;
+  }
+  .scope-bed {
+    height: 200px;
+  }
+  .commitment-percent {
+    font-size: var(--ng-text-xl);
+  }
+}
+
+@media (max-width: 520px) {
+  main {
+    padding: var(--ng-space-4) var(--ng-space-3) var(--ng-space-8);
+  }
+  .gesture-choices {
+    grid-template-columns: 1fr;
+  }
+  .live-transport {
+    flex-direction: column;
+  }
+  .transport {
+    justify-content: center;
+  }
+}
+
+/* ---------------------------------------------------------------------- *
+   Colophon
+   
+   Credits and provenance, at the end of the instrument rather than in front
+   of it. Three zones on one hairline-separated band: the mark and what course
+   this is, who built it, and the statement that qualifies everything above.
+ * ---------------------------------------------------------------------- */
+
+.colophon {
+  margin-top: auto;
+  padding: var(--ng-space-8) var(--ng-space-4) var(--ng-space-6);
+  border-top: var(--ng-hairline) solid var(--ng-rule);
+  background: var(--ng-paper-sunk);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(max-content, auto);
+  gap: var(--ng-space-6) var(--ng-space-8);
+  align-items: start;
+}
+
+.colophon-mark {
+  min-width: 0;
+}
+
+.colophon-mark .wordmark {
+  max-width: 100%;
+}
+
+.colophon-course {
+  margin: var(--ng-space-2) 0 0;
+  color: var(--ng-ink-muted);
+  font-size: var(--ng-text-xs);
+  line-height: var(--ng-leading-normal);
+}
+
+.colophon-team h2 {
+  margin: 0 0 var(--ng-space-2);
+  font-size: var(--ng-text-xs);
+  font-weight: 400;
+  color: var(--ng-ink-muted);
+}
+
+.colophon-team ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--ng-space-1);
+  font-size: var(--ng-text-sm);
+}
+
+.colophon-safety {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding-top: var(--ng-space-4);
+  border-top: var(--ng-hairline) solid var(--ng-rule);
+  color: var(--ng-ink-muted);
+  font-size: var(--ng-text-xs);
+  max-width: var(--ng-measure);
+}
+
+@media (max-width: 640px) {
+  .colophon {
+    grid-template-columns: minmax(0, 1fr);
+    padding-top: var(--ng-space-6);
+  }
+}

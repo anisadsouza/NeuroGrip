@@ -11,12 +11,20 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:conformance": "vitest run packages/core/test/conformance.test.ts",
-    "typecheck": "tsc --noEmit -p packages/core/tsconfig.json",
-    "fixtures": "python -m neurogrip.fixtures --out fixtures/conformance/golden.json"
+    "typecheck": "tsc --noEmit -p packages/core/tsconfig.json && tsc --noEmit -p packages/design/tsconfig.json && tsc --noEmit -p apps/web/tsconfig.json",
+    "fixtures": "python -m neurogrip.fixtures --out fixtures/conformance/golden.json",
+    "build:assets": "node scripts/build-assets.mjs",
+    "dev:web": "npm run dev --workspace @neurogrip/web",
+    "test:e2e": "playwright test",
+    "stage:model": "node scripts/stage-model.mjs",
+    "ttum": "vite-node scripts/ttum.ts"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
     "@types/node": "^26.4.1",
     "typescript": "^5.7.0",
+    "vite-node": "^6.0.0",
     "vitest": "^3.0.0"
   }
 }
