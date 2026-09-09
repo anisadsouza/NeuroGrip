@@ -35,16 +35,24 @@
  *
  * Parts are painted back to front by projected depth, so a digit that has
  * curled toward the viewer covers the chassis it is closing over.
+ *
+ * **Shading is cel, never a gradient.** Each part is drawn twice: once in the
+ * lit tone, then again in the shade tone displaced away from the light and
+ * clipped back inside the part, so every surface resolves to exactly two flat
+ * tones with a hard edge between them. Nothing is cast onto anything else: the
+ * parts are already separated by depth order and by their own outlines, and a
+ * drop shadow on top of that read as grime rather than as relief. That keeps
+ * the drawing inside the design system's rule against gradients and soft
+ * shadows while still letting a curled finger read as round rather than as an
+ * outline.
  */
 
-import { useMemo } from 'react';
+import { useId, useMemo } from 'react';
 import {
-  AXLE_RADIUS,
   HAND_VIEWBOX,
   HINGE_RADIUS,
   JOINT_RING,
   LINK_WAIST,
-  PAD_RADIUS,
   REST_POSTURE,
   actuate,
   actuatorExcursion,
@@ -100,6 +108,13 @@ const FULL_DRIVE_TRAVEL = 0.45;
 /** Wrist angle, as a fraction of full travel, that counts as fully driven. */
 const FULL_DRIVE_WRIST = 0.5;
 
+/**
+ * The light, as an offset in drawing units: up and to the left, the convention
+ * in anatomical and mechanical plates. It displaces the shade inside a part;
+ * nothing is cast outside one.
+ */
+const LIGHT_OFFSET = { x: 2.4, y: 3 };
+
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 
 interface DigitDrawing {
@@ -109,10 +124,6 @@ interface DigitDrawing {
   readonly links: string;
   /** Pivot rings, inscribed in the silhouette rather than proud of it. */
   readonly pivots: string;
-  /** Axle pins at each joint centre. */
-  readonly axles: string;
-  /** The contact pad at the fingertip. */
-  readonly pad: string;
   readonly tendon: string;
   /** How hard this digit is being driven, in [0, 1]. */
   readonly load: number;
@@ -136,7 +147,6 @@ function draw(posture: HandPosture, drive: MuscleDrive): Drawing {
 
   const digits = projected.digits.map((chain, digit): DigitDrawing => {
     const radii = skeleton.radii[digit]!;
-    const last = chain.length - 1;
 
     // Signed: closing pulls on the flexor group, opening on the extensor.
     const travel = commanded[digit] ?? 0;
@@ -168,11 +178,6 @@ function draw(posture: HandPosture, drive: MuscleDrive): Drawing {
         .slice(0, -1)
         .map((joint, i) => circlePath(joint, radii[i]! * JOINT_RING))
         .join(''),
-      axles: chain
-        .slice(0, -1)
-        .map((joint, i) => circlePath(joint, radii[i]! * AXLE_RADIUS))
-        .join(''),
-      pad: circlePath(projected.tendons[digit]![last]!, radii[last]! * PAD_RADIUS),
       tendon: polylinePath(projected.tendons[digit]!),
       load,
     };
@@ -223,6 +228,8 @@ export function VirtualHand({
     clamp01(Math.abs(posture.wrist) / FULL_DRIVE_WRIST) *
     clamp01(posture.wrist >= 0 ? drive.wristFlexor : drive.wristExtensor);
 
+  const shadeId = useId();
+
   const state = timedOut
     ? 'at rest, no clear intent'
     : latched
@@ -259,6 +266,19 @@ export function VirtualHand({
         role="img"
         aria-label={`Prosthetic hand, ${state}. ${Math.round(excursion * 100)} percent of full travel, muscle drive ${Math.round(activeDrive * 100)} percent.`}
       >
+        <defs>
+          {/* One clip per part: a part's shade must not spill onto whatever
+              lies behind it. */}
+          <clipPath id={`${shadeId}-palm`}>
+            <path d={drawing.palm} />
+          </clipPath>
+          {drawing.digits.map((digit) => (
+            <clipPath key={digit.key} id={`${shadeId}-${digit.key}`}>
+              <path d={digit.links} />
+            </clipPath>
+          ))}
+        </defs>
+
         <path className="hand-forearm" d={drawing.forearm} />
 
         {/* The wrist hinge axle. Fixed to the forearm; the hand turns on it. */}
@@ -271,12 +291,6 @@ export function VirtualHand({
               cy={point.y}
               r={HINGE_RADIUS}
               style={{ opacity: wristLoad }}
-            />
-            <circle
-              className="hand-axle"
-              cx={point.x}
-              cy={point.y}
-              r={HINGE_RADIUS * 0.32}
             />
           </g>
         ))}
@@ -293,6 +307,14 @@ export function VirtualHand({
           digit === null ? (
             <g key="chassis">
               <path className="hand-chassis" d={drawing.palm} />
+              <g clipPath={`url(#${shadeId}-palm)`}>
+                <path
+                  className="hand-shade"
+                  d={drawing.palm}
+                  transform={`translate(${LIGHT_OFFSET.x} ${LIGHT_OFFSET.y})`}
+                />
+              </g>
+              <path className="hand-chassis-edge" d={drawing.palm} />
               <path className="hand-housing" d={drawing.housing} />
               {drawing.seams.map((d, i) => (
                 <path key={i} className="hand-seam" d={d} />
@@ -308,15 +330,25 @@ export function VirtualHand({
                 d={digit.links}
                 style={{ opacity: digit.load }}
               />
+              <g clipPath={`url(#${shadeId}-${digit.key})`}>
+                <path
+                  className="hand-shade"
+                  d={digit.links}
+                  transform={`translate(${LIGHT_OFFSET.x} ${LIGHT_OFFSET.y})`}
+                />
+              </g>
+              {/* The outline again, over the shade. The shade is an opaque
+                  flat tone, so without this pass it paints over the joint
+                  circles it crosses and the digit loses the swellings that
+                  make it read as articulated rather than as a bent tube. */}
+              <path className="hand-edge" d={digit.links} />
               <path className="hand-pivot" d={digit.pivots} />
-              <path className="hand-axle" d={digit.axles} />
               <path
                 className="hand-tendon"
                 d={digit.tendon}
                 style={{ opacity: 0.3 + 0.7 * digit.load }}
                 strokeWidth={1 + 1.4 * digit.load}
               />
-              <path className="hand-pad" d={digit.pad} />
             </g>
           ),
         )}

@@ -62,6 +62,18 @@ export interface HandPosture {
   readonly spread: number;
   /** Wrist angle: -1 fully extended, 0 neutral, +1 fully flexed. */
   readonly wrist: number;
+  /**
+   * Thumb abduction in degrees, overriding what `opposition` would imply.
+   *
+   * Opposition alone cannot describe every thumb a prosthesis can command.
+   * It carries the thumb *across* the palm, and the abduction that comes with
+   * it only ever ranges between the open and opposed values -- so the thumb is
+   * always at least twenty degrees off the hand's long axis. A thumbs-up needs
+   * it near zero: the thumb rises along the axis rather than swinging out
+   * beside the fist. Left undefined for every other gesture, which keeps the
+   * opposition-driven default.
+   */
+  readonly thumbAbduction?: number;
 }
 
 const DEG = Math.PI / 180;
@@ -431,6 +443,10 @@ export const GESTURE_POSTURES: Readonly<Record<string, HandPosture>> = {
     opposition: 0,
     spread: 0,
     wrist: 0,
+    // Close to the hand's long axis, so the thumb stands up out of the fist.
+    // At the abduction opposition implies it lies out beside the fist instead,
+    // which reads as a fist with a stray thumb rather than as a thumbs-up.
+    thumbAbduction: -6,
   },
   two_finger: {
     digits: [0.8, 0.05, 0.05, 1, 1],
@@ -495,6 +511,9 @@ export function blendPosture(from: HandPosture, to: HandPosture, t: number): Han
     opposition: lerp(from.opposition, to.opposition, f),
     spread: lerp(from.spread, to.spread, f),
     wrist: lerp(from.wrist, to.wrist, f),
+    // Resolved on both sides before blending, so a posture that overrides the
+    // abduction and one that does not still meet on a single scale.
+    thumbAbduction: lerp(thumbAbductionOf(from), thumbAbductionOf(to), f),
   };
 }
 
@@ -525,6 +544,11 @@ export function actuate(
     opposition: lerp(from.opposition, to.opposition, digitExcursion(0, t)),
     spread: lerp(from.spread, to.spread, t),
     wrist: lerp(from.wrist, to.wrist, t),
+    thumbAbduction: lerp(
+      thumbAbductionOf(from),
+      thumbAbductionOf(to),
+      digitExcursion(0, t),
+    ),
   };
 }
 
@@ -633,6 +657,14 @@ function solveDigit(
   return { points, tendon };
 }
 
+/** The thumb's abduction in degrees: the override if given, else opposition's. */
+export function thumbAbductionOf(posture: HandPosture): number {
+  return (
+    posture.thumbAbduction ??
+    lerp(THUMB_ABDUCTION_OPEN, THUMB_ABDUCTION_OPPOSED, clamp01(posture.opposition))
+  );
+}
+
 /** Forward kinematics for a whole hand, in the wrist frame. */
 export function solveHand(posture: HandPosture): HandSkeleton {
   const wristAngle = posture.wrist * WRIST_RANGE * DEG;
@@ -642,8 +674,7 @@ export function solveHand(posture: HandPosture): HandSkeleton {
 
   // The thumb: radial abduction in the palm plane, then opposition about the
   // long axis of the hand, which is what carries it across the palm.
-  const thumbAbduction =
-    lerp(THUMB_ABDUCTION_OPEN, THUMB_ABDUCTION_OPPOSED, clamp01(posture.opposition)) * DEG;
+  const thumbAbduction = thumbAbductionOf(posture) * DEG;
   const oppositionAngle = clamp01(posture.opposition) * THUMB_OPPOSITION_RANGE * DEG;
   digits.push(
     solveDigit(

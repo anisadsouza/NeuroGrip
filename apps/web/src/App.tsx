@@ -1,19 +1,26 @@
 /**
  * Application shell.
  *
- * The safety banner is not dismissible and is not a toast. It is a permanent
- * part of the frame, because the project's own ethical requirement (ER-4) is
- * that any public-facing surface states plainly that this is a prototype. A
- * notice you can dismiss is a notice that will be dismissed.
+ * The safety statement is not dismissible and is not a toast. The project's
+ * ethical requirement (ER-4) is that any public-facing surface states plainly
+ * that this is a prototype, and a notice you can dismiss is a notice that will
+ * be dismissed.
+ *
+ * It lives in the colophon, with the credits and the course, where a reader
+ * looking for provenance finds it. It is never dismissible and never a toast.
  */
 
 import { useEffect, useState } from 'react';
 import { Icon } from './components/Icon.js';
+import { Wordmark } from './components/Wordmark.js';
 import { Live } from './screens/Live.js';
 
 type Theme = 'light' | 'dark';
 
 const THEME_KEY = 'neurogrip.theme';
+
+/** Whose work this is. Order as on the project report. */
+const TEAM = ['Harsh Bavaskar', "Anisa D'Souza", 'Shruti Shanklesha'];
 
 function readStoredTheme(): Theme | null {
   try {
@@ -49,15 +56,11 @@ export function App() {
 
   return (
     <div className="app">
-      <p className="safety" role="note">
-        Research prototype. Not a medical device. The signal shown is simulated,
-        not a recording of a person.
-      </p>
-
       <header className="masthead">
         <div className="masthead-title">
-          <Icon name="waveform" size={22} />
-          <h1>NeuroGrip</h1>
+          <h1>
+            <Wordmark />
+          </h1>
           <p className="masthead-sub">Live decoding</p>
         </div>
         <button
@@ -73,6 +76,31 @@ export function App() {
       <main>
         <Live />
       </main>
+
+      <footer className="colophon">
+        <div className="colophon-mark">
+          <Wordmark height="1.5rem" />
+          <p className="colophon-course">
+            BTECH CAP 501, Project Life Cycle Management
+            <br />
+            ATLAS SkillTech University / uGDX
+          </p>
+        </div>
+
+        <div className="colophon-team">
+          <h2>Built by</h2>
+          <ul>
+            {TEAM.map((name) => (
+              <li key={name}>{name}</li>
+            ))}
+          </ul>
+        </div>
+
+        <p className="colophon-safety" role="note">
+          Research prototype. Not a medical device. The signal shown is
+          simulated, not a recording of a person.
+        </p>
+      </footer>
     </div>
   );
 }

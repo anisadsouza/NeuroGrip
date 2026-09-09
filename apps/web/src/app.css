@@ -12,15 +12,13 @@
   flex-direction: column;
 }
 
-/* Permanent, not dismissible. See the note in App.tsx. */
-.safety {
-  margin: 0;
-  padding: var(--ng-space-2) var(--ng-space-4);
-  background: var(--ng-paper-sunk);
-  border-bottom: var(--ng-hairline) solid var(--ng-rule);
-  color: var(--ng-ink-muted);
-  font-size: var(--ng-text-xs);
-  text-align: center;
+/* The wordmark is drawn, not set: see Wordmark.tsx for the grid. It sizes by
+   height and takes whatever width the construction gives it. */
+.wordmark {
+  display: block;
+  height: 0.92em;
+  width: auto;
+  color: var(--ng-ink);
 }
 
 .masthead {
@@ -60,7 +58,12 @@
   cursor: pointer;
   display: grid;
   place-items: center;
-  border-radius: var(--ng-radius);
+  /* A disc, not a rounded square. It is the one control in the frame that
+     changes the whole surface rather than the decoding, so it is shaped
+     unlike anything in the instrument below it. */
+  border-radius: var(--ng-radius-dot);
+  width: 2.5rem;
+  height: 2.5rem;
 }
 .theme-toggle:hover {
   border-color: var(--ng-ink);
@@ -296,8 +299,7 @@ main {
    rather than white: on the dark palette a white hand would be a lamp. */
 .hand-link,
 .hand-chassis,
-.hand-housing,
-.hand-pad {
+.hand-housing {
   fill: var(--ng-paper-raised);
   stroke: var(--ng-ink);
   vector-effect: non-scaling-stroke;
@@ -328,15 +330,29 @@ main {
   vector-effect: non-scaling-stroke;
 }
 
-/* Axle pins and contact pads read as solid hardware, not outlines. */
-.hand-axle {
-  fill: var(--ng-ink-muted);
-  stroke: none;
+/* The outline pass that goes back over the shade, so the joint circles survive
+   it. Stroke only: the fill has already been laid down underneath. */
+.hand-edge,
+.hand-chassis-edge {
+  fill: none;
+  stroke: var(--ng-ink);
+  vector-effect: non-scaling-stroke;
 }
-.hand-pad {
+.hand-edge {
+  stroke-width: 1.5;
+}
+.hand-chassis-edge {
+  stroke-width: 2;
+  stroke-linejoin: miter;
+  stroke-miterlimit: 4;
+}
+
+/* The turned-away face: one flat tone with a hard edge, cel shading rather
+   than a gradient. See LIGHT_OFFSET in VirtualHand.tsx. */
+.hand-shade {
   fill: var(--ng-paper-sunk);
-  stroke: var(--ng-rule-strong);
-  stroke-width: 1;
+  stroke: none;
+  pointer-events: none;
 }
 
 .hand-seam {
@@ -383,7 +399,9 @@ main {
 }
 
 .hand[data-latched] .hand-link,
-.hand[data-latched] .hand-chassis {
+.hand[data-latched] .hand-chassis,
+.hand[data-latched] .hand-edge,
+.hand[data-latched] .hand-chassis-edge {
   stroke: var(--ng-commit);
 }
 .hand[data-latched] .hand-pivot,
@@ -589,5 +607,72 @@ main {
   }
   .transport {
     justify-content: center;
+  }
+}
+
+/* ---------------------------------------------------------------------- *
+   Colophon
+   
+   Credits and provenance, at the end of the instrument rather than in front
+   of it. Three zones on one hairline-separated band: the mark and what course
+   this is, who built it, and the statement that qualifies everything above.
+ * ---------------------------------------------------------------------- */
+
+.colophon {
+  margin-top: auto;
+  padding: var(--ng-space-8) var(--ng-space-4) var(--ng-space-6);
+  border-top: var(--ng-hairline) solid var(--ng-rule);
+  background: var(--ng-paper-sunk);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(max-content, auto);
+  gap: var(--ng-space-6) var(--ng-space-8);
+  align-items: start;
+}
+
+.colophon-mark {
+  min-width: 0;
+}
+
+.colophon-mark .wordmark {
+  max-width: 100%;
+}
+
+.colophon-course {
+  margin: var(--ng-space-2) 0 0;
+  color: var(--ng-ink-muted);
+  font-size: var(--ng-text-xs);
+  line-height: var(--ng-leading-normal);
+}
+
+.colophon-team h2 {
+  margin: 0 0 var(--ng-space-2);
+  font-size: var(--ng-text-xs);
+  font-weight: 400;
+  color: var(--ng-ink-muted);
+}
+
+.colophon-team ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--ng-space-1);
+  font-size: var(--ng-text-sm);
+}
+
+.colophon-safety {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding-top: var(--ng-space-4);
+  border-top: var(--ng-hairline) solid var(--ng-rule);
+  color: var(--ng-ink-muted);
+  font-size: var(--ng-text-xs);
+  max-width: var(--ng-measure);
+}
+
+@media (max-width: 640px) {
+  .colophon {
+    grid-template-columns: minmax(0, 1fr);
+    padding-top: var(--ng-space-6);
   }
 }
