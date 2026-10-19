@@ -41,6 +41,7 @@ mlruns/
 
 # Node
 node_modules/
+.npm-cache/
 dist/
 *.tsbuildinfo
 

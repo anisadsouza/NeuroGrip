@@ -30,8 +30,13 @@ def spy(monkeypatch):
         calls["export"] = (config, model_name, out_dir)
         return {"model": model_name}
 
+    def fake_robustness(config, spec, shifts):
+        calls["robustness"] = (config, spec.name, shifts)
+        return {"model": spec.name, "shifts": list(shifts)}
+
     monkeypatch.setattr(experiments, "compare_models", fake_compare)
     monkeypatch.setattr(experiments, "export_best", fake_export)
+    monkeypatch.setattr(experiments, "robustness_curve", fake_robustness)
     return calls
 
 
@@ -53,10 +58,33 @@ def test_export_dispatches_to_export_only(monkeypatch, spy, tmp_path):
     assert "compare" not in spy
 
 
+def test_robustness_dispatches_to_robustness_only(monkeypatch, spy, tmp_path):
+    _run(monkeypatch, "robustness", "--out", str(tmp_path / "r.json"))
+    assert "robustness" in spy
+    assert "compare" not in spy
+    assert "export" not in spy
+
+
 def test_export_passes_the_requested_model(monkeypatch, spy, tmp_path):
     _run(monkeypatch, "export", "--out", str(tmp_path / "m"), "--model", "lda")
     _, model_name, _ = spy["export"]
     assert model_name == "lda"
+
+
+def test_robustness_passes_requested_model_and_shifts(monkeypatch, spy, tmp_path):
+    _run(
+        monkeypatch,
+        "robustness",
+        "--out",
+        str(tmp_path / "r.json"),
+        "--model",
+        "lda",
+        "--shifts",
+        "0,0.2,0.4",
+    )
+    _, model_name, shifts = spy["robustness"]
+    assert model_name == "lda"
+    assert shifts == (0.0, 0.2, 0.4)
 
 
 def test_export_creates_the_output_directory(monkeypatch, spy, tmp_path):
@@ -74,6 +102,11 @@ def test_compare_writes_json_to_the_requested_path(monkeypatch, spy, tmp_path):
 def test_compare_rejects_a_directory_target(monkeypatch, spy, tmp_path):
     with pytest.raises(SystemExit):
         _run(monkeypatch, "compare", "--out", str(tmp_path / "adir"))
+
+
+def test_robustness_rejects_a_directory_target(monkeypatch, spy, tmp_path):
+    with pytest.raises(SystemExit):
+        _run(monkeypatch, "robustness", "--out", str(tmp_path / "adir"))
 
 
 def test_export_rejects_a_file_target(monkeypatch, spy, tmp_path):

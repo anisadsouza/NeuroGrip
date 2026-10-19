@@ -20,6 +20,19 @@ power grip must clear a higher bar than opening a hand.
 
 Everything runs on-device. No signal is uploaded, and none is stored.
 
+## End goal
+
+NeuroGrip is the software/control layer for a prosthetic-hand system. For this
+college project, the final deliverable is a software-only prototype: simulated
+or recorded EMG goes in, a gesture and confidence come out, and the browser
+shows the virtual prosthetic hand responding in real time.
+
+It is not a personal wellness app and it is not a certified commercial medical
+device. It is an academic research prototype with a commercial direction: after
+real EMG hardware testing, amputee-subject validation, clinical safety work, and
+regulatory approval, the same kind of decoder could become part of a prosthetic
+device or clinician calibration tool.
+
 ## Quick start
 
 ```bash
@@ -44,13 +57,26 @@ every number on it means.
 | Latency | 2.0 ms P95 in the browser, against a 10 ms budget, gated in CI |
 | Time to motion | 40 ms median before the hand starts moving, 260 ms to latch |
 | Tests | 410 — 144 Python, 246 TypeScript, 20 browser |
-| Built | Simulator, feature pipeline, decoder, evidence accumulation, Live screen, virtual hand |
-| Not built | Cartography, error attribution, clinician mode |
+| Built | Simulator, feature pipeline, decoder, evidence accumulation, Live screen, virtual hand, electrode-shift robustness runner |
+| Not built | Cartography, error attribution, clinician mode, recorded amputee stratum |
 
 **The accuracy figure comes from simulated data** and is optimistic relative to
 recorded human sEMG. There is no amputee stratum yet. See
 [`docs/model_card.md`](docs/model_card.md) for the full evaluation and its
 limitations.
+
+## Completion plan
+
+1. Keep the research pipeline reproducible: simulator, features, training,
+   evaluation, ONNX export, latency, and model card.
+2. Keep the browser app usable as the main final demo: live signal, decoded
+   gesture, confidence/evidence, latency, and virtual hand motion.
+3. Add the missing report-grade studies when time allows: clinician mode,
+   attribution/error explanation, and amputee data evaluation if a recorded
+   dataset is available.
+4. Keep documentation updated after each meaningful change: README for project
+   status, `docs/walkthrough.md` for demo usage, and `docs/model_card.md` for
+   model limitations.
 
 ## Layout
 
@@ -71,6 +97,12 @@ npm test
 npm run typecheck
 npm run test:conformance   # proves Python and TypeScript agree on features
 npm run test:e2e           # the browser tier: latency budget, axe, keyboard, layout
+```
+
+Electrode-shift robustness can be generated separately:
+
+```bash
+python -m neurogrip.experiments robustness --out artifacts/electrode_shift_robustness.json
 ```
 
 That last one is the gate that matters: Python trains the model and TypeScript

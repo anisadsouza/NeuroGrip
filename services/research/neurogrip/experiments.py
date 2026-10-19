@@ -22,6 +22,7 @@ from neurogrip.evaluation import paired_fold_test
 from neurogrip.export import export_to_onnx, load_session, predict_onnx, verify_parity
 from neurogrip.features import FeatureConfig, extract_features, feature_vector
 from neurogrip.posteriors import write_posteriors
+from neurogrip.robustness import robustness_curve
 from neurogrip.simulator import SimulatorConfig, make_subject, simulate
 from neurogrip.train import MODEL_ZOO, evaluate_model, fit_final_model, model_by_name, select_best
 from neurogrip.windowing import WindowConfig, frame_windows
@@ -245,7 +246,7 @@ def export_best(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="NeuroGrip experiments")
-    parser.add_argument("experiment", choices=["compare", "export"])
+    parser.add_argument("experiment", choices=["compare", "export", "robustness"])
     parser.add_argument(
         "--out",
         type=pathlib.Path,
@@ -256,6 +257,11 @@ def main() -> None:
     parser.add_argument("--reps", type=int, default=4)
     parser.add_argument("--seconds", type=float, default=1.0)
     parser.add_argument("--model", default="rbf_svm")
+    parser.add_argument(
+        "--shifts",
+        default="0,0.1,0.2,0.3,0.4",
+        help="robustness: comma-separated electrode shifts in radians",
+    )
     parser.add_argument(
         "--posteriors",
         type=pathlib.Path,
@@ -282,6 +288,20 @@ def main() -> None:
         out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         print()
         print(f"best model: {payload['best_model']}")
+        print(f"written to {out}")
+        return
+
+    if args.experiment == "robustness":
+        out = args.out or pathlib.Path("artifacts/electrode_shift_robustness.json")
+        if out.suffix != ".json":
+            parser.error(f"robustness --out must be a .json path, got {out}")
+        try:
+            shifts = tuple(float(value) for value in args.shifts.split(",") if value)
+        except ValueError as exc:
+            parser.error(f"robustness --shifts must be comma-separated numbers: {exc}")
+        payload = robustness_curve(config, model_by_name(args.model), shifts)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         print(f"written to {out}")
         return
 
