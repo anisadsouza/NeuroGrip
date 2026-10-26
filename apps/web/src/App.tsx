@@ -80,11 +80,6 @@ export function App() {
       <footer className="colophon">
         <div className="colophon-mark">
           <Wordmark height="1.5rem" />
-          <p className="colophon-course">
-            BTECH CAP 501, Project Life Cycle Management
-            <br />
-            ATLAS SkillTech University / uGDX
-          </p>
         </div>
 
         <div className="colophon-team">

@@ -5,6 +5,7 @@ minutes, not milliseconds. Results are written to JSON so the report and the
 model card quote a recorded run rather than a remembered number.
 
     python -m neurogrip.experiments compare --out artifacts/model_comparison.json
+    python -m neurogrip.experiments cartography --out artifacts/cartography_gate.json
 """
 
 from __future__ import annotations
@@ -17,6 +18,7 @@ import time
 import numpy as np
 
 from neurogrip import FEATURE_SPEC_VERSION
+from neurogrip.cartography import cartography_gate
 from neurogrip.datasets import CorpusConfig, build_corpus
 from neurogrip.evaluation import paired_fold_test
 from neurogrip.export import export_to_onnx, load_session, predict_onnx, verify_parity
@@ -246,7 +248,7 @@ def export_best(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="NeuroGrip experiments")
-    parser.add_argument("experiment", choices=["compare", "export", "robustness"])
+    parser.add_argument("experiment", choices=["compare", "export", "robustness", "cartography"])
     parser.add_argument(
         "--out",
         type=pathlib.Path,
@@ -302,6 +304,18 @@ def main() -> None:
         payload = robustness_curve(config, model_by_name(args.model), shifts)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        print(f"written to {out}")
+        return
+
+    if args.experiment == "cartography":
+        out = args.out or pathlib.Path("artifacts/cartography_gate.json")
+        if out.suffix != ".json":
+            parser.error(f"cartography --out must be a .json path, got {out}")
+        payload = cartography_gate(n_subjects=args.subjects, reps=args.reps)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        for name, cohort in payload["cohorts"].items():
+            print(f"{name}: synthesis wins {cohort['wins']}/{cohort['n_subjects']}")
         print(f"written to {out}")
         return
 

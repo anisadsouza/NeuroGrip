@@ -36,7 +36,12 @@ def spy(monkeypatch):
 
     monkeypatch.setattr(experiments, "compare_models", fake_compare)
     monkeypatch.setattr(experiments, "export_best", fake_export)
+    def fake_cartography(n_subjects=5, k=5, reps=4):
+        calls["cartography"] = (n_subjects, reps)
+        return {"cohorts": {"intact": {"wins": 0, "n_subjects": n_subjects}}}
+
     monkeypatch.setattr(experiments, "robustness_curve", fake_robustness)
+    monkeypatch.setattr(experiments, "cartography_gate", fake_cartography)
     return calls
 
 
@@ -63,6 +68,19 @@ def test_robustness_dispatches_to_robustness_only(monkeypatch, spy, tmp_path):
     assert "robustness" in spy
     assert "compare" not in spy
     assert "export" not in spy
+
+
+def test_cartography_dispatches_to_cartography_only(monkeypatch, spy, tmp_path):
+    target = tmp_path / "g.json"
+    _run(monkeypatch, "cartography", "--out", str(target), "--subjects", "3", "--reps", "2")
+    assert spy["cartography"] == (3, 2)
+    assert "compare" not in spy and "export" not in spy and "robustness" not in spy
+    assert target.exists()
+
+
+def test_cartography_rejects_a_directory_target(monkeypatch, spy, tmp_path):
+    with pytest.raises(SystemExit):
+        _run(monkeypatch, "cartography", "--out", str(tmp_path / "adir"))
 
 
 def test_export_passes_the_requested_model(monkeypatch, spy, tmp_path):

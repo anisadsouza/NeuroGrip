@@ -1,0 +1,1385 @@
+{
+  "k": 5,
+  "reps": 4,
+  "level_jitter": 0.15,
+  "muscle_jitter": 0.08,
+  "level_weight": 0.25,
+  "hold_fatigue_per_excitation": 1.0,
+  "cohorts": {
+    "intact": {
+      "wins": 0,
+      "n_subjects": 5,
+      "weighted_selection": {
+        "separability_ratio": 0.7884,
+        "excitation_change": -0.0254,
+        "fatigue_change": -0.018,
+        "accuracy_change": 0.0
+      },
+      "subjects": [
+        {
+          "k": 5,
+          "probe": {
+            "shortlist": 40,
+            "repeats": 3,
+            "seconds": 0.5
+          },
+          "selection_weights": {
+            "separability": 1.0,
+            "effort": 0.5,
+            "fatigue": 0.5
+          },
+          "prototypes_map": [
+            [
+              0.2676,
+              0.2935
+            ],
+            [
+              0.7703,
+              0.4288
+            ],
+            [
+              0.6668,
+              0.6382
+            ],
+            [
+              0.6854,
+              0.662
+            ],
+            [
+              0.2059,
+              0.2528
+            ]
+          ],
+          "selection_costs": {
+            "fist": {
+              "effort": 0.4051,
+              "fatigue": 0.2993
+            },
+            "open_hand": {
+              "effort": 0.3665,
+              "fatigue": 0.2687
+            },
+            "pinch": {
+              "effort": 0.1938,
+              "fatigue": 0.2288
+            },
+            "point": {
+              "effort": 0.3286,
+              "fatigue": 0.1955
+            },
+            "wrist_flexion": {
+              "effort": 0.4335,
+              "fatigue": 0.2513
+            },
+            "wrist_extension": {
+              "effort": 0.4345,
+              "fatigue": 0.2486
+            },
+            "thumb_up": {
+              "effort": 0.2996,
+              "fatigue": 0.1738
+            },
+            "two_finger": {
+              "effort": 0.2855,
+              "fatigue": 0.2384
+            },
+            "spherical_grip": {
+              "effort": 0.446,
+              "fatigue": 0.3108
+            }
+          },
+          "synthesized": {
+            "classes": [
+              "rest",
+              "proto_1",
+              "proto_2",
+              "proto_3",
+              "proto_4",
+              "proto_5"
+            ],
+            "min_pairwise_separation": 0.6886,
+            "worst_pair": [
+              "proto_1",
+              "proto_5"
+            ],
+            "cv_accuracy": 0.9568,
+            "mean_excitation": 0.5352
+          },
+          "catalogue": {
+            "classes": [
+              "rest",
+              "wrist_extension",
+              "wrist_flexion",
+              "thumb_up",
+              "point",
+              "two_finger"
+            ],
+            "min_pairwise_separation": 0.999,
+            "worst_pair": [
+              "point",
+              "two_finger"
+            ],
+            "cv_accuracy": 1.0,
+            "mean_excitation": 0.348,
+            "mean_fatigue": 0.2215
+          },
+          "weighted_catalogue": {
+            "classes": [
+              "rest",
+              "pinch",
+              "thumb_up",
+              "point",
+              "two_finger",
+              "open_hand"
+            ],
+            "min_pairwise_separation": 0.6976,
+            "worst_pair": [
+              "pinch",
+              "two_finger"
+            ],
+            "cv_accuracy": 0.9877,
+            "mean_excitation": 0.3193,
+            "mean_fatigue": 0.221
+          },
+          "subject": "carto00",
+          "explained_variance": 0.9997,
+          "synthesis_wins": false,
+          "weighted_vs_maxmin": {
+            "separability_ratio": 0.6983,
+            "excitation_change": -0.0287,
+            "fatigue_change": -0.0005,
+            "accuracy_change": -0.0123
+          }
+        },
+        {
+          "k": 5,
+          "probe": {
+            "shortlist": 40,
+            "repeats": 3,
+            "seconds": 0.5
+          },
+          "selection_weights": {
+            "separability": 1.0,
+            "effort": 0.5,
+            "fatigue": 0.5
+          },
+          "prototypes_map": [
+            [
+              0.2355,
+              0.2665
+            ],
+            [
+              0.3064,
+              0.3744
+            ],
+            [
+              0.184,
+              0.4161
+            ],
+            [
+              0.2445,
+              0.4187
+            ],
+            [
+              0.2952,
+              0.3845
+            ]
+          ],
+          "selection_costs": {
+            "fist": {
+              "effort": 0.381,
+              "fatigue": 0.2213
+            },
+            "open_hand": {
+              "effort": 0.3022,
+              "fatigue": 0.2102
+            },
+            "pinch": {
+              "effort": 0.2824,
+              "fatigue": 0.1811
+            },
+            "point": {
+              "effort": 0.3272,
+              "fatigue": 0.2149
+            },
+            "wrist_flexion": {
+              "effort": 0.4784,
+              "fatigue": 0.2917
+            },
+            "wrist_extension": {
+              "effort": 0.3771,
+              "fatigue": 0.2468
+            },
+            "thumb_up": {
+              "effort": 0.3632,
+              "fatigue": 0.1941
+            },
+            "two_finger": {
+              "effort": 0.2672,
+              "fatigue": 0.2629
+            },
+            "spherical_grip": {
+              "effort": 0.5002,
+              "fatigue": 0.3547
+            }
+          },
+          "synthesized": {
+            "classes": [
+              "rest",
+              "proto_1",
+              "proto_2",
+              "proto_3",
+              "proto_4",
+              "proto_5"
+            ],
+            "min_pairwise_separation": 0.5913,
+            "worst_pair": [
+              "proto_3",
+              "proto_4"
+            ],
+            "cv_accuracy": 0.9753,
+            "mean_excitation": 0.473
+          },
+          "catalogue": {
+            "classes": [
+              "rest",
+              "wrist_flexion",
+              "wrist_extension",
+              "thumb_up",
+              "two_finger",
+              "open_hand"
+            ],
+            "min_pairwise_separation": 0.9496,
+            "worst_pair": [
+              "wrist_extension",
+              "open_hand"
+            ],
+            "cv_accuracy": 1.0,
+            "mean_excitation": 0.349,
+            "mean_fatigue": 0.2411
+          },
+          "weighted_catalogue": {
+            "classes": [
+              "rest",
+              "pinch",
+              "open_hand",
+              "point",
+              "thumb_up",
+              "two_finger"
+            ],
+            "min_pairwise_separation": 0.6738,
+            "worst_pair": [
+              "pinch",
+              "point"
+            ],
+            "cv_accuracy": 1.0,
+            "mean_excitation": 0.3193,
+            "mean_fatigue": 0.2126
+          },
+          "subject": "carto01",
+          "explained_variance": 0.9998,
+          "synthesis_wins": false,
+          "weighted_vs_maxmin": {
+            "separability_ratio": 0.7096,
+            "excitation_change": -0.0297,
+            "fatigue_change": -0.0285,
+            "accuracy_change": 0.0
+          }
+        },
+        {
+          "k": 5,
+          "probe": {
+            "shortlist": 40,
+            "repeats": 3,
+            "seconds": 0.5
+          },
+          "selection_weights": {
+            "separability": 1.0,
+            "effort": 0.5,
+            "fatigue": 0.5
+          },
+          "prototypes_map": [
+            [
+              0.5917,
+              0.5644
+            ],
+            [
+              0.6876,
+              0.3658
+            ],
+            [
+              0.3065,
+              0.6387
+            ],
+            [
+              0.6825,
+              0.5205
+            ],
+            [
+              0.8301,
+              0.4158
+            ]
+          ],
+          "selection_costs": {
+            "fist": {
+              "effort": 0.3848,
+              "fatigue": 0.2491
+            },
+            "open_hand": {
+              "effort": 0.2706,
+              "fatigue": 0.254
+            },
+            "pinch": {
+              "effort": 0.2099,
+              "fatigue": 0.2301
+            },
+            "point": {
+              "effort": 0.2385,
+              "fatigue": 0.1942
+            },
+            "wrist_flexion": {
+              "effort": 0.3932,
+              "fatigue": 0.3278
+            },
+            "wrist_extension": {
+              "effort": 0.3466,
+              "fatigue": 0.2393
+            },
+            "thumb_up": {
+              "effort": 0.2301,
+              "fatigue": 0.2025
+            },
+            "two_finger": {
+              "effort": 0.1887,
+              "fatigue": 0.2143
+            },
+            "spherical_grip": {
+              "effort": 0.3939,
+              "fatigue": 0.3184
+            }
+          },
+          "synthesized": {
+            "classes": [
+              "rest",
+              "proto_1",
+              "proto_2",
+              "proto_3",
+              "proto_4",
+              "proto_5"
+            ],
+            "min_pairwise_separation": 0.6461,
+            "worst_pair": [
+              "proto_2",
+              "proto_5"
+            ],
+            "cv_accuracy": 0.9383,
+            "mean_excitation": 0.5817
+          },
+          "catalogue": {
+            "classes": [
+              "rest",
+              "wrist_flexion",
+              "thumb_up",
+              "open_hand",
+              "pinch",
+              "fist"
+            ],
+            "min_pairwise_separation": 0.8231,
+            "worst_pair": [
+              "wrist_flexion",
+              "fist"
+            ],
+            "cv_accuracy": 1.0,
+            "mean_excitation": 0.3447,
+            "mean_fatigue": 0.2527
+          },
+          "weighted_catalogue": {
+            "classes": [
+              "rest",
+              "two_finger",
+              "point",
+              "thumb_up",
+              "pinch",
+              "open_hand"
+            ],
+            "min_pairwise_separation": 0.8529,
+            "worst_pair": [
+              "point",
+              "pinch"
+            ],
+            "cv_accuracy": 1.0,
+            "mean_excitation": 0.3193,
+            "mean_fatigue": 0.219
+          },
+          "subject": "carto02",
+          "explained_variance": 0.9997,
+          "synthesis_wins": false,
+          "weighted_vs_maxmin": {
+            "separability_ratio": 1.0362,
+            "excitation_change": -0.0254,
+            "fatigue_change": -0.0337,
+            "accuracy_change": 0.0
+          }
+        },
+        {
+          "k": 5,
+          "probe": {
+            "shortlist": 40,
+            "repeats": 3,
+            "seconds": 0.5
+          },
+          "selection_weights": {
+            "separability": 1.0,
+            "effort": 0.5,
+            "fatigue": 0.5
+          },
+          "prototypes_map": [
+            [
+              0.4638,
+              0.6953
+            ],
+            [
+              0.4185,
+              0.5952
+            ],
+            [
+              0.3557,
+              0.5167
+            ],
+            [
+              0.4821,
+              0.6619
+            ],
+            [
+              0.3434,
+              0.5228
+            ]
+          ],
+          "selection_costs": {
+            "fist": {
+              "effort": 0.3617,
+              "fatigue": 0.2621
+            },
+            "open_hand": {
+              "effort": 0.2852,
+              "fatigue": 0.2784
+            },
+            "pinch": {
+              "effort": 0.2329,
+              "fatigue": 0.1317
+            },
+            "point": {
+              "effort": 0.3014,
+              "fatigue": 0.2697
+            },
+            "wrist_flexion": {
+              "effort": 0.38,
+              "fatigue": 0.2153
+            },
+            "wrist_extension": {
+              "effort": 0.4058,
+              "fatigue": 0.2258
+            },
+            "thumb_up": {
+              "effort": 0.2821,
+              "fatigue": 0.1771
+            },
+            "two_finger": {
+              "effort": 0.2696,
+              "fatigue": 0.2232
+            },
+            "spherical_grip": {
+              "effort": 0.5055,
+              "fatigue": 0.2007
+            }
+          },
+          "synthesized": {
+            "classes": [
+              "rest",
+              "proto_1",
+              "proto_2",
+              "proto_3",
+              "proto_4",
+              "proto_5"
+            ],
+            "min_pairwise_separation": 0.4446,
+            "worst_pair": [
+              "proto_2",
+              "proto_3"
+            ],
+            "cv_accuracy": 0.8981,
+            "mean_excitation": 0.6761
+          },
+          "catalogue": {
+            "classes": [
+              "rest",
+              "wrist_flexion",
+              "open_hand",
+              "thumb_up",
+              "pinch",
+              "fist"
+            ],
+            "min_pairwise_separation": 0.8184,
+            "worst_pair": [
+              "wrist_flexion",
+              "fist"
+            ],
+            "cv_accuracy": 1.0,
+            "mean_excitation": 0.3447,
+            "mean_fatigue": 0.2129
+          },
+          "weighted_catalogue": {
+            "classes": [
+              "rest",
+              "pinch",
+              "thumb_up",
+              "two_finger",
+              "wrist_flexion",
+              "open_hand"
+            ],
+            "min_pairwise_separation": 0.6452,
+            "worst_pair": [
+              "pinch",
+              "two_finger"
+            ],
+            "cv_accuracy": 1.0,
+            "mean_excitation": 0.323,
+            "mean_fatigue": 0.2051
+          },
+          "subject": "carto03",
+          "explained_variance": 0.9997,
+          "synthesis_wins": false,
+          "weighted_vs_maxmin": {
+            "separability_ratio": 0.7884,
+            "excitation_change": -0.0217,
+            "fatigue_change": -0.0078,
+            "accuracy_change": 0.0
+          }
+        },
+        {
+          "k": 5,
+          "probe": {
+            "shortlist": 40,
+            "repeats": 3,
+            "seconds": 0.5
+          },
+          "selection_weights": {
+            "separability": 1.0,
+            "effort": 0.5,
+            "fatigue": 0.5
+          },
+          "prototypes_map": [
+            [
+              0.4343,
+              0.6335
+            ],
+            [
+              0.3434,
+              0.3192
+            ],
+            [
+              0.3659,
+              0.3538
+            ],
+            [
+              0.6285,
+              0.5125
+            ],
+            [
+              0.6892,
+              0.4144
+            ]
+          ],
+          "selection_costs": {
+            "fist": {
+              "effort": 0.3818,
+              "fatigue": 0.1935
+            },
+            "open_hand": {
+              "effort": 0.3326,
+              "fatigue": 0.2461
+            },
+            "pinch": {
+              "effort": 0.2474,
+              "fatigue": 0.1356
+            },
+            "point": {
+              "effort": 0.2521,
+              "fatigue": 0.2046
+            },
+            "wrist_flexion": {
+              "effort": 0.3838,
+              "fatigue": 0.2257
+            },
+            "wrist_extension": {
+              "effort": 0.3064,
+              "fatigue": 0.2061
+            },
+            "thumb_up": {
+              "effort": 0.2947,
+              "fatigue": 0.2109
+            },
+            "two_finger": {
+              "effort": 0.2383,
+              "fatigue": 0.1647
+            },
+            "spherical_grip": {
+              "effort": 0.4193,
+              "fatigue": 0.2736
+            }
+          },
+          "synthesized": {
+            "classes": [
+              "rest",
+              "proto_1",
+              "proto_2",
+              "proto_3",
+              "proto_4",
+              "proto_5"
+            ],
+            "min_pairwise_separation": 0.6257,
+            "worst_pair": [
+              "proto_2",
+              "proto_3"
+            ],
+            "cv_accuracy": 0.963,
+            "mean_excitation": 0.5708
+          },
+          "catalogue": {
+            "classes": [
+              "rest",
+              "wrist_flexion",
+              "wrist_extension",
+              "thumb_up",
+              "two_finger",
+              "point"
+            ],
+            "min_pairwise_separation": 1.0339,
+            "worst_pair": [
+              "two_finger",
+              "point"
+            ],
+            "cv_accuracy": 1.0,
+            "mean_excitation": 0.348,
+            "mean_fatigue": 0.2024
+          },
+          "weighted_catalogue": {
+            "classes": [
+              "rest",
+              "pinch",
+              "two_finger",
+              "point",
+              "thumb_up",
+              "wrist_extension"
+            ],
+            "min_pairwise_separation": 0.997,
+            "worst_pair": [
+              "pinch",
+              "two_finger"
+            ],
+            "cv_accuracy": 1.0,
+            "mean_excitation": 0.3243,
+            "mean_fatigue": 0.1844
+          },
+          "subject": "carto04",
+          "explained_variance": 0.9996,
+          "synthesis_wins": false,
+          "weighted_vs_maxmin": {
+            "separability_ratio": 0.9643,
+            "excitation_change": -0.0237,
+            "fatigue_change": -0.018,
+            "accuracy_change": 0.0
+          }
+        }
+      ]
+    },
+    "finger_atrophy": {
+      "wins": 0,
+      "n_subjects": 5,
+      "weighted_selection": {
+        "separability_ratio": 0.8927,
+        "excitation_change": -0.0554,
+        "fatigue_change": -0.0277,
+        "accuracy_change": 0.0
+      },
+      "subjects": [
+        {
+          "k": 5,
+          "probe": {
+            "shortlist": 40,
+            "repeats": 3,
+            "seconds": 0.5
+          },
+          "selection_weights": {
+            "separability": 1.0,
+            "effort": 0.5,
+            "fatigue": 0.5
+          },
+          "prototypes_map": [
+            [
+              0.2991,
+              0.4392
+            ],
+            [
+              0.3379,
+              0.5432
+            ],
+            [
+              0.1842,
+              0.5507
+            ],
+            [
+              0.2937,
+              0.6509
+            ],
+            [
+              0.1482,
+              0.3443
+            ]
+          ],
+          "selection_costs": {
+            "fist": {
+              "effort": 0.2603,
+              "fatigue": 0.2608
+            },
+            "open_hand": {
+              "effort": 0.237,
+              "fatigue": 0.2532
+            },
+            "pinch": {
+              "effort": 0.116,
+              "fatigue": 0.1583
+            },
+            "point": {
+              "effort": 0.1817,
+              "fatigue": 0.1826
+            },
+            "wrist_flexion": {
+              "effort": 0.4719,
+              "fatigue": 0.2761
+            },
+            "wrist_extension": {
+              "effort": 0.3988,
+              "fatigue": 0.2702
+            },
+            "thumb_up": {
+              "effort": 0.314,
+              "fatigue": 0.2042
+            },
+            "two_finger": {
+              "effort": 0.2128,
+              "fatigue": 0.236
+            },
+            "spherical_grip": {
+              "effort": 0.4083,
+              "fatigue": 0.3013
+            }
+          },
+          "synthesized": {
+            "classes": [
+              "rest",
+              "proto_1",
+              "proto_2",
+              "proto_3",
+              "proto_4",
+              "proto_5"
+            ],
+            "min_pairwise_separation": 0.451,
+            "worst_pair": [
+              "proto_1",
+              "proto_5"
+            ],
+            "cv_accuracy": 0.8889,
+            "mean_excitation": 0.5377
+          },
+          "catalogue": {
+            "classes": [
+              "rest",
+              "open_hand",
+              "wrist_flexion",
+              "thumb_up",
+              "two_finger",
+              "spherical_grip"
+            ],
+            "min_pairwise_separation": 0.9481,
+            "worst_pair": [
+              "two_finger",
+              "spherical_grip"
+            ],
+            "cv_accuracy": 0.9815,
+            "mean_excitation": 0.3747,
+            "mean_fatigue": 0.2542
+          },
+          "weighted_catalogue": {
+            "classes": [
+              "rest",
+              "pinch",
+              "point",
+              "two_finger",
+              "open_hand",
+              "thumb_up"
+            ],
+            "min_pairwise_separation": 0.6733,
+            "worst_pair": [
+              "pinch",
+              "point"
+            ],
+            "cv_accuracy": 1.0,
+            "mean_excitation": 0.3193,
+            "mean_fatigue": 0.2069
+          },
+          "subject": "carto00",
+          "explained_variance": 0.9997,
+          "synthesis_wins": false,
+          "weighted_vs_maxmin": {
+            "separability_ratio": 0.7102,
+            "excitation_change": -0.0554,
+            "fatigue_change": -0.0473,
+            "accuracy_change": 0.0185
+          }
+        },
+        {
+          "k": 5,
+          "probe": {
+            "shortlist": 40,
+            "repeats": 3,
+            "seconds": 0.5
+          },
+          "selection_weights": {
+            "separability": 1.0,
+            "effort": 0.5,
+            "fatigue": 0.5
+          },
+          "prototypes_map": [
+            [
+              0.4781,
+              0.4546
+            ],
+            [
+              0.2301,
+              0.2714
+            ],
+            [
+              0.1386,
+              0.2601
+            ],
+            [
+              0.3754,
+              0.2994
+            ],
+            [
+              0.4073,
+              0.4471
+            ]
+          ],
+          "selection_costs": {
+            "fist": {
+              "effort": 0.3237,
+              "fatigue": 0.1821
+            },
+            "open_hand": {
+              "effort": 0.238,
+              "fatigue": 0.299
+            },
+            "pinch": {
+              "effort": 0.1981,
+              "fatigue": 0.1477
+            },
+            "point": {
+              "effort": 0.2307,
+              "fatigue": 0.2343
+            },
+            "wrist_flexion": {
+              "effort": 0.5126,
+              "fatigue": 0.3154
+            },
+            "wrist_extension": {
+              "effort": 0.4119,
+              "fatigue": 0.3039
+            },
+            "thumb_up": {
+              "effort": 0.3802,
+              "fatigue": 0.2371
+            },
+            "two_finger": {
+              "effort": 0.2214,
+              "fatigue": 0.1807
+            },
+            "spherical_grip": {
+              "effort": 0.4606,
+              "fatigue": 0.3556
+            }
+          },
+          "synthesized": {
+            "classes": [
+              "rest",
+              "proto_1",
+              "proto_2",
+              "proto_3",
+              "proto_4",
+              "proto_5"
+            ],
+            "min_pairwise_separation": 0.5611,
+            "worst_pair": [
+              "proto_2",
+              "proto_3"
+            ],
+            "cv_accuracy": 0.9938,
+            "mean_excitation": 0.6291
+          },
+          "catalogue": {
+            "classes": [
+              "rest",
+              "wrist_flexion",
+              "wrist_extension",
+              "thumb_up",
+              "two_finger",
+              "pinch"
+            ],
+            "min_pairwise_separation": 0.6563,
+            "worst_pair": [
+              "two_finger",
+              "pinch"
+            ],
+            "cv_accuracy": 1.0,
+            "mean_excitation": 0.328,
+            "mean_fatigue": 0.237
+          },
+          "weighted_catalogue": {
+            "classes": [
+              "rest",
+              "pinch",
+              "two_finger",
+              "open_hand",
+              "fist",
+              "thumb_up"
+            ],
+            "min_pairwise_separation": 0.6353,
+            "worst_pair": [
+              "two_finger",
+              "fist"
+            ],
+            "cv_accuracy": 0.9938,
+            "mean_excitation": 0.3293,
+            "mean_fatigue": 0.2093
+          },
+          "subject": "carto01",
+          "explained_variance": 0.9998,
+          "synthesis_wins": false,
+          "weighted_vs_maxmin": {
+            "separability_ratio": 0.968,
+            "excitation_change": 0.0013,
+            "fatigue_change": -0.0277,
+            "accuracy_change": -0.0062
+          }
+        },
+        {
+          "k": 5,
+          "probe": {
+            "shortlist": 40,
+            "repeats": 3,
+            "seconds": 0.5
+          },
+          "selection_weights": {
+            "separability": 1.0,
+            "effort": 0.5,
+            "fatigue": 0.5
+          },
+          "prototypes_map": [
+            [
+              0.726,
+              0.5864
+            ],
+            [
+              0.3408,
+              0.684
+            ],
+            [
+              0.7643,
+              0.5181
+            ],
+            [
+              0.8133,
+              0.3698
+            ],
+            [
+              0.5401,
+              0.7248
+            ]
+          ],
+          "selection_costs": {
+            "fist": {
+              "effort": 0.3362,
+              "fatigue": 0.274
+            },
+            "open_hand": {
+              "effort": 0.2258,
+              "fatigue": 0.1938
+            },
+            "pinch": {
+              "effort": 0.1477,
+              "fatigue": 0.1899
+            },
+            "point": {
+              "effort": 0.1731,
+              "fatigue": 0.244
+            },
+            "wrist_flexion": {
+              "effort": 0.4823,
+              "fatigue": 0.3091
+            },
+            "wrist_extension": {
+              "effort": 0.3863,
+              "fatigue": 0.2943
+            },
+            "thumb_up": {
+              "effort": 0.27,
+              "fatigue": 0.2155
+            },
+            "two_finger": {
+              "effort": 0.1718,
+              "fatigue": 0.1846
+            },
+            "spherical_grip": {
+              "effort": 0.3616,
+              "fatigue": 0.2515
+            }
+          },
+          "synthesized": {
+            "classes": [
+              "rest",
+              "proto_1",
+              "proto_2",
+              "proto_3",
+              "proto_4",
+              "proto_5"
+            ],
+            "min_pairwise_separation": 0.3826,
+            "worst_pair": [
+              "proto_1",
+              "proto_3"
+            ],
+            "cv_accuracy": 0.892,
+            "mean_excitation": 0.6422
+          },
+          "catalogue": {
+            "classes": [
+              "rest",
+              "wrist_flexion",
+              "open_hand",
+              "thumb_up",
+              "two_finger",
+              "spherical_grip"
+            ],
+            "min_pairwise_separation": 0.9627,
+            "worst_pair": [
+              "wrist_flexion",
+              "spherical_grip"
+            ],
+            "cv_accuracy": 1.0,
+            "mean_excitation": 0.3747,
+            "mean_fatigue": 0.2309
+          },
+          "weighted_catalogue": {
+            "classes": [
+              "rest",
+              "pinch",
+              "two_finger",
+              "open_hand",
+              "thumb_up",
+              "point"
+            ],
+            "min_pairwise_separation": 0.6264,
+            "worst_pair": [
+              "pinch",
+              "point"
+            ],
+            "cv_accuracy": 1.0,
+            "mean_excitation": 0.3193,
+            "mean_fatigue": 0.2056
+          },
+          "subject": "carto02",
+          "explained_variance": 0.9997,
+          "synthesis_wins": false,
+          "weighted_vs_maxmin": {
+            "separability_ratio": 0.6507,
+            "excitation_change": -0.0554,
+            "fatigue_change": -0.0253,
+            "accuracy_change": 0.0
+          }
+        },
+        {
+          "k": 5,
+          "probe": {
+            "shortlist": 40,
+            "repeats": 3,
+            "seconds": 0.5
+          },
+          "selection_weights": {
+            "separability": 1.0,
+            "effort": 0.5,
+            "fatigue": 0.5
+          },
+          "prototypes_map": [
+            [
+              0.4666,
+              0.2019
+            ],
+            [
+              0.281,
+              0.4881
+            ],
+            [
+              0.1996,
+              0.4751
+            ],
+            [
+              0.2603,
+              0.2024
+            ],
+            [
+              0.4238,
+              0.6671
+            ]
+          ],
+          "selection_costs": {
+            "fist": {
+              "effort": 0.3001,
+              "fatigue": 0.2911
+            },
+            "open_hand": {
+              "effort": 0.2351,
+              "fatigue": 0.2852
+            },
+            "pinch": {
+              "effort": 0.1595,
+              "fatigue": 0.1285
+            },
+            "point": {
+              "effort": 0.1888,
+              "fatigue": 0.2549
+            },
+            "wrist_flexion": {
+              "effort": 0.4221,
+              "fatigue": 0.1975
+            },
+            "wrist_extension": {
+              "effort": 0.447,
+              "fatigue": 0.212
+            },
+            "thumb_up": {
+              "effort": 0.3156,
+              "fatigue": 0.2149
+            },
+            "two_finger": {
+              "effort": 0.2207,
+              "fatigue": 0.2912
+            },
+            "spherical_grip": {
+              "effort": 0.4977,
+              "fatigue": 0.2163
+            }
+          },
+          "synthesized": {
+            "classes": [
+              "rest",
+              "proto_1",
+              "proto_2",
+              "proto_3",
+              "proto_4",
+              "proto_5"
+            ],
+            "min_pairwise_separation": 0.4611,
+            "worst_pair": [
+              "proto_2",
+              "proto_5"
+            ],
+            "cv_accuracy": 0.9012,
+            "mean_excitation": 0.7383
+          },
+          "catalogue": {
+            "classes": [
+              "rest",
+              "wrist_extension",
+              "thumb_up",
+              "fist",
+              "pinch",
+              "two_finger"
+            ],
+            "min_pairwise_separation": 0.6659,
+            "worst_pair": [
+              "fist",
+              "two_finger"
+            ],
+            "cv_accuracy": 0.9784,
+            "mean_excitation": 0.3343,
+            "mean_fatigue": 0.2275
+          },
+          "weighted_catalogue": {
+            "classes": [
+              "rest",
+              "pinch",
+              "thumb_up",
+              "two_finger",
+              "open_hand",
+              "wrist_flexion"
+            ],
+            "min_pairwise_separation": 0.7106,
+            "worst_pair": [
+              "pinch",
+              "two_finger"
+            ],
+            "cv_accuracy": 1.0,
+            "mean_excitation": 0.323,
+            "mean_fatigue": 0.2235
+          },
+          "subject": "carto03",
+          "explained_variance": 0.9998,
+          "synthesis_wins": false,
+          "weighted_vs_maxmin": {
+            "separability_ratio": 1.0671,
+            "excitation_change": -0.0113,
+            "fatigue_change": -0.004,
+            "accuracy_change": 0.0216
+          }
+        },
+        {
+          "k": 5,
+          "probe": {
+            "shortlist": 40,
+            "repeats": 3,
+            "seconds": 0.5
+          },
+          "selection_weights": {
+            "separability": 1.0,
+            "effort": 0.5,
+            "fatigue": 0.5
+          },
+          "prototypes_map": [
+            [
+              0.5812,
+              0.1215
+            ],
+            [
+              0.4899,
+              0.154
+            ],
+            [
+              0.5578,
+              0.1027
+            ],
+            [
+              0.5205,
+              0.1858
+            ],
+            [
+              0.6383,
+              0.1997
+            ]
+          ],
+          "selection_costs": {
+            "fist": {
+              "effort": 0.3381,
+              "fatigue": 0.1576
+            },
+            "open_hand": {
+              "effort": 0.2378,
+              "fatigue": 0.3022
+            },
+            "pinch": {
+              "effort": 0.1658,
+              "fatigue": 0.1828
+            },
+            "point": {
+              "effort": 0.1779,
+              "fatigue": 0.2055
+            },
+            "wrist_flexion": {
+              "effort": 0.4686,
+              "fatigue": 0.302
+            },
+            "wrist_extension": {
+              "effort": 0.3669,
+              "fatigue": 0.1939
+            },
+            "thumb_up": {
+              "effort": 0.3304,
+              "fatigue": 0.1902
+            },
+            "two_finger": {
+              "effort": 0.2148,
+              "fatigue": 0.2102
+            },
+            "spherical_grip": {
+              "effort": 0.4163,
+              "fatigue": 0.2519
+            }
+          },
+          "synthesized": {
+            "classes": [
+              "rest",
+              "proto_1",
+              "proto_2",
+              "proto_3",
+              "proto_4",
+              "proto_5"
+            ],
+            "min_pairwise_separation": 0.6847,
+            "worst_pair": [
+              "proto_3",
+              "proto_4"
+            ],
+            "cv_accuracy": 0.9444,
+            "mean_excitation": 0.4173
+          },
+          "catalogue": {
+            "classes": [
+              "rest",
+              "wrist_extension",
+              "wrist_flexion",
+              "thumb_up",
+              "two_finger",
+              "spherical_grip"
+            ],
+            "min_pairwise_separation": 0.9601,
+            "worst_pair": [
+              "two_finger",
+              "spherical_grip"
+            ],
+            "cv_accuracy": 1.0,
+            "mean_excitation": 0.3797,
+            "mean_fatigue": 0.2296
+          },
+          "weighted_catalogue": {
+            "classes": [
+              "rest",
+              "pinch",
+              "point",
+              "thumb_up",
+              "wrist_extension",
+              "two_finger"
+            ],
+            "min_pairwise_separation": 0.8571,
+            "worst_pair": [
+              "pinch",
+              "point"
+            ],
+            "cv_accuracy": 1.0,
+            "mean_excitation": 0.3243,
+            "mean_fatigue": 0.1965
+          },
+          "subject": "carto04",
+          "explained_variance": 0.9999,
+          "synthesis_wins": false,
+          "weighted_vs_maxmin": {
+            "separability_ratio": 0.8927,
+            "excitation_change": -0.0554,
+            "fatigue_change": -0.0331,
+            "accuracy_change": 0.0
+          }
+        }
+      ]
+    }
+  },
+  "caveat": "Simulated babble and simulated users. Fatigue accrual is a simulator assumption proportional to excitation, so the fatigue term largely duplicates effort here. Learnability (teach-back) is not measured. Not a human result."
+}

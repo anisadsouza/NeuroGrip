@@ -15,7 +15,11 @@ full design and the prior-art analysis behind each claim.
 
 1. **Neuromotor Cartography** — map a user's reachable muscle-activation
    manifold, synthesise gesture prototypes optimised for separability,
-   repeatability and effort, and teach them back. *Not built yet (Phase 2).*
+   repeatability and effort, and teach them back. *In progress (Phase 2):*
+   `services/research/neurogrip/cartography.py`. Synthesis does **not** beat
+   catalogue selection in the simulator (0/5 in both cohorts), so the
+   cartograph serves the spec's fallback: catalogue selection weighted by
+   effort and fatigue. Teach-back and assignment are not built.
 2. **Risk-weighted evidence accumulation** — the hand begins moving reversibly
    as evidence accrues and latches only at full commitment; high-cost gestures
    must clear a higher evidence bar than cheap ones. **Built**, and visible:
@@ -39,12 +43,12 @@ full design and the prior-art analysis behind each claim.
 | 0 | Simulator, feature pipeline in both languages, conformance gate, CI | Complete |
 | 1a | Corpus, LOSO evaluation, model comparison, calibration, ONNX export, latency | Complete |
 | 1b | Evidence accumulator, design system, browser app, Live screen, virtual hand, verification layer, TTUM | Complete |
-| 2 | Neuromotor Cartography | Not started |
+| 2 | Neuromotor Cartography | In progress — synthesis gate fails 0/5; weighted-selection fallback built (`artifacts/cartography_gate.json`) |
 | 3 | Error-attribution router, anatomical coaching | Not started |
 | 4 | Clinician mode, amputee stratum, robustness | Not started |
 | 5 | Azure deployment, patent disclosures | Not started |
 
-**410 tests** — 144 Python, 246 TypeScript, 20 browser.
+**438 tests** — 172 Python, 246 TypeScript, 20 browser.
 
 Not yet built: Cartography, the attribution router, clinician mode, and
 deployment.

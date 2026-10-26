@@ -127,12 +127,33 @@ def simulate(
     """
     if gesture not in GESTURE_SYNERGIES:
         raise KeyError(f"unknown gesture: {gesture}")
+    return simulate_excitation(
+        GESTURE_SYNERGIES[gesture], duration_s, config, subject, seed, fatigue
+    )
+
+
+def simulate_excitation(
+    excitation: tuple[float, ...] | np.ndarray,
+    duration_s: float,
+    config: SimulatorConfig,
+    subject: SubjectProfile,
+    seed: int,
+    fatigue: float = 0.0,
+) -> np.ndarray:
+    """Generate sEMG for an arbitrary muscle excitation, not a named gesture.
+
+    Cartography needs this: babble explores excitations no catalogue names, and
+    a synthesised prototype is a coordinate, not an entry in GESTURE_SYNERGIES.
+    `simulate` delegates here, so both paths draw the same random stream.
+    """
+    excitations = np.asarray(excitation, dtype=np.float64)
+    if excitations.shape != (len(MUSCLES),):
+        raise ValueError(f"excitation must have shape ({len(MUSCLES)},)")
     if duration_s <= 0:
         raise ValueError("duration_s must be positive")
 
     rng = np.random.default_rng(seed)
     n_samples = int(round(duration_s * config.sampling_rate_hz))
-    excitations = np.asarray(GESTURE_SYNERGIES[gesture], dtype=np.float64)
     excitations = np.clip(excitations * subject.synergy_gain, 0.0, 1.0)
 
     sources = np.stack(
