@@ -160,8 +160,8 @@
   "trained_on": "simulator",
   "onnx_parity": {
     "ok": true,
-    "max_abs_diff": 5.133e-07,
-    "max_rel_diff": 1.22e-05,
+    "max_abs_diff": 5.125e-07,
+    "max_rel_diff": 1.057e-05,
     "n_samples": 2000,
     "rtol": 0.0001,
     "atol": 1e-05
@@ -170,28 +170,28 @@
     "n_windows": 1000,
     "batched": false,
     "feature_extraction": {
-      "mean_ms": 0.8889,
-      "p50_ms": 0.829,
-      "p95_ms": 1.1919,
-      "p99_ms": 1.6934,
-      "max_ms": 2.7225
+      "mean_ms": 0.9049,
+      "p50_ms": 0.8596,
+      "p95_ms": 1.2152,
+      "p99_ms": 1.6102,
+      "max_ms": 2.1902
     },
     "onnx_inference": {
-      "mean_ms": 0.5472,
-      "p50_ms": 0.4953,
-      "p95_ms": 0.7912,
-      "p99_ms": 1.0356,
-      "max_ms": 2.3823
+      "mean_ms": 0.5376,
+      "p50_ms": 0.5141,
+      "p95_ms": 0.6832,
+      "p99_ms": 0.8763,
+      "max_ms": 1.6753
     },
     "end_to_end": {
-      "mean_ms": 1.4361,
-      "p50_ms": 1.3266,
-      "p95_ms": 2.0134,
-      "p99_ms": 2.6789,
-      "max_ms": 4.7064
+      "mean_ms": 1.4425,
+      "p50_ms": 1.3751,
+      "p95_ms": 1.8896,
+      "p99_ms": 2.2583,
+      "max_ms": 2.809
     },
     "budget_ms": 10.0,
     "meets_budget": true
   },
-  "caveat": "Trained and evaluated on simulated sEMG. Not validated on recorded data. Research prototype, not a medical device."
+  "caveat": "Research prototype, not a medical device. Trained and evaluated on simulated sEMG. Not validated on recorded data."
 }

@@ -52,3 +52,15 @@ def test_load_session_rejects_a_file_without_required_variables(tmp_path):
     savemat(path, {"emg": np.zeros((10, 12), dtype=np.float32)})
     with pytest.raises(ValueError, match="missing NinaPro variables"):
         load_session(path)
+
+
+def test_load_session_trims_a_single_unlabelled_tail_sample(tmp_path):
+    path = tmp_path / "S1_E3_A1.mat"
+    savemat(path, {
+        "emg": np.zeros((11, 12), dtype=np.float32),
+        "restimulus": np.zeros((10, 1), dtype=np.int16),
+        "rerepetition": np.zeros((10, 1), dtype=np.int16),
+    })
+    emg, labels, reps = load_session(path)
+    assert emg.shape == (8, 10)
+    assert labels.size == reps.size == 10

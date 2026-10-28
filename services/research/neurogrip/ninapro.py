@@ -83,8 +83,16 @@ def load_session(path: pathlib.Path) -> tuple[np.ndarray, np.ndarray, np.ndarray
     emg = np.asarray(raw["emg"], dtype=np.float32)
     labels = _as_vector(raw["restimulus"], "restimulus").astype(np.int16)
     reps = _as_vector(raw["rerepetition"], "rerepetition").astype(np.int16)
-    if emg.ndim != 2 or emg.shape[0] != labels.size or labels.size != reps.size:
+    if emg.ndim != 2 or labels.size != reps.size:
         raise ValueError("emg, restimulus and rerepetition have incompatible shapes")
+    if emg.shape[0] != labels.size:
+        # DB2 E3 files can contain one unlabelled tail sample. It cannot form a
+        # valid labelled window, so retaining it would only make the arrays
+        # inconsistent. Larger discrepancies are evidence of the wrong file.
+        if abs(emg.shape[0] - labels.size) != 1:
+            raise ValueError("emg, restimulus and rerepetition have incompatible shapes")
+        length = min(emg.shape[0], labels.size)
+        emg, labels, reps = emg[:length], labels[:length], reps[:length]
     if emg.shape[1] < 8:
         raise ValueError(f"{path} has {emg.shape[1]} EMG channels; NeuroGrip needs 8")
 

@@ -36,11 +36,19 @@ function findPython() {
 
   for (const candidate of candidates) {
     if (candidate.includes('.venv') && !existsSync(candidate)) continue;
-    const probe = spawnSync(candidate, ['-c', 'import neurogrip'], {
-      cwd: root,
-      stdio: 'ignore',
-    });
-    if (probe.status === 0) return candidate;
+    // This shell's Node is sometimes launched under Rosetta while the project
+    // virtualenv has arm64 scientific wheels. Force the arm64 slice when it is
+    // available; otherwise fall back to the native interpreter unchanged.
+    const commands = process.platform === 'darwin' && process.arch === 'x64'
+      ? [['/usr/bin/arch', ['-arm64', candidate]], [candidate, []]]
+      : [[candidate, []]];
+    for (const [command, prefix] of commands) {
+      const probe = spawnSync(command, [...prefix, '-c', 'import neurogrip'], {
+        cwd: root,
+        stdio: 'ignore',
+      });
+      if (probe.status === 0) return { command, prefix, display: [...prefix, command === candidate ? '' : candidate].filter(Boolean).join(' ') };
+    }
   }
 
   console.error(
@@ -53,7 +61,7 @@ function findPython() {
 
 function run(python, args, description) {
   process.stdout.write(`${description}\n`);
-  const result = spawnSync(python, args, { cwd: root, stdio: 'inherit' });
+  const result = spawnSync(python.command, [...python.prefix, ...args], { cwd: root, stdio: 'inherit' });
   if (result.status !== 0) {
     console.error(`\nFailed: ${description}`);
     process.exit(result.status ?? 1);
@@ -61,7 +69,7 @@ function run(python, args, description) {
 }
 
 const python = findPython();
-console.log(`using ${python}\n`);
+console.log(`using ${python.display}\n`);
 
 run(
   python,
