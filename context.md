@@ -195,6 +195,12 @@ so, and the performed-versus-decoded strip updates live.
 
 ### Task 3: A Results screen charting the real artifacts (visual)
 
+The Results tab is now built. It fetches staged simulation and NinaPro
+comparison JSON separately, reports a clear unavailable state before DB2 has
+been run, and the asset builder copies available comparison artifacts into the
+web public directory. The remaining enhancement is adding a NinaPro confusion
+matrix and latency/TTUM cards after a real artifact has been generated.
+
 Add a second screen reading the JSON files in `artifacts/`, copied into
 `apps/web/public/results/` by `scripts/build-assets.mjs`:
 

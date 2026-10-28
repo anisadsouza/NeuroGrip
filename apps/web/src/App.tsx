@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react';
 import { Icon } from './components/Icon.js';
 import { Wordmark } from './components/Wordmark.js';
 import { Live } from './screens/Live.js';
+import { Results } from './screens/Results.js';
 
 type Theme = 'light' | 'dark';
 
@@ -35,6 +36,7 @@ function readStoredTheme(): Theme | null {
 
 export function App() {
   const [theme, setTheme] = useState<Theme | null>(readStoredTheme);
+  const [screen, setScreen] = useState<'live' | 'results'>('live');
 
   useEffect(() => {
     const root = document.documentElement;
@@ -63,6 +65,10 @@ export function App() {
           </h1>
           <p className="masthead-sub">Live decoding</p>
         </div>
+        <nav className="screen-nav" aria-label="Application sections">
+          <button type="button" aria-current={screen === 'live' ? 'page' : undefined} onClick={() => setScreen('live')}>Live</button>
+          <button type="button" aria-current={screen === 'results' ? 'page' : undefined} onClick={() => setScreen('results')}>Results</button>
+        </nav>
         <button
           type="button"
           className="theme-toggle"
@@ -74,7 +80,7 @@ export function App() {
       </header>
 
       <main>
-        <Live />
+        {screen === 'live' ? <Live /> : <Results />}
       </main>
 
       <footer className="colophon">

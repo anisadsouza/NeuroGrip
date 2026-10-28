@@ -116,6 +116,8 @@ npm run test:e2e           # the browser tier: latency budget, axe, keyboard, la
 3. Choose a gesture, press **Start**, and watch the oscilloscope, decoder,
    evidence bar, and virtual hand. This default mode replays simulated EMG.
 4. Press **Stop** before changing gestures if you want a clean demonstration.
+5. Open the **Results** tab to view staged simulator and, once generated,
+   NinaPro DB2 evaluation artifacts side by side without mixing their claims.
 
 Electrode-shift robustness can be generated separately:
 
@@ -149,6 +151,9 @@ Do not use the same subject in both training and this demo.
 After an export, rebuild the browser assets with `npm run build:assets`. Use a
 Node and Python installation built for the same CPU architecture; otherwise
 native Python packages such as NumPy cannot be launched by the build script.
+
+The asset build also copies `artifacts/model_comparison.json` and, when it
+exists, `artifacts/model_comparison_ninapro.json` into the Results tab.
 
 That last one is the gate that matters: Python trains the model and TypeScript
 feeds it at inference, so if the two feature implementations diverge, accuracy

@@ -13,7 +13,7 @@
  */
 
 import { spawnSync } from 'node:child_process';
-import { existsSync, statSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { stageModel } from './stage-model.mjs';
@@ -76,6 +76,16 @@ run(
 
 const models = join(root, 'apps', 'web', 'public', 'models');
 stageModel();
+
+// Results are optional: recorded DB2 artifacts do not exist until a licensed
+// dataset run has occurred. Copy whatever experiments have produced, never
+// fabricate a recorded result for the screen.
+const results = join(root, 'apps', 'web', 'public', 'results');
+mkdirSync(results, { recursive: true });
+for (const name of ['model_comparison.json', 'model_comparison_ninapro.json']) {
+  const source = join(root, 'artifacts', name);
+  if (existsSync(source)) copyFileSync(source, join(results, name));
+}
 
 // Verify rather than assume: an empty or missing file here produces a runtime
 // error in the browser that looks nothing like its cause.
