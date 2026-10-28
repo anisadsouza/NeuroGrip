@@ -60,15 +60,26 @@ export interface ReplayBundle {
  */
 export type FetchLike = (url: string) => Promise<Response>;
 
+async function fetchManifest(url: string, fetchLike: FetchLike): Promise<ReplayManifest> {
+  const response = await fetchLike(url);
+  if (!response.ok) throw new Error(`replay manifest not found at ${url}`);
+  const body = await response.text();
+  try {
+    return JSON.parse(body) as ReplayManifest;
+  } catch {
+    // Vite and many static hosts return index.html for an unknown route. Naming
+    // that condition makes a wrong base URL or missing public asset fixable.
+    const kind = body.trimStart().startsWith('<') ? 'HTML' : 'invalid JSON';
+    throw new Error(`replay manifest at ${url} returned ${kind}`);
+  }
+}
+
 export async function loadReplayBundle(
   baseUrl: string,
   fetchLike: FetchLike = (url) => fetch(url),
 ): Promise<ReplayBundle> {
   const [manifest, buffer] = await Promise.all([
-    fetchLike(`${baseUrl}/emg-replay.json`).then((r) => {
-      if (!r.ok) throw new Error(`replay manifest not found at ${baseUrl}`);
-      return r.json() as Promise<ReplayManifest>;
-    }),
+    fetchManifest(`${baseUrl}/emg-replay.json`, fetchLike),
     fetchLike(`${baseUrl}/emg-replay.bin`).then((r) => {
       if (!r.ok) throw new Error(`replay samples not found at ${baseUrl}`);
       return r.arrayBuffer();

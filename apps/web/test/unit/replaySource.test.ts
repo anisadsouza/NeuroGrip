@@ -111,6 +111,15 @@ describe('loadReplayBundle', () => {
 
     await expect(loadReplayBundle('/replay', truncating)).rejects.toThrow();
   });
+
+  it('names an HTML fallback instead of leaking a JSON parser error', async () => {
+    const htmlManifest = (url: string): Promise<Response> =>
+      url.endsWith('.json')
+        ? Promise.resolve(new Response('<!doctype html><title>App</title>'))
+        : committedBundleFetch(url);
+    await expect(loadReplayBundle('/replay', htmlManifest))
+      .rejects.toThrow('replay manifest at /replay/emg-replay.json returned HTML');
+  });
 });
 
 describe('ReplaySource: pacing', () => {
