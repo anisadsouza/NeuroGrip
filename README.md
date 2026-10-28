@@ -30,7 +30,10 @@ terms.
 NeuroGrip is the software/control layer for a prosthetic-hand system. For this
 college project, the final deliverable is a software-only prototype: simulated
 or recorded EMG goes in, a gesture and confidence come out, and the browser
-shows the virtual prosthetic hand responding in real time.
+shows the virtual prosthetic hand responding in real time. Live shows the
+current-window model probability, a named virtual action such as
+`close_thumb_index`, and whether the action is only a candidate, reversible,
+latched, or a rest fallback. No physical actuator command is transmitted.
 
 It is not a personal wellness app and it is not a certified commercial medical
 device. It is an academic research prototype with a commercial direction: after
@@ -63,10 +66,11 @@ every number on it means.
 | | |
 | --- | --- |
 | Simulator decoder | RBF SVM, 95.63% LOSO accuracy, ECE 0.022 |
-| NinaPro held-out result | LDA, trained on S1 / tested on S10: 45.09% on 17,293 windows, ECE 0.1644; exploratory two-subject result |
-| Browser latency | Latest held-out replay run: 1.325 ms P95, 1,000 / 1,000 windows passed the recorded-rest calibrated gate; 10 ms budget met with WASM threads |
+| NinaPro held-out result | Uniform-prior LDA, trained on S1 / tested on S10: 46.85% on 17,293 windows, ECE 0.0293; development result, not an untouched test |
+| Recorded quality gate | 16,691 / 17,293 labeled S10 windows accepted (96.52%); all 602 rejects are rest windows; accepted-window top-1 is 44.95% |
+| Browser replay bench | NinaPro stable top-1: 32.8% (254/775); P95 2.700 ms; 1,000/1,000 windows accepted and the all-zero control rejected |
 | Time to motion | 40 ms median before the hand starts moving, 260 ms to latch |
-| Tests | 182 Python + 250 TypeScript tests; latest browser suite 24/24; typecheck passes |
+| Tests | 187 Python + 266 TypeScript tests; Playwright 24/24; typecheck passes |
 | Built | Simulator and decoder, DB2 loader and comparison, subject-held-out ONNX export/replay, Live source selector, Results comparison/confusion/timeline/latency views |
 | Follow-up | More independent subjects and broader validation; clinician mode, error attribution, amputee stratum, deployment |
 
@@ -76,14 +80,25 @@ shared 5 µV floor. This is a replay-specific calibration for demonstrating the
 recorded dataset; it is not validated for live electrodes or a safety claim.
 The simulator keeps the original fixed 5 µV gate.
 
-The simulator accuracy and the exploratory NinaPro result are separate
-experiments and must not be conflated. The recorded split has only two
-subjects: S1 training and S10 held out. It is not broad validation or a
-clinical result. The DB2 label mapped to `open_hand` is label 5, *abduction of
-all fingers*; it is a qualified proxy, not an exact general open-hand match.
-There is no amputee stratum yet. See [`docs/model_card.md`](docs/model_card.md)
-for the simulator model card and [`context.md`](context.md) for the DB2 audit,
-recorded results, and detailed limitations.
+The quality-gate acceptance rate is not gesture accuracy. On the full S10
+evaluation, the gate rejects 602 low-RMS windows and all are labeled rest;
+none of the mapped movement windows are rejected. The decoder's accuracy and
+confusion matrix are scored separately against the dataset labels. A controlled
+zero-signal worker check must also be rejected, but that does not validate the
+gate on real electrode faults or motion artifacts.
+
+The uniform-prior LDA is a candidate selected from only two available
+subjects. In two-subject LOSO its mean accuracy was 50.02% versus 49.17% for
+ordinary LDA, but the paired test is uninformative with two folds (p = 1.0);
+the within-subject repetition split was also lower (74.27% versus 75.80%).
+S10 has now informed model diagnostics, so its 46.85% score is a development
+result, not an unbiased final holdout. Three S10 gestures still have zero
+recall. No additional independent subject recordings are present locally.
+The DB2 label mapped to `open_hand` is label 5, *abduction of all fingers*; it
+is a qualified proxy, not an exact general open-hand match. There is no
+amputee stratum yet. See [`docs/model_card.md`](docs/model_card.md) for the
+simulator model card and [`context.md`](context.md) for the audit, model
+comparison, quality-gate checks, and detailed limitations.
 
 The simulated electrode-shift screen stays within its 8 percentage-point
 degradation bound through a 0.2 rad shift, but fails at 0.3 and 0.4 rad. This
@@ -156,16 +171,18 @@ The comparison writes both leave-one-subject-out and the NinaPro repetition
 split (train repetitions 1/3/4/6; test 2/5). These recorded results must always
 be reported separately from simulator figures.
 
-The separate held-out command below trains LDA on S1, tests on S10, exports a
-separate ONNX model, and generates the S10 replay. Do not select a test subject
-that also appears among the training subjects.
+The separate held-out command below trains the current uniform-prior LDA
+candidate on S1, tests on S10, exports a separate ONNX model, and generates the
+S10 replay. S10 has since informed model diagnostics, so this is a development
+result rather than an untouched final test. Do not select a test subject that
+also appears among the training subjects.
 
 ```bash
 python -m neurogrip.heldout \
   --data-root data/ninapro/DB2 \
   --train-subjects 1 \
   --test-subject 10 \
-  --model lda \
+  --model lda_uniform \
   --out artifacts/ninapro_holdout \
   --replay-out apps/web/public/replay/ninapro
 npm run build:assets

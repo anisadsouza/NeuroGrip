@@ -41,6 +41,16 @@ interface HeldoutEvaluation {
   readonly accuracy: number;
   readonly expected_calibration_error: number;
   readonly confusion_matrix: readonly (readonly number[])[];
+  readonly quality_gate: {
+    readonly windows_tested: number;
+    readonly accepted: number;
+    readonly rejected: number;
+    readonly acceptance_rate: number;
+    readonly top1_accuracy_before_gate: number;
+    readonly top1_accuracy_on_accepted: number | null;
+    readonly rejected_by_performed_gesture: Readonly<Record<string, number>>;
+    readonly method: string;
+  };
   readonly latency: {
     readonly runtime: string;
     readonly n_windows: number;
@@ -58,6 +68,10 @@ interface BrowserLatency {
   readonly n: number;
   readonly windowsProcessed?: number;
   readonly rejectedWindows?: number;
+  readonly stablePredictionWindows?: number;
+  readonly correctStablePredictions?: number;
+  readonly stablePredictionAccuracy?: number | null;
+  readonly zeroSignalRejected?: boolean;
   readonly threaded: boolean;
   readonly backend: string;
   readonly p95Ms: number;
@@ -191,6 +205,23 @@ function LatencyPanel({
               </dd>
             </div>
             <div><dt>Backend</dt><dd>{result.backend}{result.threaded ? ' · threads enabled' : ' · single-threaded'}</dd></div>
+            {typeof result.stablePredictionAccuracy === 'number' &&
+            typeof result.stablePredictionWindows === 'number' &&
+            typeof result.correctStablePredictions === 'number' ? (
+              <div>
+                <dt>Stable replay top-1</dt>
+                <dd className="ng-num">
+                  {(result.stablePredictionAccuracy * 100).toFixed(1)}% ·{' '}
+                  {result.correctStablePredictions}/{result.stablePredictionWindows}
+                </dd>
+              </div>
+            ) : null}
+            {typeof result.zeroSignalRejected === 'boolean' ? (
+              <div>
+                <dt>Zero-signal control</dt>
+                <dd>{result.zeroSignalRejected ? 'rejected' : 'not rejected'}</dd>
+              </div>
+            ) : null}
           </dl>
           <p className="small muted">{result.note}</p>
         </>
@@ -211,6 +242,11 @@ function HeldoutPanel({ result }: { result: HeldoutEvaluation | null }) {
     );
   }
 
+  const rejectedLabels = Object.entries(result.quality_gate.rejected_by_performed_gesture)
+    .filter(([, count]) => count > 0)
+    .map(([gesture, count]) => `${gesture === 'rest' ? 'Rest' : result.dataset_movements[gesture] ?? gesture}: ${count}`)
+    .join(', ');
+
   return (
     <section className="panel results-table" aria-labelledby="heldout-heading">
       <h3 id="heldout-heading">Subject-held-out NinaPro evaluation</h3>
@@ -221,9 +257,25 @@ function HeldoutPanel({ result }: { result: HeldoutEvaluation | null }) {
       <dl className="readout-list">
         <div><dt>Held-out accuracy</dt><dd>{percentage(result.accuracy)}</dd></div>
         <div><dt>Expected calibration error</dt><dd>{result.expected_calibration_error.toFixed(3)}</dd></div>
+        <div>
+          <dt>Recorded quality gate</dt>
+          <dd>
+            {percentage(result.quality_gate.acceptance_rate)} ·{' '}
+            {result.quality_gate.accepted.toLocaleString()} accepted /{' '}
+            {result.quality_gate.rejected.toLocaleString()} rejected
+          </dd>
+        </div>
+        {result.quality_gate.top1_accuracy_on_accepted !== null ? (
+          <div>
+            <dt>Top-1 on accepted windows</dt>
+            <dd>{percentage(result.quality_gate.top1_accuracy_on_accepted)}</dd>
+          </div>
+        ) : null}
         <div><dt>CPU ONNX P95</dt><dd className="ng-num">{result.latency.p95_ms.toFixed(2)} ms</dd></div>
         <div><dt>Measured windows</dt><dd className="ng-num">{result.latency.n_windows}</dd></div>
       </dl>
+      <p className="small muted">{result.quality_gate.method}</p>
+      <p className="small muted">Rejected performed labels: {rejectedLabels || 'none'}.</p>
       <p className="small muted">{result.latency.scope}</p>
       <ConfusionMatrix result={result} />
       <Timeline events={result.timeline} />

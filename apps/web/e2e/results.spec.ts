@@ -26,8 +26,16 @@ test('Results keeps simulator and recorded evaluations in separate sections', as
       confusion_matrix: number[][];
       expected_calibration_error: number;
       gesture_order: string[];
+      dataset_movements: Record<string, string>;
       n_test: number;
       timeline: unknown[];
+      quality_gate: {
+        accepted: number;
+        rejected: number;
+        acceptance_rate: number;
+        top1_accuracy_on_accepted: number | null;
+        rejected_by_performed_gesture: Record<string, number>;
+      };
     };
     const latency = JSON.parse(
       readFileSync(
@@ -38,6 +46,10 @@ test('Results keeps simulator and recorded evaluations in separate sections', as
       n: number;
       p95Ms: number;
       rejectedWindows: number;
+      stablePredictionWindows: number;
+      correctStablePredictions: number;
+      stablePredictionAccuracy: number | null;
+      zeroSignalRejected: boolean;
     };
     const heldoutPanel = page.locator('section[aria-labelledby="heldout-heading"]');
     const browserLatencyPanel = page.locator(
@@ -53,6 +65,26 @@ test('Results keeps simulator and recorded evaluations in separate sections', as
     await expect(heldoutPanel).toContainText(
       evaluation.expected_calibration_error.toFixed(3),
     );
+    await expect(heldoutPanel).toContainText(
+      `${(evaluation.quality_gate.acceptance_rate * 100).toFixed(1)}%`,
+    );
+    await expect(heldoutPanel).toContainText(
+      `${evaluation.quality_gate.accepted.toLocaleString()} accepted / ` +
+        `${evaluation.quality_gate.rejected.toLocaleString()} rejected`,
+    );
+    const rejectedLabelSummary = Object.entries(
+      evaluation.quality_gate.rejected_by_performed_gesture,
+    )
+      .filter(([, count]) => count > 0)
+      .map(([gesture, count]) =>
+        `${gesture === 'rest' ? 'Rest' : evaluation.dataset_movements[gesture] ?? gesture}: ${count}`)
+      .join(', ');
+    await expect(heldoutPanel).toContainText(`Rejected performed labels: ${rejectedLabelSummary}.`);
+    if (evaluation.quality_gate.top1_accuracy_on_accepted !== null) {
+      await expect(heldoutPanel).toContainText(
+        `${(evaluation.quality_gate.top1_accuracy_on_accepted * 100).toFixed(1)}%`,
+      );
+    }
     await expect(heldoutPanel).toContainText(`${evaluation.n_test.toLocaleString()} windows`);
     await expect(heldoutPanel.locator('.confusion-matrix tbody tr'))
       .toHaveCount(evaluation.gesture_order.length);
@@ -70,6 +102,19 @@ test('Results keeps simulator and recorded evaluations in separate sections', as
     await expect(browserLatencyPanel).toContainText(
       `${latency.n} decoded · ${latency.rejectedWindows} rejected`,
     );
+    if (typeof latency.stablePredictionAccuracy === 'number') {
+      await expect(browserLatencyPanel).toContainText(
+        `${(latency.stablePredictionAccuracy * 100).toFixed(1)}%`,
+      );
+      await expect(browserLatencyPanel).toContainText(
+        `${latency.correctStablePredictions}/${latency.stablePredictionWindows}`,
+      );
+    }
+    if (typeof latency.zeroSignalRejected === 'boolean') {
+      await expect(browserLatencyPanel).toContainText(
+        `Zero-signal control${latency.zeroSignalRejected ? 'rejected' : 'not rejected'}`,
+      );
+    }
   } else {
     await expect(page.getByText(/No held-out export staged/)).toBeVisible();
   }
@@ -111,5 +156,14 @@ test('Live loads the recorded model only when held-out assets are staged', async
   await expect(
     page.getByText('Latency, this window').locator('..').locator('dd'),
   ).toHaveText(/\d+\.\d+ ms/, { timeout: 15_000 });
+  await expect(page.getByText('Model probability')).toBeVisible();
+  await expect(
+    page.getByText('Model probability').locator('..').locator('dd'),
+  ).toHaveText(/\d+\.\d+%/);
+  await expect(
+    page.getByText('Virtual actuator').locator('..').locator('dd'),
+  ).not.toHaveText('—');
+  await expect(page.getByText('Virtual output only. No physical actuator or motor is connected.'))
+    .toBeVisible();
   expect(failures, failures.join('\n')).toEqual([]);
 });

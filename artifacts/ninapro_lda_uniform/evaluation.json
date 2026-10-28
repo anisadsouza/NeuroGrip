@@ -1,0 +1,5768 @@
+{
+  "source": "ninapro_db2",
+  "model": "lda_uniform",
+  "training_subjects": [
+    1
+  ],
+  "test_subject": 10,
+  "subject_excluded_from_training": true,
+  "n_train": 18465,
+  "n_test": 17293,
+  "gesture_order": [
+    "rest",
+    "fist",
+    "open_hand",
+    "pinch",
+    "point",
+    "wrist_flexion",
+    "wrist_extension",
+    "thumb_up",
+    "two_finger",
+    "spherical_grip"
+  ],
+  "dataset_movements": {
+    "thumb_up": "Thumb up",
+    "two_finger": "Index and middle extended; other fingers flexed",
+    "open_hand": "Finger abduction (proxy for the app's open-hand class)",
+    "fist": "Fingers flexed together in fist",
+    "point": "Pointing index",
+    "wrist_flexion": "Wrist flexion",
+    "wrist_extension": "Wrist extension",
+    "spherical_grip": "Power sphere grasp",
+    "pinch": "Tip pinch grasp"
+  },
+  "label_mapping": {
+    "thumb_up": 1,
+    "two_finger": 2,
+    "open_hand": 5,
+    "fist": 6,
+    "point": 7,
+    "wrist_flexion": 13,
+    "wrist_extension": 14,
+    "spherical_grip": 27,
+    "pinch": 32
+  },
+  "mapping_sources": {
+    "official_db2_guide": "https://ninapro.hevs.ch/instructions/DB2.html",
+    "dataset_paper": "https://doi.org/10.1038/sdata.2014.53",
+    "exercise_movement_figure": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4421935/"
+  },
+  "accuracy": 0.4685,
+  "baseline_accuracy": 0.3651,
+  "expected_calibration_error": 0.0293,
+  "per_gesture_recall": {
+    "rest": 0.8055,
+    "fist": 0.0,
+    "open_hand": 0.7899,
+    "pinch": 0.3369,
+    "point": 0.0,
+    "wrist_flexion": 0.6325,
+    "wrist_extension": 0.0,
+    "thumb_up": 0.3568,
+    "two_finger": 0.1462,
+    "spherical_grip": 0.339
+  },
+  "confusion_matrix": [
+    [
+      5086,
+      2,
+      168,
+      333,
+      0,
+      0,
+      0,
+      131,
+      226,
+      368
+    ],
+    [
+      31,
+      0,
+      385,
+      3,
+      0,
+      0,
+      0,
+      64,
+      80,
+      143
+    ],
+    [
+      104,
+      0,
+      609,
+      0,
+      6,
+      13,
+      0,
+      10,
+      29,
+      0
+    ],
+    [
+      771,
+      0,
+      48,
+      635,
+      0,
+      0,
+      0,
+      37,
+      84,
+      310
+    ],
+    [
+      688,
+      0,
+      13,
+      10,
+      0,
+      0,
+      0,
+      332,
+      440,
+      27
+    ],
+    [
+      17,
+      2,
+      192,
+      0,
+      0,
+      475,
+      9,
+      1,
+      43,
+      12
+    ],
+    [
+      107,
+      0,
+      488,
+      88,
+      0,
+      0,
+      0,
+      3,
+      157,
+      45
+    ],
+    [
+      948,
+      0,
+      93,
+      83,
+      0,
+      0,
+      0,
+      664,
+      11,
+      62
+    ],
+    [
+      869,
+      0,
+      153,
+      15,
+      0,
+      0,
+      0,
+      38,
+      191,
+      40
+    ],
+    [
+      427,
+      0,
+      56,
+      281,
+      0,
+      0,
+      0,
+      13,
+      83,
+      441
+    ]
+  ],
+  "onnx_parity": {
+    "ok": true,
+    "max_abs_diff": 4.452e-07,
+    "max_rel_diff": 6.321e-06,
+    "n_samples": 2000,
+    "rtol": 0.0001,
+    "atol": 1e-05
+  },
+  "latency": {
+    "runtime": "onnxruntime CPUExecutionProvider",
+    "n_windows": 1000,
+    "batched": false,
+    "scope": "ONNX inference only on pre-extracted held-out recording windows; excludes windowing, feature extraction, worker messaging, and UI.",
+    "p50_ms": 0.0313,
+    "p95_ms": 0.0319,
+    "p99_ms": 0.0325,
+    "max_ms": 0.0418
+  },
+  "replay": {
+    "source": "ninapro_db2",
+    "subject": "S10",
+    "trained_subjects": [
+      "S1"
+    ],
+    "path": "apps/web/public/replay/ninapro"
+  },
+  "timeline": [
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 1,
+      "performed": "Thumb up",
+      "start_ms": 3800.0,
+      "end_ms": 10160.0,
+      "windows": 309,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 30
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 16
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 6
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 3
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 7
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 38
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 12
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 8
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 7
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 10
+        },
+        {
+          "gesture": "rest",
+          "windows": 18
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 6
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 6
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 7
+        },
+        {
+          "gesture": "rest",
+          "windows": 9
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 6
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 10
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 11
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 6
+        },
+        {
+          "gesture": "rest",
+          "windows": 6
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 3
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 17
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 23
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 2,
+      "performed": "Thumb up",
+      "start_ms": 12580.0,
+      "end_ms": 18980.0,
+      "windows": 311,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 55
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 4
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 79
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 29
+        },
+        {
+          "gesture": "rest",
+          "windows": 11
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 7
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 6
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 23
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 10
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 14
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 49
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 3,
+      "performed": "Thumb up",
+      "start_ms": 21400.0,
+      "end_ms": 27780.0,
+      "windows": 310,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 39
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 100
+        },
+        {
+          "gesture": "rest",
+          "windows": 8
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 5
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 8
+        },
+        {
+          "gesture": "rest",
+          "windows": 8
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 8
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 5
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 6
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 5
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 21
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 16
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 6
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 11
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 32
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 4,
+      "performed": "Thumb up",
+      "start_ms": 30240.0,
+      "end_ms": 36600.0,
+      "windows": 309,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 44
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 9
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 84
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 5
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 3
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 16
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 12
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 125
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 5,
+      "performed": "Thumb up",
+      "start_ms": 38920.0,
+      "end_ms": 45320.0,
+      "windows": 311,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 46
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 42
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 3
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 41
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 10
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 3
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 8
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 6
+        },
+        {
+          "gesture": "rest",
+          "windows": 11
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 4
+        },
+        {
+          "gesture": "rest",
+          "windows": 26
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 100
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 6,
+      "performed": "Thumb up",
+      "start_ms": 47640.0,
+      "end_ms": 54040.0,
+      "windows": 311,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 40
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 4
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 105
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 18
+        },
+        {
+          "gesture": "rest",
+          "windows": 34
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 98
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 1,
+      "performed": "Index and middle extended; other fingers flexed",
+      "start_ms": 57360.0,
+      "end_ms": 61400.0,
+      "windows": 193,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 12
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 9
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 10
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 15
+        },
+        {
+          "gesture": "rest",
+          "windows": 6
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 8
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 5
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 10
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 22
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 6
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 20
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 45
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 2,
+      "performed": "Index and middle extended; other fingers flexed",
+      "start_ms": 66160.0,
+      "end_ms": 70580.0,
+      "windows": 212,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 10
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 25
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 14
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 8
+        },
+        {
+          "gesture": "rest",
+          "windows": 8
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 4
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 8
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 14
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 28
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 13
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 15
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 3,
+      "performed": "Index and middle extended; other fingers flexed",
+      "start_ms": 74180.0,
+      "end_ms": 80620.0,
+      "windows": 313,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 39
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 8
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 4
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 7
+        },
+        {
+          "gesture": "rest",
+          "windows": 18
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 6
+        },
+        {
+          "gesture": "rest",
+          "windows": 20
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 6
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 27
+        },
+        {
+          "gesture": "rest",
+          "windows": 55
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 11
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 77
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 4,
+      "performed": "Index and middle extended; other fingers flexed",
+      "start_ms": 84440.0,
+      "end_ms": 87500.0,
+      "windows": 144,
+      "decoded": [
+        {
+          "gesture": "Thumb up",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 31
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 6
+        },
+        {
+          "gesture": "rest",
+          "windows": 7
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 13
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 14
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 10
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 30
+        },
+        {
+          "gesture": "rest",
+          "windows": 25
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 5,
+      "performed": "Index and middle extended; other fingers flexed",
+      "start_ms": 93000.0,
+      "end_ms": 95880.0,
+      "windows": 135,
+      "decoded": [
+        {
+          "gesture": "Thumb up",
+          "windows": 3
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 5
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 33
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 7
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 5
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 10
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 12
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 8
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 9
+        },
+        {
+          "gesture": "rest",
+          "windows": 26
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 6,
+      "performed": "Index and middle extended; other fingers flexed",
+      "start_ms": 100600.0,
+      "end_ms": 106960.0,
+      "windows": 309,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 53
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 7
+        },
+        {
+          "gesture": "rest",
+          "windows": 6
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 5
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 48
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 9
+        },
+        {
+          "gesture": "rest",
+          "windows": 17
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 5
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 10
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 39
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 92
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 1,
+      "performed": "Finger abduction (proxy for the app's open-hand class)",
+      "start_ms": 217220.0,
+      "end_ms": 219680.0,
+      "windows": 114,
+      "decoded": [
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 114
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 2,
+      "performed": "Finger abduction (proxy for the app's open-hand class)",
+      "start_ms": 225900.0,
+      "end_ms": 228660.0,
+      "windows": 129,
+      "decoded": [
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 50
+        },
+        {
+          "gesture": "Wrist flexion",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 55
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 7
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 4
+        },
+        {
+          "gesture": "rest",
+          "windows": 10
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 3,
+      "performed": "Finger abduction (proxy for the app's open-hand class)",
+      "start_ms": 234620.0,
+      "end_ms": 237160.0,
+      "windows": 118,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 30
+        },
+        {
+          "gesture": "Wrist flexion",
+          "windows": 8
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 12
+        },
+        {
+          "gesture": "Wrist flexion",
+          "windows": 4
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 14
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 29
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 11
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 4,
+      "performed": "Finger abduction (proxy for the app's open-hand class)",
+      "start_ms": 243420.0,
+      "end_ms": 246400.0,
+      "windows": 140,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 8
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 8
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 23
+        },
+        {
+          "gesture": "rest",
+          "windows": 8
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 19
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 45
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 5
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 9
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 5,
+      "performed": "Finger abduction (proxy for the app's open-hand class)",
+      "start_ms": 252260.0,
+      "end_ms": 254840.0,
+      "windows": 120,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 20
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 18
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 3
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Pointing index",
+          "windows": 5
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 35
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 12
+        },
+        {
+          "gesture": "rest",
+          "windows": 7
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 6,
+      "performed": "Finger abduction (proxy for the app's open-hand class)",
+      "start_ms": 261020.0,
+      "end_ms": 264200.0,
+      "windows": 150,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 7
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 33
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 4
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 10
+        },
+        {
+          "gesture": "Pointing index",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 5
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 13
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 6
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 37
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 5
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 4
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 1,
+      "performed": "Fingers flexed together in fist",
+      "start_ms": 270240.0,
+      "end_ms": 272880.0,
+      "windows": 123,
+      "decoded": [
+        {
+          "gesture": "Thumb up",
+          "windows": 38
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 9
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 3
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 5
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 5
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 24
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 11
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 4
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 16
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 2,
+      "performed": "Fingers flexed together in fist",
+      "start_ms": 278920.0,
+      "end_ms": 281780.0,
+      "windows": 134,
+      "decoded": [
+        {
+          "gesture": "Thumb up",
+          "windows": 6
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 14
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 7
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 8
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 12
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 8
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 23
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 5
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 16
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 8
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 4
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 3,
+      "performed": "Fingers flexed together in fist",
+      "start_ms": 288080.0,
+      "end_ms": 290440.0,
+      "windows": 109,
+      "decoded": [
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 13
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 10
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 10
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 5
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 12
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 30
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 5
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 4
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 4,
+      "performed": "Fingers flexed together in fist",
+      "start_ms": 296580.0,
+      "end_ms": 298960.0,
+      "windows": 110,
+      "decoded": [
+        {
+          "gesture": "Thumb up",
+          "windows": 4
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 4
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 7
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 9
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 8
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 4
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 33
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 8
+        },
+        {
+          "gesture": "rest",
+          "windows": 5
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 18
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 5,
+      "performed": "Fingers flexed together in fist",
+      "start_ms": 305620.0,
+      "end_ms": 307940.0,
+      "windows": 107,
+      "decoded": [
+        {
+          "gesture": "Thumb up",
+          "windows": 3
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 6
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 8
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 11
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 18
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 50
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 7
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 6,
+      "performed": "Fingers flexed together in fist",
+      "start_ms": 314420.0,
+      "end_ms": 317060.0,
+      "windows": 123,
+      "decoded": [
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 22
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 5
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 18
+        },
+        {
+          "gesture": "rest",
+          "windows": 8
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 4
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 30
+        },
+        {
+          "gesture": "rest",
+          "windows": 5
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 26
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 1,
+      "performed": "Pointing index",
+      "start_ms": 323240.0,
+      "end_ms": 328080.0,
+      "windows": 233,
+      "decoded": [
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 13
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 14
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 59
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 25
+        },
+        {
+          "gesture": "rest",
+          "windows": 6
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 30
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 8
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 12
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 23
+        },
+        {
+          "gesture": "rest",
+          "windows": 9
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 5
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "rest",
+          "windows": 6
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 2,
+      "performed": "Pointing index",
+      "start_ms": 330480.0,
+      "end_ms": 336980.0,
+      "windows": 316,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 27
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 7
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 4
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 8
+        },
+        {
+          "gesture": "rest",
+          "windows": 12
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 5
+        },
+        {
+          "gesture": "rest",
+          "windows": 6
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 9
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 12
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 12
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 29
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 7
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 34
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 5
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 3
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 11
+        },
+        {
+          "gesture": "rest",
+          "windows": 16
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 23
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 5
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 58
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 3,
+      "performed": "Pointing index",
+      "start_ms": 339460.0,
+      "end_ms": 345140.0,
+      "windows": 275,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 28
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "rest",
+          "windows": 5
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 7
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 31
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 6
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 7
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 4
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 4
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 6
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 4
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 4
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 9
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 7
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 6
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 5
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 13
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 12
+        },
+        {
+          "gesture": "rest",
+          "windows": 20
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 8
+        },
+        {
+          "gesture": "rest",
+          "windows": 9
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 5
+        },
+        {
+          "gesture": "rest",
+          "windows": 6
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 10
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 30
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 4,
+      "performed": "Pointing index",
+      "start_ms": 350000.0,
+      "end_ms": 352980.0,
+      "windows": 140,
+      "decoded": [
+        {
+          "gesture": "Thumb up",
+          "windows": 11
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 13
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 13
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 5
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 3
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 4
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 8
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 11
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 17
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 5
+        },
+        {
+          "gesture": "rest",
+          "windows": 15
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 5,
+      "performed": "Pointing index",
+      "start_ms": 357660.0,
+      "end_ms": 362440.0,
+      "windows": 230,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 25
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 27
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 10
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 38
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 28
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 5
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 14
+        },
+        {
+          "gesture": "rest",
+          "windows": 14
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 41
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 6,
+      "performed": "Pointing index",
+      "start_ms": 365920.0,
+      "end_ms": 372420.0,
+      "windows": 316,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 96
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 14
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 5
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 37
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 6
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 8
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 14
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 4
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 8
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 18
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 4
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 7
+        },
+        {
+          "gesture": "rest",
+          "windows": 64
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 1,
+      "performed": "Wrist flexion",
+      "start_ms": 641840.0,
+      "end_ms": 644640.0,
+      "windows": 131,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 5
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 13
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 16
+        },
+        {
+          "gesture": "Wrist flexion",
+          "windows": 77
+        },
+        {
+          "gesture": "rest",
+          "windows": 6
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 6
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 2,
+      "performed": "Wrist flexion",
+      "start_ms": 650480.0,
+      "end_ms": 653920.0,
+      "windows": 163,
+      "decoded": [
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 8
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 21
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 8
+        },
+        {
+          "gesture": "Wrist flexion",
+          "windows": 89
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Wrist flexion",
+          "windows": 9
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 8
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 5
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 3,
+      "performed": "Wrist flexion",
+      "start_ms": 659480.0,
+      "end_ms": 662280.0,
+      "windows": 131,
+      "decoded": [
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 20
+        },
+        {
+          "gesture": "Wrist flexion",
+          "windows": 42
+        },
+        {
+          "gesture": "Wrist extension",
+          "windows": 7
+        },
+        {
+          "gesture": "Wrist flexion",
+          "windows": 37
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Wrist flexion",
+          "windows": 14
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 5
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 4,
+      "performed": "Wrist flexion",
+      "start_ms": 668200.0,
+      "end_ms": 671220.0,
+      "windows": 142,
+      "decoded": [
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 7
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Wrist flexion",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 5
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 21
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Wrist flexion",
+          "windows": 15
+        },
+        {
+          "gesture": "Wrist extension",
+          "windows": 2
+        },
+        {
+          "gesture": "Wrist flexion",
+          "windows": 19
+        },
+        {
+          "gesture": "Fingers flexed together in fist",
+          "windows": 2
+        },
+        {
+          "gesture": "Wrist flexion",
+          "windows": 23
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 5
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 21
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 5,
+      "performed": "Wrist flexion",
+      "start_ms": 677800.0,
+      "end_ms": 679780.0,
+      "windows": 90,
+      "decoded": [
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 8
+        },
+        {
+          "gesture": "Wrist flexion",
+          "windows": 7
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Wrist flexion",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Wrist flexion",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "Wrist flexion",
+          "windows": 56
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 12
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 6,
+      "performed": "Wrist flexion",
+      "start_ms": 686240.0,
+      "end_ms": 688300.0,
+      "windows": 94,
+      "decoded": [
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 5
+        },
+        {
+          "gesture": "Wrist flexion",
+          "windows": 82
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "Wrist flexion",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 4
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 1,
+      "performed": "Wrist extension",
+      "start_ms": 694900.0,
+      "end_ms": 697340.0,
+      "windows": 113,
+      "decoded": [
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 14
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 16
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 13
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 18
+        },
+        {
+          "gesture": "rest",
+          "windows": 6
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 6
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 7
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 9
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 11
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 2,
+      "performed": "Wrist extension",
+      "start_ms": 703680.0,
+      "end_ms": 706460.0,
+      "windows": 130,
+      "decoded": [
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 8
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 4
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 5
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 34
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 3
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 5
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 3
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 9
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 6
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 20
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 3,
+      "performed": "Wrist extension",
+      "start_ms": 712140.0,
+      "end_ms": 715200.0,
+      "windows": 144,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 9
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 16
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 12
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 10
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 5
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 11
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 12
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 4
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 3
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 7
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 23
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 4,
+      "performed": "Wrist extension",
+      "start_ms": 721260.0,
+      "end_ms": 724200.0,
+      "windows": 138,
+      "decoded": [
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 11
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 65
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 51
+        },
+        {
+          "gesture": "rest",
+          "windows": 6
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 5,
+      "performed": "Wrist extension",
+      "start_ms": 729800.0,
+      "end_ms": 734260.0,
+      "windows": 214,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 8
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 49
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 22
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 18
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 23
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 16
+        },
+        {
+          "gesture": "rest",
+          "windows": 16
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 6
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 5
+        },
+        {
+          "gesture": "rest",
+          "windows": 40
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 5
+        }
+      ]
+    },
+    {
+      "recording": "S10_E1_A1.mat",
+      "repetition": 6,
+      "performed": "Wrist extension",
+      "start_ms": 738900.0,
+      "end_ms": 742060.0,
+      "windows": 149,
+      "decoded": [
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 3
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 16
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 9
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 15
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 9
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 12
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 11
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 5
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 60
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        }
+      ]
+    },
+    {
+      "recording": "S10_E2_A1.mat",
+      "repetition": 1,
+      "performed": "Power sphere grasp",
+      "start_ms": 500360.0,
+      "end_ms": 506840.0,
+      "windows": 315,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 9
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 14
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 28
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 11
+        },
+        {
+          "gesture": "rest",
+          "windows": 6
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 25
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 13
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 77
+        },
+        {
+          "gesture": "rest",
+          "windows": 9
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 11
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 15
+        },
+        {
+          "gesture": "rest",
+          "windows": 18
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 6
+        },
+        {
+          "gesture": "rest",
+          "windows": 41
+        }
+      ]
+    },
+    {
+      "recording": "S10_E2_A1.mat",
+      "repetition": 2,
+      "performed": "Power sphere grasp",
+      "start_ms": 511020.0,
+      "end_ms": 513640.0,
+      "windows": 122,
+      "decoded": [
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 10
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 24
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 5
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 5
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 23
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 39
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 5
+        }
+      ]
+    },
+    {
+      "recording": "S10_E2_A1.mat",
+      "repetition": 3,
+      "performed": "Power sphere grasp",
+      "start_ms": 519680.0,
+      "end_ms": 522400.0,
+      "windows": 127,
+      "decoded": [
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 23
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 4
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 18
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 4
+        },
+        {
+          "gesture": "rest",
+          "windows": 5
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 3
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 6
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 3
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 30
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 7
+        }
+      ]
+    },
+    {
+      "recording": "S10_E2_A1.mat",
+      "repetition": 4,
+      "performed": "Power sphere grasp",
+      "start_ms": 526920.0,
+      "end_ms": 533280.0,
+      "windows": 309,
+      "decoded": [
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 6
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 28
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 3
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 40
+        },
+        {
+          "gesture": "rest",
+          "windows": 8
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 46
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 14
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 5
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 9
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 24
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 7
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 72
+        }
+      ]
+    },
+    {
+      "recording": "S10_E2_A1.mat",
+      "repetition": 5,
+      "performed": "Power sphere grasp",
+      "start_ms": 537280.0,
+      "end_ms": 539720.0,
+      "windows": 113,
+      "decoded": [
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 27
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 10
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 11
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 3
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 53
+        }
+      ]
+    },
+    {
+      "recording": "S10_E2_A1.mat",
+      "repetition": 6,
+      "performed": "Power sphere grasp",
+      "start_ms": 544600.0,
+      "end_ms": 551080.0,
+      "windows": 315,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 17
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 5
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 4
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 7
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 8
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 6
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 4
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 12
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 6
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 51
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 10
+        },
+        {
+          "gesture": "rest",
+          "windows": 5
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 6
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 15
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 10
+        },
+        {
+          "gesture": "rest",
+          "windows": 7
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 7
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 18
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 12
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 6
+        },
+        {
+          "gesture": "rest",
+          "windows": 53
+        }
+      ]
+    },
+    {
+      "recording": "S10_E2_A1.mat",
+      "repetition": 1,
+      "performed": "Tip pinch grasp",
+      "start_ms": 772480.0,
+      "end_ms": 778960.0,
+      "windows": 315,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 43
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 7
+        },
+        {
+          "gesture": "rest",
+          "windows": 18
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 5
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 14
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 3
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 27
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 7
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 12
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 15
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 8
+        },
+        {
+          "gesture": "rest",
+          "windows": 7
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 5
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 9
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 3
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 10
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 4
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 6
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 5
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 16
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 6
+        },
+        {
+          "gesture": "rest",
+          "windows": 45
+        }
+      ]
+    },
+    {
+      "recording": "S10_E2_A1.mat",
+      "repetition": 2,
+      "performed": "Tip pinch grasp",
+      "start_ms": 781280.0,
+      "end_ms": 787780.0,
+      "windows": 316,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 28
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 5
+        },
+        {
+          "gesture": "rest",
+          "windows": 11
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 4
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 3
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 6
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 2
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 11
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 12
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 12
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 18
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 5
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 17
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 11
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 6
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 22
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 19
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 17
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 13
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 6
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 7
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 5
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 5
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 12
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 8
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        }
+      ]
+    },
+    {
+      "recording": "S10_E2_A1.mat",
+      "repetition": 3,
+      "performed": "Tip pinch grasp",
+      "start_ms": 790120.0,
+      "end_ms": 796560.0,
+      "windows": 313,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 41
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 13
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 12
+        },
+        {
+          "gesture": "rest",
+          "windows": 10
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 6
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 22
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 6
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 31
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 6
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 35
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 18
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 5
+        },
+        {
+          "gesture": "rest",
+          "windows": 19
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 57
+        }
+      ]
+    },
+    {
+      "recording": "S10_E2_A1.mat",
+      "repetition": 4,
+      "performed": "Tip pinch grasp",
+      "start_ms": 799020.0,
+      "end_ms": 805500.0,
+      "windows": 315,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 29
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 9
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 8
+        },
+        {
+          "gesture": "rest",
+          "windows": 1
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 11
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 12
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 14
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 3
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 15
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 9
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 5
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 10
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 18
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 7
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 19
+        },
+        {
+          "gesture": "rest",
+          "windows": 18
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 5
+        },
+        {
+          "gesture": "rest",
+          "windows": 95
+        }
+      ]
+    },
+    {
+      "recording": "S10_E2_A1.mat",
+      "repetition": 5,
+      "performed": "Tip pinch grasp",
+      "start_ms": 807820.0,
+      "end_ms": 814220.0,
+      "windows": 311,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 34
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 4
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 36
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 13
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 22
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 20
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 8
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 7
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 11
+        },
+        {
+          "gesture": "rest",
+          "windows": 3
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 33
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 6
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 10
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 66
+        }
+      ]
+    },
+    {
+      "recording": "S10_E2_A1.mat",
+      "repetition": 6,
+      "performed": "Tip pinch grasp",
+      "start_ms": 816640.0,
+      "end_ms": 823120.0,
+      "windows": 315,
+      "decoded": [
+        {
+          "gesture": "rest",
+          "windows": 43
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 5
+        },
+        {
+          "gesture": "Index and middle extended; other fingers flexed",
+          "windows": 4
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 33
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 6
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 10
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 13
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 9
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 13
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 12
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 8
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 15
+        },
+        {
+          "gesture": "rest",
+          "windows": 7
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 13
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 4
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "rest",
+          "windows": 15
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "rest",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "rest",
+          "windows": 16
+        },
+        {
+          "gesture": "Thumb up",
+          "windows": 7
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Finger abduction (proxy for the app's open-hand class)",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 5
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 4
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 27
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 2
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Power sphere grasp",
+          "windows": 1
+        },
+        {
+          "gesture": "Tip pinch grasp",
+          "windows": 3
+        },
+        {
+          "gesture": "rest",
+          "windows": 8
+        }
+      ]
+    }
+  ],
+  "caveat": "Exploratory subject-held-out result from the supplied NinaPro DB2 recordings. Only the listed training subject(s) were used; the test subject was excluded from fitting. The movement-name mapping must be interpreted using dataset_movements: DB2 label 5 is finger abduction and is only a proxy for the app's open-hand class. Not clinical validation."
+}

@@ -44,6 +44,22 @@ describe('checkSignalQuality', () => {
     });
   });
 
+  it('rejects a nonzero channel attenuated below its recorded-rest floor', () => {
+    const result = checkSignalQuality(
+      [new Float64Array(400).fill(0.4e-6), new Float64Array(400).fill(1e-6)],
+      {
+        ...DEFAULT_SIGNAL_QUALITY_CONFIG,
+        minChannelRmsByChannel: [0.5e-6, 0.75e-6],
+      },
+    );
+
+    expect(result).toMatchObject({
+      ok: false,
+      reason: 'channel RMS below calibrated minimum',
+      failedChannel: 0,
+    });
+  });
+
   it('rejects a per-channel calibration with the wrong number of channels', () => {
     const result = checkSignalQuality(good(), {
       ...DEFAULT_SIGNAL_QUALITY_CONFIG,

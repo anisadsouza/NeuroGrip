@@ -218,9 +218,19 @@ turns edge-on to you and becomes impossible to read.
 | Row | Meaning |
 | --- | --- |
 | **Decoded** | The gesture it committed to. Green when it matches your selection, amber when it does not |
+| **Model probability** | Current-window posterior for the leading class; it is a model score, not a guarantee of correctness |
+| **Virtual actuator** | Named software action such as `close_thumb_index`, marked candidate/reversible/latched/fallback |
 | **Latency, this window** | Feature extraction plus inference for the most recent window |
 | **Latency, P95** | The 95th percentile over the session. The safety-relevant number |
 | **WASM threads** | Whether multi-threaded inference is available |
+
+The virtual actuator row is a **software-only output**. It does not transmit a
+motor command, connect to a prosthesis, or imply hardware validation. A timed
+out decision displays the rest fallback. When the evidence is still reversible,
+the named action is only a candidate, not a committed command.
+The hand follows that same output: it previews the leading class while motion
+is reversible, follows the latched class after commitment, and returns to rest
+on timeout. A rest output is not shown as actuator travel.
 
 The budget is 10 ms at P95. If **WASM threads** reads `single`, the page is not
 cross-origin isolated and inference is roughly twice as slow; the number shown
@@ -234,10 +244,20 @@ The Results section keeps simulator comparison, recorded-data comparison, and
 the subject-held-out run separate. The held-out panel includes the confusion
 matrix (performed rows, decoded columns), a timeline of decoded runs inside
 each mapped performed movement/repetition, CPU ONNX inference latency, and—if
-the browser test has run—the distinct worker P95 for the recorded replay.
+the browser test has run—the distinct worker P95, stable replay top-1 score,
+and zero-signal rejection control for the recorded replay. The full held-out
+quality-gate summary reports accepted versus rejected labeled windows and
+top-1 accuracy on accepted windows. Acceptance is not correctness: the app
+scores predictions separately against the dataset labels.
 The CPU figure covers ONNX inference on pre-extracted held-out windows; the
 browser figure covers feature extraction plus ONNX inference in the worker.
 Neither includes wearer reaction time or establishes medical-device safety.
+
+The current recorded model is uniform-prior LDA, a development candidate from
+only S1 and S10. Its S1→S10 score is 46.85% across 17,293 windows, but S10 has
+already informed model diagnostics and three gesture classes still have zero
+recall. This is not a final generalization estimate; the only additional
+subject in the local dataset is S1.
 
 ---
 

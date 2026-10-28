@@ -5,6 +5,8 @@ import pytest
 from scipy.io import savemat
 
 from neurogrip.ninapro import (
+    DATASET_MOVEMENTS,
+    DEFAULT_MAPPING,
     build_ninapro_corpus,
     build_ninapro_corpus_with_provenance,
     load_session,
@@ -21,6 +23,25 @@ def _write_session(path, *, channels: int = 12) -> None:
     emg = np.full((labels.size, channels), 0.02, dtype=np.float32)
     emg += np.arange(channels, dtype=np.float32)[None, :] * 0.001
     savemat(path, {"emg": emg, "restimulus": labels[:, None], "rerepetition": reps[:, None]})
+
+
+def test_default_mapping_matches_db2_exercise_movements():
+    assert DEFAULT_MAPPING == {
+        "thumb_up": 1,
+        "two_finger": 2,
+        "open_hand": 5,
+        "fist": 6,
+        "point": 7,
+        "wrist_flexion": 13,
+        "wrist_extension": 14,
+        "spherical_grip": 27,
+        "pinch": 32,
+    }
+    assert DATASET_MOVEMENTS["open_hand"] == (
+        "Finger abduction (proxy for the app's open-hand class)"
+    )
+    assert DATASET_MOVEMENTS["spherical_grip"] == "Power sphere grasp"
+    assert DATASET_MOVEMENTS["pinch"] == "Tip pinch grasp"
 
 
 def test_load_session_keeps_eight_channels_and_converts_mv_to_volts(tmp_path):

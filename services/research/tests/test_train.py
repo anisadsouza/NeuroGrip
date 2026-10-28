@@ -21,7 +21,12 @@ def tiny_corpus():
 
 def test_zoo_covers_the_families_worth_comparing():
     names = {spec.name for spec in MODEL_ZOO}
-    assert {"lda", "linear_svm", "rbf_svm"} <= names
+    assert {"lda", "lda_uniform", "linear_svm", "rbf_svm"} <= names
+
+
+def test_uniform_prior_lda_uses_equal_weight_for_every_gesture():
+    estimator = model_by_name("lda_uniform").build()
+    np.testing.assert_allclose(estimator.priors, np.full(10, 0.1))
 
 
 def test_every_spec_builds_a_fresh_unfitted_estimator():

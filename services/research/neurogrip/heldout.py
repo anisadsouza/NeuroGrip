@@ -6,6 +6,7 @@ import argparse
 import json
 import pathlib
 import time
+from collections import defaultdict
 
 import numpy as np
 from sklearn.metrics import confusion_matrix
@@ -20,8 +21,10 @@ from neurogrip.ninapro import (
     MAPPING_SOURCES,
     NinaProWindow,
     build_ninapro_corpus_with_provenance,
+    load_session as load_ninapro_session,
 )
 from neurogrip.replay import write_bundle
+from neurogrip.signal_quality import SignalQualityConfig, check_signal_quality
 from neurogrip.simulator import GESTURES
 from neurogrip.train import fit_final_model, model_by_name
 
@@ -69,6 +72,60 @@ def _benchmark_onnx(path: pathlib.Path, features: np.ndarray) -> dict[str, objec
             "excludes windowing, feature extraction, worker messaging, and UI."
         ),
         **_percentiles(elapsed_ms),
+    }
+
+
+def _quality_gate_summary(
+    data_root: pathlib.Path,
+    provenance: tuple[NinaProWindow, ...],
+    test_indices: np.ndarray,
+    truth: np.ndarray,
+    predicted: np.ndarray,
+    min_rms_by_channel: tuple[float, ...],
+) -> dict[str, object]:
+    """Score the recorded-only quality gate against the held-out labeled windows."""
+    config = SignalQualityConfig(min_channel_rms_by_channel=min_rms_by_channel)
+    positions_by_recording: dict[str, list[tuple[int, int]]] = defaultdict(list)
+    for output_index, corpus_index in enumerate(test_indices):
+        source = provenance[int(corpus_index)]
+        positions_by_recording[source.recording].append(
+            (output_index, source.sample_start)
+        )
+
+    accepted = np.zeros(test_indices.size, dtype=bool)
+    for recording, positions in positions_by_recording.items():
+        emg, _, _ = load_ninapro_session(data_root / recording)
+        for output_index, sample_start in positions:
+            window = emg[:, sample_start : sample_start + 400]
+            accepted[output_index] = (
+                window.shape[1] == 400
+                and check_signal_quality(window, config).ok
+            )
+
+    accepted_count = int(accepted.sum())
+    rejected_count = int(accepted.size - accepted_count)
+    correct = predicted == truth
+    rejected_by_gesture = {
+        gesture: int(np.count_nonzero((truth == index) & ~accepted))
+        for index, gesture in enumerate(GESTURES)
+    }
+    return {
+        "method": (
+            "Same per-channel floors as the NinaPro replay, evaluated on every "
+            "held-out labeled 200 ms window; this is a signal-quality result, "
+            "not a prediction."
+        ),
+        "windows_tested": int(accepted.size),
+        "accepted": accepted_count,
+        "rejected": rejected_count,
+        "acceptance_rate": round(float(accepted.mean()), 4),
+        "top1_accuracy_before_gate": round(float(correct.mean()), 4),
+        "top1_accuracy_on_accepted": (
+            None
+            if accepted_count == 0
+            else round(float(correct[accepted].mean()), 4)
+        ),
+        "rejected_by_performed_gesture": rejected_by_gesture,
     }
 
 
@@ -227,6 +284,18 @@ def train_evaluate_heldout(
         subject=test_subject,
         trained_subjects=tuple(sorted(training)),
     )
+    min_rms_by_channel = tuple(
+        float(value)
+        for value in replay_manifest["signalQuality"]["minChannelRmsByChannel"]
+    )
+    quality_gate = _quality_gate_summary(
+        data_root,
+        provenance,
+        test_indices,
+        truth,
+        predicted_classes,
+        min_rms_by_channel,
+    )
 
     model_metadata = {
         "model": spec.name,
@@ -274,6 +343,7 @@ def train_evaluate_heldout(
         ),
         "per_gesture_recall": recall,
         "confusion_matrix": matrix.tolist(),
+        "quality_gate": quality_gate,
         "onnx_parity": parity.summary(),
         "latency": latency,
         "replay": {
@@ -289,6 +359,8 @@ def train_evaluate_heldout(
             "subject was excluded from fitting. The movement-name mapping must "
             "be interpreted using dataset_movements: DB2 label 5 is finger "
             "abduction and is only a proxy for the app's open-hand class. "
+            "The same test subject has been used for model diagnostics, so these "
+            "scores are development results rather than an untouched final test. "
             "Not clinical validation."
         ),
     }

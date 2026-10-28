@@ -27,6 +27,10 @@ interface BenchResult {
   windowsProcessed: number;
   rejectedWindows: number;
   n: number;
+  stablePredictionWindows: number;
+  correctStablePredictions: number;
+  stablePredictionAccuracy: number | null;
+  zeroSignalRejected: boolean;
   threaded: boolean;
   backend: string;
   meanMs: number;
@@ -68,6 +72,11 @@ test('the decode path meets its latency budget in the browser it ships in', asyn
   expect(result.windowsProcessed).toBe(1000);
   expect(result.n + result.rejectedWindows).toBe(1000);
   expect(result.n).toBeGreaterThan(0);
+  expect(result.stablePredictionWindows).toBeGreaterThan(0);
+  expect(result.correctStablePredictions).toBeGreaterThanOrEqual(0);
+  expect(result.correctStablePredictions).toBeLessThanOrEqual(result.stablePredictionWindows);
+  expect(result.stablePredictionAccuracy).not.toBeNull();
+  expect(result.zeroSignalRejected).toBe(true);
 
   // Not an optimisation: without threads the deployed latency is a different
   // number from the one the docs publish, and nothing else would say so.
@@ -138,6 +147,11 @@ test('the recorded held-out decode path meets its browser latency budget', async
   expect(result.windowsProcessed).toBe(1000);
   expect(result.n + result.rejectedWindows).toBe(1000);
   expect(result.n).toBeGreaterThan(500);
+  expect(result.stablePredictionWindows).toBeGreaterThan(0);
+  expect(result.correctStablePredictions).toBeGreaterThanOrEqual(0);
+  expect(result.correctStablePredictions).toBeLessThanOrEqual(result.stablePredictionWindows);
+  expect(result.stablePredictionAccuracy).not.toBeNull();
+  expect(result.zeroSignalRejected).toBe(true);
   expect(result.threaded, 'recorded decode ran without WASM threads').toBe(true);
   expect(result.p95Ms).toBeLessThanOrEqual(BUDGET_MS);
 

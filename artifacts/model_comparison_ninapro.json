@@ -51,6 +51,32 @@
         "spherical_grip": 0.1775
       }
     },
+    "lda_uniform": {
+      "model": "lda_uniform",
+      "mean_accuracy": 0.5002,
+      "std_accuracy": 0.0371,
+      "min_accuracy": 0.4631,
+      "ci95_low": 0.0291,
+      "ci95_high": 0.9713,
+      "baseline_accuracy": 0.4146,
+      "expected_calibration_error": 0.0604,
+      "per_fold_accuracy": [
+        0.5373,
+        0.4631
+      ],
+      "per_gesture_recall": {
+        "rest": 0.8861,
+        "fist": 0.1175,
+        "open_hand": 0.3639,
+        "pinch": 0.3944,
+        "point": 0.0055,
+        "wrist_flexion": 0.6161,
+        "wrist_extension": 0.2648,
+        "thumb_up": 0.1762,
+        "two_finger": 0.0724,
+        "spherical_grip": 0.2148
+      }
+    },
     "linear_svm": {
       "model": "linear_svm",
       "mean_accuracy": 0.4559,
@@ -104,23 +130,28 @@
       }
     }
   },
-  "best_model": "lda",
+  "best_model": "lda_uniform",
   "posteriors": null,
   "paired_significance": {
-    "lda_vs_linear_svm": {
+    "lda_uniform_vs_lda": {
       "statistic": 1.0,
       "p_value": 1.0,
-      "mean_difference": 0.0358
+      "mean_difference": 0.0085
     },
-    "lda_vs_rbf_svm": {
+    "lda_uniform_vs_linear_svm": {
+      "statistic": 1.0,
+      "p_value": 1.0,
+      "mean_difference": 0.0443
+    },
+    "lda_uniform_vs_rbf_svm": {
       "statistic": 0.0,
       "p_value": 0.5,
-      "mean_difference": 0.106
+      "mean_difference": 0.1145
     }
   },
   "source": "ninapro_db2",
   "caveat": "Recorded NinaPro DB2 result. It is a research dataset evaluation, not clinical validation or evidence of safe prosthetic actuation.",
-  "elapsed_seconds": 167.0,
+  "elapsed_seconds": 173.8,
   "ninaPro_repetition_split": {
     "lda": {
       "accuracy": 0.758,
@@ -269,6 +300,156 @@
           7,
           2,
           337
+        ]
+      ]
+    },
+    "lda_uniform": {
+      "accuracy": 0.7427,
+      "expected_calibration_error": 0.193,
+      "n_train": 24240,
+      "n_test": 11493,
+      "train_repetitions": [
+        1,
+        3,
+        4,
+        6
+      ],
+      "test_repetitions": [
+        2,
+        5
+      ],
+      "per_gesture_recall": {
+        "rest": 0.99,
+        "fist": 0.6667,
+        "open_hand": 0.7389,
+        "pinch": 0.43,
+        "point": 0.3925,
+        "wrist_flexion": 0.7567,
+        "wrist_extension": 0.6944,
+        "thumb_up": 0.672,
+        "two_finger": 0.4982,
+        "spherical_grip": 0.4821
+      },
+      "confusion_matrix": [
+        [
+          4642,
+          1,
+          1,
+          19,
+          3,
+          2,
+          4,
+          15,
+          0,
+          2
+        ],
+        [
+          38,
+          288,
+          25,
+          0,
+          9,
+          44,
+          1,
+          5,
+          8,
+          14
+        ],
+        [
+          146,
+          0,
+          416,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          549,
+          0,
+          1,
+          445,
+          0,
+          7,
+          3,
+          0,
+          1,
+          29
+        ],
+        [
+          585,
+          0,
+          9,
+          0,
+          396,
+          0,
+          0,
+          19,
+          0,
+          0
+        ],
+        [
+          2,
+          0,
+          22,
+          1,
+          0,
+          395,
+          101,
+          0,
+          1,
+          0
+        ],
+        [
+          169,
+          0,
+          23,
+          0,
+          0,
+          10,
+          459,
+          0,
+          0,
+          0
+        ],
+        [
+          409,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          838,
+          0,
+          0
+        ],
+        [
+          327,
+          0,
+          1,
+          2,
+          1,
+          1,
+          0,
+          70,
+          414,
+          15
+        ],
+        [
+          37,
+          87,
+          0,
+          97,
+          0,
+          9,
+          24,
+          5,
+          2,
+          243
         ]
       ]
     },

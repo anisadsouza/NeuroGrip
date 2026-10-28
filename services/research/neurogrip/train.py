@@ -34,6 +34,7 @@ from neurogrip.evaluation import (
     loso_splits,
     majority_class_accuracy,
 )
+from neurogrip.simulator import GESTURES
 
 
 @dataclass(frozen=True)
@@ -45,6 +46,11 @@ class ModelSpec:
 
 def _lda() -> BaseEstimator:
     return LinearDiscriminantAnalysis()
+
+
+def _lda_uniform_priors() -> BaseEstimator:
+    n_classes = len(GESTURES)
+    return LinearDiscriminantAnalysis(priors=np.full(n_classes, 1 / n_classes))
 
 
 def _linear_svm() -> BaseEstimator:
@@ -61,6 +67,12 @@ MODEL_ZOO: tuple[ModelSpec, ...] = (
         "Linear discriminant analysis. Cheapest at inference; a strong baseline "
         "whenever the feature space is close to linearly separable.",
         _lda,
+    ),
+    ModelSpec(
+        "lda_uniform",
+        "Linear discriminant analysis with uniform class priors. Tests whether "
+        "the training-set class frequencies bias predictions toward rest.",
+        _lda_uniform_priors,
     ),
     ModelSpec(
         "linear_svm",

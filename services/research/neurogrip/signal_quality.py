@@ -11,6 +11,7 @@ class SignalQualityConfig:
     # noise floor: a detached electrode reads near zero, whereas a genuine
     # rest window still carries baseline noise and must not be rejected.
     min_channel_rms: float = 5e-6
+    min_channel_rms_by_channel: tuple[float, ...] | None = None
     max_abs_amplitude: float = 5.0
 
 
@@ -28,14 +29,31 @@ def check_signal_quality(
     signal = np.asarray(channels, dtype=np.float32)
     if signal.ndim != 2:
         return SignalQualityResult(False, "input must be a 2D channel matrix")
+    if (
+        config.min_channel_rms_by_channel is not None
+        and len(config.min_channel_rms_by_channel) != signal.shape[0]
+    ):
+        return SignalQualityResult(False, "quality calibration channel count mismatch")
 
     for index, values in enumerate(signal):
         if np.any(~np.isfinite(values)):
             return SignalQualityResult(False, "channel contains non-finite values", index)
 
         rms = float(np.sqrt(np.mean(np.square(values))))
-        if rms < config.min_channel_rms:
-            return SignalQualityResult(False, "channel RMS below noise floor", index)
+        rms_floor = (
+            config.min_channel_rms
+            if config.min_channel_rms_by_channel is None
+            else config.min_channel_rms_by_channel[index]
+        )
+        if not np.isfinite(rms_floor) or rms_floor <= 0:
+            return SignalQualityResult(False, "invalid channel RMS calibration", index)
+        if rms < rms_floor:
+            reason = (
+                "channel RMS below noise floor"
+                if config.min_channel_rms_by_channel is None
+                else "channel RMS below calibrated minimum"
+            )
+            return SignalQualityResult(False, reason, index)
 
         if float(np.max(np.abs(values))) > config.max_abs_amplitude:
             return SignalQualityResult(False, "channel amplitude exceeds expected EMG range", index)

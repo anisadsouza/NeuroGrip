@@ -25,8 +25,10 @@ import { VirtualHand, type MuscleDrive } from '../components/VirtualHand.js';
 import { GestureChoices } from '../components/GestureChoices.js';
 import { Icon } from '../components/Icon.js';
 import { labelsFor, risksFor } from '../decode/commitCost.js';
+import { decisionOutputFor } from '../decode/decisionOutput.js';
 import { percentile95, trimRing } from '../decode/latency.js';
 import { projectDrive } from '../decode/muscleDrive.js';
+import { virtualCommandFor } from '../decode/virtualCommand.js';
 import { ReplaySource, loadReplayBundle, replaySourceLabel, type ReplayBundle } from '../sources/replaySource.js';
 import type { DecisionResponse, WorkerRequest, WorkerResponse } from '../worker/protocol.js';
 
@@ -221,6 +223,28 @@ export function Live() {
 
   const nChannels = bundle?.manifest.nChannels ?? 8;
   const correct = decision !== null && decision.latched && decision.latchedClass === intended;
+  const output = decision
+    ? decisionOutputFor({
+        gestures,
+        leader: decision.leader,
+        latched: decision.latched,
+        latchedClass: decision.latchedClass,
+        timedOut: decision.timedOut,
+        commitment: decision.commitment,
+      })
+    : { index: -1, gesture: '', handCommitment: 0 };
+  const outputGesture = output.gesture;
+  const outputState = decision?.timedOut
+    ? 'fallback'
+    : decision?.latched
+      ? 'latched'
+      : decision?.moving
+        ? 'reversible'
+        : decision
+          ? 'candidate'
+          : '';
+  const virtualCommand = outputGesture ? virtualCommandFor(outputGesture) : null;
+  const modelProbability = decision?.posteriors[decision.leader];
 
   if (status.error) {
     return (
@@ -291,13 +315,9 @@ export function Live() {
           {/* The hand is shown from the first frame, at rest, so the wearer
               sees what it looks like before anything is decoded. */}
           <VirtualHand
-            gesture={decision ? (gestures[decision.leader] ?? '') : 'rest'}
-            label={
-              decision
-                ? (gestureLabels[decision.leader] ?? 'this gesture')
-                : 'Rest'
-            }
-            commitment={decision?.commitment ?? 0}
+            gesture={outputGesture || 'rest'}
+            label={output.index >= 0 ? (gestureLabels[output.index] ?? 'this gesture') : 'Rest'}
+            commitment={output.handCommitment}
             latched={decision?.latched ?? false}
             reversible={decision?.reversible ?? false}
             timedOut={decision?.timedOut ?? false}
@@ -347,6 +367,22 @@ export function Live() {
                   </dd>
                 </div>
                 <div>
+                  <dt>Model probability</dt>
+                  <dd className="ng-num">
+                    {typeof modelProbability === 'number'
+                      ? `${(modelProbability * 100).toFixed(1)}%`
+                      : '—'}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Virtual actuator</dt>
+                  <dd>
+                    {decision
+                      ? `${virtualCommand ?? 'Unmapped class'}${outputState ? ` · ${outputState}` : ''}`
+                      : '—'}
+                  </dd>
+                </div>
+                <div>
                   <dt>Latency, P95</dt>
                   <dd className="ng-num">{p95 ? `${p95.toFixed(2)} ms` : 'measuring…'}</dd>
                 </div>
@@ -355,6 +391,9 @@ export function Live() {
                   <dd className="ng-num">{status.threaded ? 'enabled' : 'single'}</dd>
                 </div>
               </dl>
+              <p className="small muted">
+                Virtual output only. No physical actuator or motor is connected.
+              </p>
             </div>
           </div>
         </div>

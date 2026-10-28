@@ -1,9 +1,44 @@
 import numpy as np
 
 from neurogrip.datasets import Corpus
-from neurogrip.heldout import _timeline
+from neurogrip.heldout import _quality_gate_summary, _timeline
 from neurogrip.ninapro import NinaProWindow
 from neurogrip.simulator import GESTURES
+
+
+def test_quality_gate_summary_scores_each_labeled_window(monkeypatch, tmp_path):
+    emg = np.full((8, 800), 2e-6, dtype=np.float32)
+    emg[2, 400:] = 0
+    monkeypatch.setattr(
+        "neurogrip.heldout.load_ninapro_session",
+        lambda _path: (emg, np.zeros(800, dtype=np.int16), np.zeros(800, dtype=np.int16)),
+    )
+    provenance = tuple(
+        NinaProWindow(
+            subject=10,
+            recording="S10_E1_A1.mat",
+            sample_start=start,
+            label=raw_label,
+            repetition=1,
+        )
+        for start, raw_label in ((0, 0), (400, 6))
+    )
+
+    result = _quality_gate_summary(
+        tmp_path,
+        provenance,
+        np.array([0, 1]),
+        np.array([GESTURES.index("rest"), GESTURES.index("fist")]),
+        np.array([GESTURES.index("rest"), GESTURES.index("rest")]),
+        (1e-6,) * 8,
+    )
+
+    assert result["windows_tested"] == 2
+    assert result["accepted"] == 1
+    assert result["rejected"] == 1
+    assert result["top1_accuracy_before_gate"] == 0.5
+    assert result["top1_accuracy_on_accepted"] == 1.0
+    assert result["rejected_by_performed_gesture"]["fist"] == 1
 
 
 def test_timeline_preserves_performed_trials_and_compresses_decoded_runs():

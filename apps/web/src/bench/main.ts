@@ -39,6 +39,10 @@ export interface BenchResult {
   readonly windowsProcessed: number;
   readonly rejectedWindows: number;
   readonly n: number;
+  readonly stablePredictionWindows: number;
+  readonly correctStablePredictions: number;
+  readonly stablePredictionAccuracy: number | null;
+  readonly zeroSignalRejected: boolean;
   readonly threaded: boolean;
   readonly backend: string;
   readonly meanMs: number;
@@ -156,10 +160,13 @@ async function main(): Promise<void> {
   const featureMs: number[] = [];
   const inferenceMs: number[] = [];
   let rejectedWindows = 0;
+  let stablePredictionWindows = 0;
+  let correctStablePredictions = 0;
 
   let gesture = 0;
   let cursor = 0;
   let hopInTrial = 0;
+  const stableAfterHops = Math.ceil(windowSamples / hopSamples);
 
   // Prime the ring one hop short of a full window, and do not wait for a
   // decision: the worker only decodes once the ring holds a whole window, so
@@ -177,6 +184,11 @@ async function main(): Promise<void> {
       latencies.push(decision.latencyMs);
       featureMs.push(decision.featureMs);
       inferenceMs.push(decision.inferenceMs);
+      if (hopInTrial + 1 >= stableAfterHops) {
+        stablePredictionWindows++;
+        const predicted = decision.posteriors.indexOf(Math.max(...decision.posteriors));
+        if (predicted === gesture) correctStablePredictions++;
+      }
     } else {
       rejectedWindows++;
     }
@@ -200,10 +212,30 @@ async function main(): Promise<void> {
     throw new Error(`all ${WINDOWS} windows were rejected by signal-quality checks`);
   }
 
+  worker.postMessage({ type: 'reset' } satisfies WorkerRequest);
+  let zeroSignalRejected = false;
+  for (let hop = 0; hop < stableAfterHops; hop++) {
+    const responsePromise = nextDecision();
+    const zeroSamples = new Float32Array(nChannels * hopSamples);
+    worker.postMessage(
+      { type: 'samples', samples: zeroSamples, nChannels } satisfies WorkerRequest,
+      [zeroSamples.buffer],
+    );
+    const response = await responsePromise;
+    if (hop === stableAfterHops - 1) zeroSignalRejected = response === null;
+  }
+
   const result: BenchResult = {
     windowsProcessed: WINDOWS,
     rejectedWindows,
     n: latencies.length,
+    stablePredictionWindows,
+    correctStablePredictions,
+    stablePredictionAccuracy:
+      stablePredictionWindows === 0
+        ? null
+        : correctStablePredictions / stablePredictionWindows,
+    zeroSignalRejected,
     threaded: ready.threaded,
     backend: ready.backend,
     meanMs: latencies.reduce((a, b) => a + b, 0) / latencies.length,
@@ -224,7 +256,9 @@ async function main(): Promise<void> {
       'than in real time, so this measures the decode path and not the scheduler. ' +
       'Latency excludes the postMessage round trip and the UI thread: it is ' +
       'what the worker spent, which is the part under the ten-millisecond budget. ' +
-      'Signal-quality rejects are counted and excluded from latency percentiles.',
+      'Signal-quality rejects are counted and excluded from latency percentiles. ' +
+      'Stable replay top-1 accuracy excludes the first 200 ms after each gesture switch; ' +
+      'an all-zero control window must be rejected.',
   };
 
   status.textContent = 'done';

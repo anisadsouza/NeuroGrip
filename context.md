@@ -1,14 +1,15 @@
 # NeuroGrip: current state and next steps
 
-Updated 2026-10-28 after the NinaPro DB2 held-out workflow, Results screen,
-mobile layout, dataset audit, and final browser/regression checks. Read
+Updated 2026-10-28 after uniform-prior model experiments, full held-out
+quality-gate scoring, virtual-action output, and browser/regression checks. Read
 `CLAUDE.md` for the project's engineering and safety rules.
 
 **Research prototype. Not a medical device. Not validated for clinical use.**
 The project now has a real-recording evaluation path, but its only recorded
-comparison uses two intact subjects (S1 and S10). The S1-to-S10 result is
-exploratory and must not be presented as population-level or clinical evidence.
-Simulator results and recorded results remain separate.
+comparison uses two intact subjects (S1 and S10). S10 has informed candidate
+diagnostics, so S1-to-S10 scores are development results, not an untouched
+final test or population-level evidence. Simulator results and recorded
+results remain separate.
 
 ---
 
@@ -20,8 +21,9 @@ NinaPro DB2 recordings, extracts features, evaluates models, and exports ONNX.
 The browser (`apps/web/`) runs features and inference in a worker every 20 ms.
 Live can replay either simulated signal or a locally generated held-out DB2
 recording, with source/model provenance. Results keeps simulated comparisons,
-recorded comparisons, held-out confusion/timeline, and browser/CPU latency
-separate. No live electrode input is implemented.
+recorded comparisons, held-out confusion/timeline, quality-gate and accuracy
+metrics, and browser/CPU latency separate. No live electrode input is
+implemented.
 
 ## 2. Setup
 
@@ -151,31 +153,47 @@ results are in `artifacts/model_comparison_ninapro.json`:
 
 | Model | Accuracy (mean ± SD) | ECE |
 | --- | --- | --- |
+| Uniform-prior LDA | **50.02% ± 3.71 percentage points** | **0.0604** |
 | LDA | 49.17% ± 4.65 percentage points | 0.1720 |
 | Linear SVM | 45.59% ± 8.27 percentage points | 0.1593 |
 | RBF SVM | 38.57% ± 11.01 percentage points | 0.3775 |
 
-These are exploratory two-subject comparison results, not final population
-estimates. Keep the split and rest sampling explicit when reusing the artifact.
+Uniform-prior LDA is the point-estimate winner in this small comparison. Its
+paired fold tests against ordinary LDA, linear SVM, and RBF SVM have p-values
+1.0, 1.0, and 0.5 respectively; with only two subject folds these tests cannot
+establish a reliable winner. The DB2 repetition-held-out split is also mixed:
+uniform-prior LDA scored 74.27% / ECE 0.1930, below ordinary LDA at 75.80% /
+0.1693 and RBF SVM at 78.27% / 0.1896. This is not a universal improvement.
+Keep the split and rest sampling explicit when reusing the artifact.
 
-The separate `neurogrip.heldout` workflow trains LDA on S1, tests S10, exports a
-NinaPro-only ONNX model, and generates a held-out S10 replay. It enforces
-disjoint training and test subjects. Current metrics in
-`artifacts/ninapro_holdout/evaluation.json`:
+The `neurogrip.heldout` workflow now exports the uniform-prior LDA candidate
+trained on S1 and evaluated on S10, and generates the matching held-out replay.
+The evaluation enforces disjoint training and test subjects, but S10 has since
+informed model diagnostics; the current result is a development score, not an
+untouched final test. Metrics in `artifacts/ninapro_holdout/evaluation.json`:
 
 - 18,465 training windows; 17,293 held-out windows.
-- Accuracy 45.09%, majority-class baseline 36.51%, ECE 0.1644.
+- Accuracy 46.85%, versus the stored ordinary-LDA baseline of 45.09%;
+  majority-class baseline 36.51%. ECE is 0.0293 versus 0.1644 for that baseline.
+- Uniform priors improved mean two-subject LOSO accuracy by 0.85 percentage
+  points and macro recall by 4.32 points, but did not improve the DB2
+  repetition-held-out score.
+- `fist`, `point`, and `wrist_extension` still have zero recall on S10.
+  Frequent residual errors include `thumb_up → rest` (948), `two_finger →
+  rest` (869), `pinch → rest` (771), and `point → rest` (688). Accuracy is only
+  10.34 points above the majority-class baseline.
 - Confusion matrix total equals all 17,293 test windows; the Results screen
   renders all matrix cells and 54 performed-versus-decoded timeline events.
 - ONNX/sklearn probability parity passed on 2,000 held-out windows; maximum
-  absolute difference was `3.816e-7`.
-- CPU ONNX P95 is 0.0322 ms for 1,000 individual pre-extracted feature rows.
+  absolute difference was `4.452e-7`.
+- CPU ONNX P95 is 0.036 ms for 1,000 individual pre-extracted feature rows.
   It excludes feature extraction, browser worker messaging, and UI time.
 
-The browser bench is a separate worker measurement. The recorded replay
-manifest calibrates each channel's minimum RMS to 25% of that subject's
+### Earlier latency-only browser run (superseded)
+
+The replay manifest calibrates each channel's minimum RMS to 25% of that
 recorded-rest RMS, capped at the existing 5 µV floor. With that replay-specific
-calibration, the latest run processed 1,000 windows: all 1,000 passed the
+calibration, an earlier latency-only run processed 1,000 windows: all 1,000 passed the
 quality gate and were decoded, with threaded WASM enabled and P95 1.325 ms
 against the 10 ms budget. Exact latency varies between runs. P95 covers worker
 feature extraction plus ONNX inference, excludes message/UI overhead, and
@@ -183,6 +201,40 @@ pushes windows in lockstep rather than real time. It is not a physiological
 reaction-time measure. This calibration is for replay demonstration only; it
 has not been validated as a live-electrode safety gate. The simulator still
 uses the original fixed 5 µV threshold.
+
+### Recorded quality gate and correctness (validated against the local corpus)
+
+The replay manifest calibrates each channel's minimum RMS to 25% of that
+subject's selected recorded-rest segment, capped at the shared 5 uV floor.
+Running the same gate over all 17,293 S10 held-out windows accepted 16,691
+(96.52%) and rejected 602 (3.48%). **All 602 rejected windows are labeled rest;
+no mapped movement window was rejected.** Top-1 accuracy over every window is
+46.85%, but only 44.95% over accepted windows because the gate removes some
+easy rest examples. A gate acceptance count is not prediction correctness;
+the prediction score and confusion matrix are computed separately.
+
+Controlled negative controls reject a zero signal, a detached channel, and a
+sample window attenuated to half amplitude. This shows the code responds to
+obvious low-signal probes; it does not establish performance on actual
+electrode detachment, motion artifact, or skin-impedance changes. The S10
+recording has no independent artifact labels. Thresholds are replay-specific
+and unvalidated for live electrodes; the simulator still uses its fixed 5 uV
+minimum.
+
+The current browser bench scores top-1 model predictions only after a 200 ms
+transition warm-up, runs an all-zero rejection control, and separately reports
+quality rejects and worker latency. The 1,000-window latency run is not an
+accuracy estimate of the full DB2 corpus. Latency covers feature extraction
+plus ONNX inference in the worker, excludes message/UI overhead, and pushes
+windows in lockstep rather than in real time. It is not a physiological
+reaction-time measure.
+
+Latest browser measurements: recorded S10 replay P95 2.700 ms; 1,000 of 1,000
+latency windows passed the gate; stable snippet top-1 was 32.77% (254/775), and
+the all-zero control was rejected. The separate simulated bench scored 767/775
+(98.97%) stable top-1 and P95 3.720 ms. The S10 snippet result is substantially
+lower than the full-corpus 46.85%; Results shows both rather than implying the
+latency sample represents all held-out data.
 
 ### Held-out replay and Live screen (implemented)
 
@@ -197,9 +249,15 @@ committed or redistributed without permission.
 ### Results screen and latest browser data (implemented and verified)
 
 Results has separate sections for simulated comparison, recorded NinaPro
-comparison, held-out accuracy/confusion/timeline, and simulator versus recorded
-browser latency. The confusion matrix scrolls horizontally on mobile without
-causing page-level overflow.
+comparison, held-out accuracy/confusion/timeline, quality-gate acceptance and
+accepted-window accuracy, and simulator versus recorded browser latency and
+stable replay prediction scores. The Live Decoder panel now shows the
+current-window posterior, a named virtual action, its candidate/reversible/
+latched/fallback state, and latency. It sends no physical motor command. The
+confusion matrix scrolls horizontally on mobile without causing page-level
+overflow. The virtual hand now uses the same class as the named output: it
+previews the leader while reversible, shows the latched class after commitment,
+and shows rest after timeout. Rest is not reported as actuator travel.
 
 The browser latency test writes JSON after Playwright's production preview has
 already been built. Therefore, after a fresh `npm run test:e2e`, run
@@ -207,8 +265,8 @@ already been built. Therefore, after a fresh `npm run test:e2e`, run
 `apps/web/dist/results/`. The latest staged files were compared to their
 artifact/public sources; they are identical. A focused Results browser test
 after the build verifies the displayed held-out accuracy, calibration, every
-confusion cell, timeline event count, latest worker P95, and accepted/rejected
-counts.
+confusion cell, timeline event count, worker P95 and stable prediction score,
+quality-gate counts, zero-signal control, and Live virtual action.
 
 ## 6. Remaining work, in priority order
 
@@ -218,8 +276,10 @@ counts.
    The present S1-to-S10 split is a single exploratory holdout.
 2. **Review scientific validity before making claims.** Label 5 is finger
    abduction used as an `open_hand` proxy; rest RMS varies by channel/session;
-   the model's ECE is 0.1644. Keep these limitations visible and assess whether
-   mapping, signal quality, calibration, and class balance are acceptable.
+   the candidate's ECE is 0.0293 on the current S10 development set but
+   calibration does not generalize from two subjects. Three S10 classes still
+   have zero recall. Keep these limitations visible and assess mapping, signal
+   quality, calibration, and class balance with additional subjects.
 3. **Continue unfinished project phases** below: Cartography gate/assignment,
    error attribution, anatomical coaching, clinician mode, amputee evaluation,
    and deployment.
