@@ -240,15 +240,13 @@ is still honest, just measured on a slower path.
 
 ## Results
 
-The Results section keeps simulator comparison, recorded-data comparison, and
-the subject-held-out run separate. The held-out panel includes the confusion
-matrix (performed rows, decoded columns), a timeline of decoded runs inside
-each mapped performed movement/repetition, CPU ONNX inference latency, and—if
-the browser test has run—the distinct worker P95, stable replay top-1 score,
-and zero-signal rejection control for the recorded replay. The full held-out
-quality-gate summary reports accepted versus rejected labeled windows and
-top-1 accuracy on accepted windows. Acceptance is not correctness: the app
-scores predictions separately against the dataset labels.
+The Results section opens with the recorded S1→S10 summary: held-out accuracy,
+stable browser replay top-1, quality-gate acceptance, worker P95, calibration,
+and the most common wrong predictions. The confusion matrix, performed-versus-
+decoded timeline, quality-gate notes, model comparisons, and simulator results
+are available in collapsed sections. Simulated and recorded scores remain
+separate. Acceptance is not correctness: the app scores predictions separately
+against the dataset labels.
 The CPU figure covers ONNX inference on pre-extracted held-out windows; the
 browser figure covers feature extraction plus ONNX inference in the worker.
 Neither includes wearer reaction time or establishes medical-device safety.

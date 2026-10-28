@@ -127,16 +127,23 @@ export function Results() {
   return (
     <section className="results" aria-labelledby="results-title">
       <header className="results-head">
-        <h2 id="results-title">Evaluation results</h2>
-        <p className="muted">Simulator and recorded-data results are deliberately never merged.</p>
+        <h2 id="results-title">Recorded-data results</h2>
+        <p className="muted">
+          NinaPro DB2 · held-out subject evaluation. Simulator results are kept separate below.
+        </p>
       </header>
 
       {loadError ? <p className="notice notice-stop" role="alert">{loadError}</p> : null}
-      <ResultTable title="Simulated sEMG" result={simulated} />
-      <ResultTable title="Recorded NinaPro DB2" result={recorded} />
-      <LatencyPanel title="Simulated browser decode latency" result={simulatedLatency} />
-      <LatencyPanel title="Held-out NinaPro browser decode latency" result={recordedLatency} />
-      <HeldoutPanel result={heldout} />
+      <HeldoutPanel result={heldout} browserLatency={recordedLatency} />
+      <details className="results-details">
+        <summary>Model comparison and simulator results</summary>
+        <div className="results-detail-grid">
+          <ResultTable title="Recorded NinaPro DB2 model comparison" result={recorded} />
+          <ResultTable title="Simulated sEMG model comparison" result={simulated} />
+          <LatencyPanel title="NinaPro browser diagnostics" result={recordedLatency} />
+          <LatencyPanel title="Simulator browser diagnostics" result={simulatedLatency} />
+        </div>
+      </details>
     </section>
   );
 }
@@ -232,54 +239,144 @@ function LatencyPanel({
   );
 }
 
-function HeldoutPanel({ result }: { result: HeldoutEvaluation | null }) {
+function HeldoutPanel({
+  result,
+  browserLatency,
+}: {
+  result: HeldoutEvaluation | null;
+  browserLatency: BrowserLatency | null;
+}) {
   if (!result) {
     return (
       <section className="panel results-table" aria-labelledby="heldout-heading">
         <h3 id="heldout-heading">Subject-held-out NinaPro evaluation</h3>
-        <p className="muted">No held-out export staged. The recorded comparison above is not a held-out-subject test.</p>
+        <p className="muted">
+          No held-out evaluation is available. The model comparison below is not a
+          held-out-subject test.
+        </p>
       </section>
     );
   }
 
-  const rejectedLabels = Object.entries(result.quality_gate.rejected_by_performed_gesture)
-    .filter(([, count]) => count > 0)
-    .map(([gesture, count]) => `${gesture === 'rest' ? 'Rest' : result.dataset_movements[gesture] ?? gesture}: ${count}`)
-    .join(', ');
+  const topErrors = result.confusion_matrix
+    .flatMap((row, performedIndex) =>
+      row.flatMap((count, decodedIndex) =>
+        performedIndex === decodedIndex || count === 0
+          ? []
+          : [{
+              performed: result.gesture_order[performedIndex]!,
+              decoded: result.gesture_order[decodedIndex]!,
+              count,
+            }],
+      ),
+    )
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3);
+  const stableAccuracy = browserLatency?.stablePredictionAccuracy;
 
   return (
     <section className="panel results-table" aria-labelledby="heldout-heading">
-      <h3 id="heldout-heading">Subject-held-out NinaPro evaluation</h3>
-      <p>
-        {result.model} · trained on {result.training_subjects.map((subject) => `S${subject}`).join(', ')}
-        {' · tested on '}S{result.test_subject} · {result.n_test.toLocaleString()} windows
+      <h3 id="heldout-heading">S{result.training_subjects.join(', S')} → S{result.test_subject}</h3>
+      <p className="small muted">
+        {result.model} · {result.n_test.toLocaleString()} labeled windows · exploratory
+        development result
       </p>
-      <dl className="readout-list">
-        <div><dt>Held-out accuracy</dt><dd>{percentage(result.accuracy)}</dd></div>
-        <div><dt>Expected calibration error</dt><dd>{result.expected_calibration_error.toFixed(3)}</dd></div>
+      <dl className="results-metrics">
         <div>
-          <dt>Recorded quality gate</dt>
-          <dd>
-            {percentage(result.quality_gate.acceptance_rate)} ·{' '}
-            {result.quality_gate.accepted.toLocaleString()} accepted /{' '}
-            {result.quality_gate.rejected.toLocaleString()} rejected
-          </dd>
+          <dt>Held-out accuracy</dt>
+          <dd>{percentage(result.accuracy)}</dd>
+          <small>{result.n_test.toLocaleString()} windows</small>
         </div>
-        {result.quality_gate.top1_accuracy_on_accepted !== null ? (
-          <div>
-            <dt>Top-1 on accepted windows</dt>
-            <dd>{percentage(result.quality_gate.top1_accuracy_on_accepted)}</dd>
-          </div>
-        ) : null}
-        <div><dt>CPU ONNX P95</dt><dd className="ng-num">{result.latency.p95_ms.toFixed(2)} ms</dd></div>
-        <div><dt>Measured windows</dt><dd className="ng-num">{result.latency.n_windows}</dd></div>
+        <div>
+          <dt>Stable replay top-1</dt>
+          <dd>{typeof stableAccuracy === 'number' ? percentage(stableAccuracy) : '—'}</dd>
+          <small>
+            {browserLatency?.correctStablePredictions ?? 0}/
+            {browserLatency?.stablePredictionWindows ?? 0} windows
+          </small>
+        </div>
+        <div>
+          <dt>Quality-gate accepted</dt>
+          <dd>{percentage(result.quality_gate.acceptance_rate)}</dd>
+          <small>
+            {result.quality_gate.accepted.toLocaleString()} accepted ·{' '}
+            {result.quality_gate.rejected.toLocaleString()} rejected
+          </small>
+        </div>
+        <div>
+          <dt>Browser worker P95</dt>
+          <dd>{browserLatency ? `${browserLatency.p95Ms.toFixed(2)} ms` : '—'}</dd>
+          <small>feature extraction + ONNX inference</small>
+        </div>
+        <div>
+          <dt>Calibration error</dt>
+          <dd>{result.expected_calibration_error.toFixed(3)}</dd>
+          <small>lower is better</small>
+        </div>
       </dl>
-      <p className="small muted">{result.quality_gate.method}</p>
-      <p className="small muted">Rejected performed labels: {rejectedLabels || 'none'}.</p>
-      <p className="small muted">{result.latency.scope}</p>
-      <ConfusionMatrix result={result} />
-      <Timeline events={result.timeline} />
-      <p className="small muted">{result.caveat}</p>
+      <p className="results-caveat">
+        Exploratory only: just S1 and S10 are available, and S10 informed diagnostics.
+        This is not an untouched final test or clinical validation.
+      </p>
+
+      <section className="results-errors" aria-labelledby="top-errors-heading">
+        <h4 id="top-errors-heading">Most common wrong predictions</h4>
+        <ol>
+          {topErrors.map((error) => (
+            <li key={`${error.performed}-${error.decoded}`}>
+              <span>
+                {result.dataset_movements[error.performed] ?? error.performed}
+                <span aria-hidden="true"> → </span>
+                {result.dataset_movements[error.decoded] ?? error.decoded}
+              </span>
+              <strong>{error.count}</strong>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <details className="results-details">
+        <summary>View confusion matrix</summary>
+        <ConfusionMatrix result={result} />
+      </details>
+      <details className="results-details">
+        <summary>View performed-versus-decoded timeline</summary>
+        <Timeline events={result.timeline} />
+      </details>
+      <details className="results-details">
+        <summary>Evaluation and quality-gate notes</summary>
+        <div className="results-detail-copy">
+          <p>
+            CPU ONNX inference P95: {result.latency.p95_ms.toFixed(2)} ms across{' '}
+            {result.latency.n_windows} windows.
+          </p>
+          <p>{result.quality_gate.method}</p>
+          <p>
+            Rejected performed labels:{' '}
+            {Object.entries(result.quality_gate.rejected_by_performed_gesture)
+              .filter(([, count]) => count > 0)
+              .map(([gesture, count]) =>
+                `${result.dataset_movements[gesture] ?? gesture}: ${count}`,
+              )
+              .join(', ') || 'none'}.
+          </p>
+          <p>
+            Accuracy on accepted windows:{' '}
+            {result.quality_gate.top1_accuracy_on_accepted === null
+              ? 'not available'
+              : percentage(result.quality_gate.top1_accuracy_on_accepted)}
+          </p>
+          <p>{result.latency.scope}</p>
+          <p>{result.caveat}</p>
+          <p>{browserLatency?.note}</p>
+          <p>
+            Zero-signal control:{' '}
+            {browserLatency?.zeroSignalRejected === undefined
+              ? 'not measured'
+              : browserLatency.zeroSignalRejected ? 'rejected' : 'not rejected'}.
+          </p>
+        </div>
+      </details>
     </section>
   );
 }

@@ -9,14 +9,13 @@ const HELDOUT_MODEL = join(ROOT, 'apps', 'web', 'public', 'models', 'ninapro');
 const HAS_HELDOUT = existsSync(join(HELDOUT_REPLAY, 'emg-replay.json')) &&
   existsSync(join(HELDOUT_MODEL, 'decoder.onnx'));
 
-test('Results keeps simulator and recorded evaluations in separate sections', async ({ page }) => {
+test('Results prioritizes held-out NinaPro metrics and keeps diagnostics optional', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Results' }).click();
 
-  await expect(page.getByRole('heading', { name: 'Simulated sEMG' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Recorded NinaPro DB2' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Subject-held-out NinaPro evaluation' }))
-    .toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Recorded-data results' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'S1 → S10' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Most common wrong predictions' })).toBeVisible();
 
   if (HAS_HELDOUT) {
     const evaluation = JSON.parse(
@@ -29,6 +28,9 @@ test('Results keeps simulator and recorded evaluations in separate sections', as
       dataset_movements: Record<string, string>;
       n_test: number;
       timeline: unknown[];
+      latency: {
+        p95_ms: number;
+      };
       quality_gate: {
         accepted: number;
         rejected: number;
@@ -52,15 +54,12 @@ test('Results keeps simulator and recorded evaluations in separate sections', as
       zeroSignalRejected: boolean;
     };
     const heldoutPanel = page.locator('section[aria-labelledby="heldout-heading"]');
-    const browserLatencyPanel = page.locator(
-      'section[aria-labelledby="held-out-ninapro-browser-decode-latency-heading"]',
-    );
-
-    await expect(page.getByRole('heading', { name: 'Performed vs decoded timeline' }))
-      .toBeVisible();
-    await expect(page.getByText('Held-out confusion matrix', { exact: false })).toBeVisible();
-    await expect(page.getByText('CPU ONNX P95')).toBeVisible();
-    await expect(page.getByText(/Finger abduction \(proxy/).first()).toBeVisible();
+    await expect(page.getByText('Model comparison and simulator results')).toBeVisible();
+    await expect(page.getByText('View confusion matrix')).toBeVisible();
+    await expect(page.getByText('View performed-versus-decoded timeline')).toBeVisible();
+    await expect(heldoutPanel.locator('details[open]')).toHaveCount(0);
+    await expect(heldoutPanel.locator('.results-metrics > div')).toHaveCount(5);
+    await expect(heldoutPanel.locator('.confusion-matrix')).not.toBeVisible();
     await expect(heldoutPanel).toContainText(`${(evaluation.accuracy * 100).toFixed(1)}%`);
     await expect(heldoutPanel).toContainText(
       evaluation.expected_calibration_error.toFixed(3),
@@ -69,28 +68,14 @@ test('Results keeps simulator and recorded evaluations in separate sections', as
       `${(evaluation.quality_gate.acceptance_rate * 100).toFixed(1)}%`,
     );
     await expect(heldoutPanel).toContainText(
-      `${evaluation.quality_gate.accepted.toLocaleString()} accepted / ` +
+      `${evaluation.quality_gate.accepted.toLocaleString()} accepted · ` +
         `${evaluation.quality_gate.rejected.toLocaleString()} rejected`,
     );
-    const rejectedLabelSummary = Object.entries(
-      evaluation.quality_gate.rejected_by_performed_gesture,
-    )
-      .filter(([, count]) => count > 0)
-      .map(([gesture, count]) =>
-        `${gesture === 'rest' ? 'Rest' : evaluation.dataset_movements[gesture] ?? gesture}: ${count}`)
-      .join(', ');
-    await expect(heldoutPanel).toContainText(`Rejected performed labels: ${rejectedLabelSummary}.`);
-    if (evaluation.quality_gate.top1_accuracy_on_accepted !== null) {
-      await expect(heldoutPanel).toContainText(
-        `${(evaluation.quality_gate.top1_accuracy_on_accepted * 100).toFixed(1)}%`,
-      );
-    }
     await expect(heldoutPanel).toContainText(`${evaluation.n_test.toLocaleString()} windows`);
+    await page.getByText('View confusion matrix').click();
     await expect(heldoutPanel.locator('.confusion-matrix tbody tr'))
       .toHaveCount(evaluation.gesture_order.length);
-    await expect(heldoutPanel.locator('.performed-timeline li')).toHaveCount(
-      evaluation.timeline.length,
-    );
+    await expect(page.getByText('Held-out confusion matrix', { exact: false })).toBeVisible();
     for (const [rowIndex, expectedRow] of evaluation.confusion_matrix.entries()) {
       const cells = heldoutPanel.locator('.confusion-matrix tbody tr').nth(rowIndex).locator('td');
       await expect(cells).toHaveCount(expectedRow.length);
@@ -98,18 +83,26 @@ test('Results keeps simulator and recorded evaluations in separate sections', as
         await expect(cells.nth(cellIndex)).toHaveText(String(value));
       }
     }
-    await expect(browserLatencyPanel).toContainText(`${latency.p95Ms.toFixed(3)} ms`);
-    await expect(browserLatencyPanel).toContainText(
-      `${latency.n} decoded · ${latency.rejectedWindows} rejected`,
+    await page.getByText('View performed-versus-decoded timeline').click();
+    await expect(heldoutPanel.locator('.performed-timeline li')).toHaveCount(
+      evaluation.timeline.length,
     );
-    if (typeof latency.stablePredictionAccuracy === 'number') {
-      await expect(browserLatencyPanel).toContainText(
-        `${(latency.stablePredictionAccuracy * 100).toFixed(1)}%`,
-      );
-      await expect(browserLatencyPanel).toContainText(
-        `${latency.correctStablePredictions}/${latency.stablePredictionWindows}`,
-      );
-    }
+    await page.getByText('Evaluation and quality-gate notes').click();
+    await expect(heldoutPanel).toContainText(
+      `CPU ONNX inference P95: ${evaluation.latency.p95_ms.toFixed(2)} ms`,
+    );
+    const rejectedLabelSummary = Object.entries(evaluation.quality_gate.rejected_by_performed_gesture)
+      .filter(([, count]) => count > 0)
+      .map(([gesture, count]) => `${evaluation.dataset_movements[gesture] ?? gesture}: ${count}`)
+      .join(', ');
+    await expect(heldoutPanel).toContainText(`Rejected performed labels: ${rejectedLabelSummary}.`);
+    await page.getByText('Model comparison and simulator results').click();
+    await expect(page.getByRole('heading', { name: 'Simulated sEMG model comparison' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Recorded NinaPro DB2 model comparison' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'NinaPro browser diagnostics' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Simulator browser diagnostics' })).toBeVisible();
+    const browserLatencyPanel = page.getByRole('region', { name: 'NinaPro browser diagnostics' });
+    await expect(browserLatencyPanel).toContainText(`${latency.p95Ms.toFixed(3)} ms`);
     if (typeof latency.zeroSignalRejected === 'boolean') {
       await expect(browserLatencyPanel).toContainText(
         `Zero-signal control${latency.zeroSignalRejected ? 'rejected' : 'not rejected'}`,
@@ -127,7 +120,7 @@ test('Results keeps the held-out confusion matrix inside a scrollable panel on m
   await page.setViewportSize({ width: 360, height: 900 });
   await page.goto('/');
   await page.getByRole('button', { name: 'Results' }).click();
-  await expect(page.getByRole('heading', { name: 'Performed vs decoded timeline' })).toBeVisible();
+  await page.getByText('View confusion matrix').click();
 
   const dimensions = await page.evaluate(() => {
     const matrix = document.querySelector('.matrix-scroll');
