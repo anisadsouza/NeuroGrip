@@ -14,7 +14,7 @@
  */
 
 import { expect, test } from '@playwright/test';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -24,6 +24,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const BUDGET_MS = 10;
 
 interface BenchResult {
+  windowsProcessed: number;
+  rejectedWindows: number;
   n: number;
   threaded: boolean;
   backend: string;
@@ -63,7 +65,9 @@ test('the decode path meets its latency budget in the browser it ships in', asyn
   )) as BenchResult;
 
   expect(failures, failures.join('\n')).toEqual([]);
-  expect(result.n).toBe(1000);
+  expect(result.windowsProcessed).toBe(1000);
+  expect(result.n + result.rejectedWindows).toBe(1000);
+  expect(result.n).toBeGreaterThan(0);
 
   // Not an optimisation: without threads the deployed latency is a different
   // number from the one the docs publish, and nothing else would say so.
@@ -79,19 +83,16 @@ test('the decode path meets its latency budget in the browser it ships in', asyn
 
   const artifactsDir = join(ROOT, 'artifacts');
   mkdirSync(artifactsDir, { recursive: true });
-  writeFileSync(
-    join(artifactsDir, 'browser_latency.json'),
-    `${JSON.stringify(
-      {
-        measuredAt: new Date().toISOString().slice(0, 10),
-        budgetMs: BUDGET_MS,
-        meetsBudget: result.p95Ms <= BUDGET_MS,
-        ...result,
-      },
-      null,
-      2,
-    )}\n`,
-  );
+  const simulatedArtifact = `${JSON.stringify({
+    measuredAt: new Date().toISOString().slice(0, 10),
+    budgetMs: BUDGET_MS,
+    meetsBudget: result.p95Ms <= BUDGET_MS,
+    ...result,
+  }, null, 2)}\n`;
+  writeFileSync(join(artifactsDir, 'browser_latency.json'), simulatedArtifact);
+  const publicResults = join(ROOT, 'apps', 'web', 'public', 'results');
+  mkdirSync(publicResults, { recursive: true });
+  writeFileSync(join(publicResults, 'browser_latency.json'), simulatedArtifact);
 
   test.info().attach('browser_latency.json', {
     body: JSON.stringify(result, null, 2),
@@ -103,4 +104,57 @@ test('the bench is a harness rather than a page the app links to', async ({ page
   await page.goto('/');
   const links = await page.locator('a[href*="bench"]').count();
   expect(links, 'the bench must not be reachable from the application').toBe(0);
+});
+
+test('the recorded held-out decode path meets its browser latency budget', async ({ page }) => {
+  const replay = join(ROOT, 'apps', 'web', 'public', 'replay', 'ninapro');
+  const model = join(ROOT, 'apps', 'web', 'public', 'models', 'ninapro');
+  test.skip(
+    !existsSync(join(replay, 'emg-replay.json')) ||
+      !existsSync(join(model, 'decoder.onnx')),
+    'No subject-held-out NinaPro model/replay staged; generate them with neurogrip.heldout.',
+  );
+
+  const failures: string[] = [];
+  page.on('pageerror', (error) => failures.push(error.message));
+  await page.goto('/bench.html?source=ninapro');
+  await page.waitForFunction(
+    () =>
+      (window as unknown as { __benchResult?: unknown; __benchError?: string }).__benchResult !==
+        undefined ||
+      (window as unknown as { __benchError?: string }).__benchError !== undefined,
+    undefined,
+    { timeout: 120_000 },
+  );
+
+  const benchError = await page.evaluate(
+    () => (window as unknown as { __benchError?: string }).__benchError,
+  );
+  expect(benchError, `recorded bench failed: ${benchError ?? ''}`).toBeUndefined();
+  const result = (await page.evaluate(
+    () => (window as unknown as { __benchResult: BenchResult }).__benchResult,
+  )) as BenchResult;
+  expect(failures, failures.join('\n')).toEqual([]);
+  expect(result.windowsProcessed).toBe(1000);
+  expect(result.n + result.rejectedWindows).toBe(1000);
+  expect(result.n).toBeGreaterThan(500);
+  expect(result.threaded, 'recorded decode ran without WASM threads').toBe(true);
+  expect(result.p95Ms).toBeLessThanOrEqual(BUDGET_MS);
+
+  const artifactsDir = join(ROOT, 'artifacts');
+  mkdirSync(artifactsDir, { recursive: true });
+  const recordedArtifact = `${JSON.stringify({
+    measuredAt: new Date().toISOString().slice(0, 10),
+    budgetMs: BUDGET_MS,
+    meetsBudget: result.p95Ms <= BUDGET_MS,
+    ...result,
+  }, null, 2)}\n`;
+  writeFileSync(join(artifactsDir, 'browser_latency_ninapro.json'), recordedArtifact);
+  const publicResults = join(ROOT, 'apps', 'web', 'public', 'results');
+  mkdirSync(publicResults, { recursive: true });
+  writeFileSync(join(publicResults, 'browser_latency_ninapro.json'), recordedArtifact);
+  test.info().attach('browser_latency_ninapro.json', {
+    body: JSON.stringify(result, null, 2),
+    contentType: 'application/json',
+  });
 });
