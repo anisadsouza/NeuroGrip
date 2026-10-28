@@ -34,6 +34,9 @@ mlruns/
 *.joblib
 *.pkl
 
+# Local NinaPro replay contains samples from a licensed research dataset.
+apps/web/public/replay/ninapro/
+
 # OS/editor files
 .DS_Store
 .idea/

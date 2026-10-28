@@ -498,7 +498,11 @@ Three gates are worth knowing by name:
   300 µV to 15 µV (the old value buried the motor-unit signal), and the
   electrode-detachment gate from 100 µV to 5 µV so it sits below baseline noise
   rather than above it — at the old value a genuine rest window was rejected as
-  a detached electrode.
+  a detached electrode. The simulator still uses that fixed 5 µV gate. The
+  optional NinaPro replay uses per-channel minimums derived from 25% of the
+  held-out subject's recorded-rest RMS, capped at 5 µV, because several S10
+  channels have lower baselines. This replay-only calibration is not validated
+  for live electrodes or a safety claim.
 - **Model chosen by measurement, not by plan.** The report names an RBF SVM. It
   won, but LDA and a linear SVM were evaluated first and the comparison is
   recorded in `artifacts/model_comparison.json`.

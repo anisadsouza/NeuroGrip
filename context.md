@@ -1,33 +1,34 @@
-# NeuroGrip: context and next steps
+# NeuroGrip: current state and next steps
 
-A handoff for whoever picks this up next, written so it can be pasted into
-ChatGPT or Claude along with the files a task names. Read `CLAUDE.md` alongside
-it: that file holds the rules, the measured numbers and the reasoning behind
-both. This file holds only what to do next.
+Updated 2026-10-28 after the NinaPro DB2 held-out workflow, Results screen,
+mobile layout, dataset audit, and final browser/regression checks. Read
+`CLAUDE.md` for the project's engineering and safety rules.
 
-**Research prototype. Not a medical device.** Every reported performance number
-in the repo still comes from simulated sEMG. The NinaPro DB2 code path is built
-and tested with synthetic `.mat` fixtures, but real DB2 must be registered for,
-downloaded, verified and run before any recorded-data claim can be made.
+**Research prototype. Not a medical device. Not validated for clinical use.**
+The project now has a real-recording evaluation path, but its only recorded
+comparison uses two intact subjects (S1 and S10). The S1-to-S10 result is
+exploratory and must not be presented as population-level or clinical evidence.
+Simulator results and recorded results remain separate.
 
 ---
 
 ## 1. The project in one paragraph
 
-NeuroGrip decodes hand gestures from forearm surface EMG (sEMG) for prosthetic
-control. A Python research service (`services/research/`) simulates sEMG,
-extracts 17 features per channel, trains an RBF-SVM and exports it to ONNX. A
-browser app (`apps/web/`) runs the same features and the ONNX model inside a web
-worker every 20 ms. It shows the signal (oscilloscope), a commitment bar
-(evidence building towards a decision) and a virtual hand that moves as the
-evidence accrues. Today the app replays **simulated** signal. The next job is
-to make it replay and decode **real recorded EMG from NinaPro**.
+NeuroGrip decodes eight channels of forearm surface EMG (sEMG) into a ten-class
+gesture vocabulary. Python (`services/research/`) simulates data, ingests
+NinaPro DB2 recordings, extracts features, evaluates models, and exports ONNX.
+The browser (`apps/web/`) runs features and inference in a worker every 20 ms.
+Live can replay either simulated signal or a locally generated held-out DB2
+recording, with source/model provenance. Results keeps simulated comparisons,
+recorded comparisons, held-out confusion/timeline, and browser/CPU latency
+separate. No live electrode input is implemented.
 
 ## 2. Setup
 
 ```bash
 python -m venv .venv
-source .venv/Scripts/activate          # macOS/Linux: source .venv/bin/activate
+source .venv/bin/activate              # macOS/Linux
+# Windows PowerShell: .venv\Scripts\Activate.ps1
 pip install -e "./services/research[dev,ml]"
 npm install
 
@@ -61,161 +62,177 @@ These are the ones an AI assistant is most likely to break. The full list is in
 
 | Phase | What | State |
 | --- | --- | --- |
-| 0–1b | Simulator, features in Python and TypeScript, conformance gate, decoder, ONNX, browser app, Live screen, virtual hand | Done |
+| 0–1b | Simulator, Python/TypeScript feature conformance, decoder, ONNX, browser Live/virtual hand | Done |
+| Recorded DB2 path | Six local S1/S10 sessions, loader and mapping, comparison, held-out export/replay, Results views | Implemented and tested; exploratory, two subjects |
 | 2 | Neuromotor Cartography (Pillar 1) | Partly done; see §6 |
 | 3 | Error-attribution router, anatomical coaching | Not started |
 | 4 | Robustness | Electrode-shift sweep complete: passes through 0.2 rad, fails at 0.3/0.4 rad; simulated only |
 | 5 | Azure deploy, patent disclosures | Not started |
 
-Only one screen exists: `apps/web/src/screens/Live.tsx`.
+The app has Live and Results screens. Additional independent recorded subjects,
+clinician mode, error attribution, anatomical coaching, amputee evaluation,
+and deployment remain future work.
 
 ---
 
-## 5. Next work, in priority order
+## 5. NinaPro DB2: completed work and verified facts
 
-### Task 1: Run NinaPro DB2 evaluation (code complete; data required)
+### Dataset ingestion and quality audit
 
-`services/research/neurogrip/ninapro.py` now loads DB2 sessions, retains the
-first eight channels, converts the detected EMG unit scale to volts, excludes
-label-crossing windows, subsamples rest, and returns the shared `Corpus` type.
-`experiments.py` supports `--source ninapro --data-root ...` for comparison and
-export, reporting both LOSO and the 1/3/4/6 train versus 2/5 test split.
+The local dataset has six A1 MATLAB recordings: S1 and S10, each with E1, E2,
+and E3. The audit was run against these actual files (not only synthetic test
+fixtures):
 
-Run after DB2 is available:
+| Check | Observed |
+| --- | --- |
+| Subjects / files | S1 and S10; 6 files total (E1-E3 per subject) |
+| EMG dimensions | Samples × 12 channels, float32; the loader retains channels 1-8 |
+| Sample rate | 2 kHz, matching the feature pipeline and DB2 documentation |
+| Label arrays | E1 has 0-17, E2 has 0 and 18-40, E3 has 0 and 41-49; each exercise's expected IDs were present |
+| Repetitions | 0-6 in all six sessions; 0 marks rest |
+| Finite values | Every raw EMG array and extracted feature vector is finite |
+| Unequal tails | S1 E3 has 1 extra EMG sample and S10 E3 has 2; the loader trims only these unmatched tails |
+| Unit multiplier | Loader heuristic selected 1.0 (no conversion) for all six files; values were treated as volts |
+| Rest level | Median per-channel rest RMS across all session/channel pairs is 8.09 µV; maximum is 66.44 µV (S10 E1 channel 1) |
+| Extracted corpus | 35,758 windows × 136 features, from two subjects; mapped windows are finite |
 
-```bash
-python -m neurogrip.experiments compare --source ninapro --data-root data/ninapro/DB2 --out artifacts/model_comparison_ninapro.json
-python -m neurogrip.experiments export --source ninapro --data-root data/ninapro/DB2 --out artifacts
-```
+Rest RMS is not uniform: some channel/session outliers exceed the project's
+nominal baseline. The unit scale is a loader heuristic supported by the
+observed magnitudes, not a fresh independent instrument calibration. Treat
+this as a local dataset audit, not a guarantee of electrode quality or
+human-device safety. The loader uses `restimulus`, keeps only 200 ms windows
+whose label and repetition are constant, samples every eighth rest window,
+and marks fatigue unknown (zero) rather than inventing a fatigue label.
 
-Before reporting anything, verify the mapping and units below against the
-downloaded files. Do not replace the simulator figures in the README/model card
-until these commands have produced their own artifacts.
+The full DB2 release has 40 intact subjects; only S1 and S10 are present
+locally. This evaluation cannot establish generalization across that
+population.
 
-**Why DB2:** it is recorded at **2 kHz**, the rate the whole pipeline already
-assumes, so no DSP constant changes. It has 40 intact subjects, and its first 8
-channels form the forearm electrode ring the app's 8-channel layout models.
+### Movement mapping
 
-**Get the data:** register at the NinaPro site (ninapro.hevs.ch), download DB2
-and unzip it to `data/ninapro/DB2/`. Each subject has files like `S1_E1_A1.mat`
-(exercise 1), `S1_E2_A1.mat` and `S1_E3_A1.mat`. The variables needed are:
+Keeping the app vocabulary means the virtual hand, commit costs and UI need no
+changes. The label assignments below were checked against the
+[official DB2 guide](https://ninapro.hevs.ch/instructions/DB2.html) and
+Atzori et al. (2014), [Table 1 and Figure 2](https://doi.org/10.1038/sdata.2014.53).
+`restimulus` is the post-hoc realigned performed-movement label. DB2 numbers
+movements locally within each exercise; the global IDs below follow the
+documented sequential exercise ranges.
 
-- `emg`: samples × 12 channels
-- `restimulus`: per-sample movement label, re-aligned to the actual movement.
-  Use this, not `stimulus`.
-- `rerepetition`: per-sample repetition number, 1–6, with 0 meaning rest
-
-**Verify these before writing code.** They are from the DB2 documentation as
-best remembered, not checked against the files:
-
-- Print `np.unique(restimulus)` for one file of each exercise. DB2 is believed
-  to number labels globally: E1 = 1–17, E2 = 18–40, E3 = 41–49.
-- Check the units of `emg` by printing per-channel RMS during rest. The
-  pipeline's thresholds are in volts (about 15 µV at rest, a 5 µV detached
-  electrode gate). If the data isn't in volts, convert it in the loader and
-  record the conversion.
-
-**Map NinaPro movements onto the app's 10 gestures.** Keeping the vocabulary
-means the virtual hand, the commit costs and the UI need no changes. Tentative
-mapping (verify every row against the DB2 movement list):
-
-| App gesture | NinaPro movement | Exercise / label (verify) |
+| App gesture | NinaPro movement | Exercise / label |
 | --- | --- | --- |
 | rest | rest | 0 |
 | thumb_up | Thumb up | E1 / 1 |
 | two_finger | Extension of index and middle, flexion of the others | E1 / 2 |
-| open_hand | Abduction of all fingers | E1 / 5 |
+| open_hand | Abduction of all fingers (proxy, not an exact general open-hand label) | E1 / 5 |
 | fist | Fingers flexed together in fist | E1 / 6 |
 | point | Pointing index | E1 / 7 |
 | wrist_flexion | Wrist flexion | E1 / 13 |
 | wrist_extension | Wrist extension | E1 / 14 |
-| spherical_grip | Power sphere | E2 / ~27 |
-| pinch | Tip pinch grasp | E2 / ~32 |
+| spherical_grip | Power sphere grasp | E2 / 27 |
+| pinch | Tip pinch grasp | E2 / 32 |
 
-**Build:**
+The DB2 movement descriptions are the labels used in recorded-data Results and
+replay. In particular, label 5 is finger abduction, displayed as an explicitly
+qualified proxy for the app's `open_hand` class; it must not be reported as a
+generic open-hand movement. `pinch` means tip pinch and `spherical_grip` means
+power sphere grasp, not every possible pinch or spherical grip.
 
-1. `services/research/neurogrip/ninapro.py`:
-   - `load_session(path) -> (emg float32 [channels, samples], labels, reps)`.
-     Keep channels 1–8 only, and say why in a comment.
-   - `build_ninapro_corpus(root, subjects, mapping) -> Corpus`. Return the same
-     `Corpus` dataclass as `neurogrip/datasets.py`, so evaluation, training
-     and export work unchanged. Use 200 ms windows with a 20 ms hop, and drop
-     any window that straddles a label change.
-   - Subsample `rest`, which otherwise dominates. Put the fatigue field to zeros
-     and say in a comment that it's unknown for real data.
-2. Add `--source {simulator,ninapro}` and `--data-root` to `compare` and `export`
-   in `neurogrip/experiments.py`. Write `"trained_on": "ninapro_db2"` into
-   `decoder.json`.
-3. Evaluate two ways and report both: leave-one-subject-out, and the NinaPro
-   convention of training on repetitions 1, 3, 4, 6 and testing on 2 and 5.
-   Expect accuracy well below the simulator's 95.6%; that drop is the finding,
-   not a bug. Write the results to `artifacts/model_comparison_ninapro.json`.
-4. Tests in `services/research/tests/test_ninapro.py`. Build a tiny fake `.mat`
-   file inside the test with `scipy.io.savemat` (scipy is already a
-   dependency). Never use real data in tests or in the repo.
+### Recorded comparison and held-out export
 
-**Done when:** the loader tests pass, `compare --source ninapro` writes a JSON
-artifact with both evaluations, and `export --source ninapro` produces a
-`decoder.onnx` with matching `decoder.json`.
+The earlier `TypeError: 'int' object is not iterable` came from passing
+`calibration_folds` as the third positional argument to
+`evaluate_repetition_split`; that position is `train_repetitions`. The caller
+now passes it by keyword, so repetition metadata remains a tuple when the
+summary serializes it. The comparison also reports subject count/IDs from the
+actual corpus rather than simulator configuration.
 
-### Task 2: Replay real recordings in the Live screen (visual)
+The DB2 comparison runs on the actual 35,758-window corpus. Two-subject LOSO
+results are in `artifacts/model_comparison_ninapro.json`:
 
-The Python bundle writer and browser provenance label are now built. Run:
+| Model | Accuracy (mean ± SD) | ECE |
+| --- | --- | --- |
+| LDA | 49.17% ± 4.65 percentage points | 0.1720 |
+| Linear SVM | 45.59% ± 8.27 percentage points | 0.1593 |
+| RBF SVM | 38.57% ± 11.01 percentage points | 0.3775 |
 
-```bash
-python -m neurogrip.replay --source ninapro --data-root data/ninapro/DB2 --subject 12 --out apps/web/public/replay
-```
+These are exploratory two-subject comparison results, not final population
+estimates. Keep the split and rest sampling explicit when reusing the artifact.
 
-Use a subject held out of decoder training. Recorded manifests carry
-`source: ninapro_db2` and `subject: S<n>` and omit simulated muscle weights.
-What remains for this task is the performed-versus-decoded timeline in the Live
-screen, followed by a manual browser check against an actual DB2 bundle.
+The separate `neurogrip.heldout` workflow trains LDA on S1, tests S10, exports a
+NinaPro-only ONNX model, and generates a held-out S10 replay. It enforces
+disjoint training and test subjects. Current metrics in
+`artifacts/ninapro_holdout/evaluation.json`:
 
-1. Add `--source ninapro --subject S<n>` to `neurogrip/replay.py`. It should
-   write the same bundle format (int16 samples plus a JSON manifest, one
-   segment per gesture), cut from one subject's real recording. That subject
-   must be **held out** of training.
-   - Add `"source"` and `"subject"` to the manifest.
-   - Check that `VOLTS_PER_COUNT` doesn't clip real peaks, and change it if it
-     does.
-   - The manifest's `muscleGroups` weights come from the simulator's anatomy
-     model and are wrong for real electrodes. Mark them as such, or omit them
-     and have the UI handle their absence.
-2. **Live screen** (`apps/web/src/screens/Live.tsx`, `apps/web/src/sources/replaySource.ts`):
-   - A source badge reading "Recorded · NinaPro DB2 · subject S12" or "Simulated".
-   - A strip under the oscilloscope showing what was **actually performed**
-     (from the recording's labels) next to what was **decoded**, with a running
-     correct/incorrect timeline. Real data has ground truth; showing it is the
-     point.
-3. Keep `npm test` green. `packages/core/test/artifacts.test.ts` checks
-   `decoder.json` and the replay manifest against `FEATURE_SPEC_VERSION`.
+- 18,465 training windows; 17,293 held-out windows.
+- Accuracy 45.09%, majority-class baseline 36.51%, ECE 0.1644.
+- Confusion matrix total equals all 17,293 test windows; the Results screen
+  renders all matrix cells and 54 performed-versus-decoded timeline events.
+- ONNX/sklearn probability parity passed on 2,000 held-out windows; maximum
+  absolute difference was `3.816e-7`.
+- CPU ONNX P95 is 0.0322 ms for 1,000 individual pre-extracted feature rows.
+  It excludes feature extraction, browser worker messaging, and UI time.
 
-**Done when:** `npm run dev:web` plays a real held-out recording, the badge says
-so, and the performed-versus-decoded strip updates live.
+The browser bench is a separate worker measurement. The recorded replay
+manifest calibrates each channel's minimum RMS to 25% of that subject's
+recorded-rest RMS, capped at the existing 5 µV floor. With that replay-specific
+calibration, the latest run processed 1,000 windows: all 1,000 passed the
+quality gate and were decoded, with threaded WASM enabled and P95 1.325 ms
+against the 10 ms budget. Exact latency varies between runs. P95 covers worker
+feature extraction plus ONNX inference, excludes message/UI overhead, and
+pushes windows in lockstep rather than real time. It is not a physiological
+reaction-time measure. This calibration is for replay demonstration only; it
+has not been validated as a live-electrode safety gate. The simulator still
+uses the original fixed 5 µV threshold.
 
-### Task 3: A Results screen charting the real artifacts (visual)
+### Held-out replay and Live screen (implemented)
 
-The Results tab is now built. It fetches staged simulation and NinaPro
-comparison JSON separately, reports a clear unavailable state before DB2 has
-been run, and the asset builder copies available comparison artifacts into the
-web public directory. The remaining enhancement is adding a NinaPro confusion
-matrix and latency/TTUM cards after a real artifact has been generated.
+The held-out workflow writes an int16 replay bundle with a JSON manifest that
+names the source, test subject, and training subjects. It rejects a test subject
+that overlaps training. Replay data stays under the git-ignored
+`apps/web/public/replay/ninapro/` directory. Live selects the recorded bundle
+and its separate model only when both are staged, displays provenance, and
+shows the dataset movement descriptions. No NinaPro samples should be
+committed or redistributed without permission.
 
-Add a second screen reading the JSON files in `artifacts/`, copied into
-`apps/web/public/results/` by `scripts/build-assets.mjs`:
+### Results screen and latest browser data (implemented and verified)
 
-- accuracy per model, **simulated and NinaPro side by side**, with LOSO spread
-- a confusion matrix per gesture (NinaPro)
-- latency (`artifacts/decoder.json`, `artifacts/browser_latency.json`)
-- time to useful motion (`artifacts/ttum.json`)
+Results has separate sections for simulated comparison, recorded NinaPro
+comparison, held-out accuracy/confusion/timeline, and simulator versus recorded
+browser latency. The confusion matrix scrolls horizontally on mobile without
+causing page-level overflow.
 
-Add simple tab navigation in `apps/web/src/App.tsx`, which currently renders
-Live only. Follow the design rules in §3. Charts need text alternatives and
-must work at phone width.
+The browser latency test writes JSON after Playwright's production preview has
+already been built. Therefore, after a fresh `npm run test:e2e`, run
+`npm run build --workspace @neurogrip/web` to put that exact run's JSON into
+`apps/web/dist/results/`. The latest staged files were compared to their
+artifact/public sources; they are identical. A focused Results browser test
+after the build verifies the displayed held-out accuracy, calibration, every
+confusion cell, timeline event count, latest worker P95, and accepted/rejected
+counts.
+
+## 6. Remaining work, in priority order
+
+1. **Broaden the recorded-data evaluation.** Obtain additional independently
+   licensed DB2 subjects, include them in the data-quality audit, rerun the
+   model comparison, and report uncertainty across a meaningful subject set.
+   The present S1-to-S10 split is a single exploratory holdout.
+2. **Review scientific validity before making claims.** Label 5 is finger
+   abduction used as an `open_hand` proxy; rest RMS varies by channel/session;
+   the model's ECE is 0.1644. Keep these limitations visible and assess whether
+   mapping, signal quality, calibration, and class balance are acceptable.
+3. **Continue unfinished project phases** below: Cartography gate/assignment,
+   error attribution, anatomical coaching, clinician mode, amputee evaluation,
+   and deployment.
+4. **Do not optimize `build:assets` yet.** The app's production Vite build was
+   about 5 seconds and the full E2E suite about 33 seconds in this environment.
+   `build:assets` is an explicit simulator asset regeneration pipeline, not
+   part of routine E2E or normal app startup. Its own duration was not
+   benchmarked in this pass; optimize only if it becomes a measured practical
+   contributor workflow problem.
 
 ---
 
-## 6. Phase 2 (Cartography): status and an honest note
+## 7. Phase 2 (Cartography): status and an honest note
 
 Built in `services/research/neurogrip/cartography.py`, with 19 tests:
 
@@ -249,10 +266,11 @@ docstring lists them. Before more Phase 2 work:
 3. Then build gesture-to-function assignment (the Hungarian algorithm,
    weighted by `apps/web/src/decode/commitCost.ts`) and the Cartography screen.
 
-Cartography should come after Tasks 1–3. Real data matters more for the
-coursework, and babble on real data would need its own recording session.
+Cartography remains unfinished. Before extending it, expand the recorded
+evaluation first; babble on real EMG would require a separately designed
+recording session and safety review.
 
-## 7. Later phases (summary only)
+## 8. Later phases (summary only)
 
 - **Phase 3:** attribute each error to physiology, user behaviour, model
   capacity or drift. Validate with injected synthetic faults of each type.
@@ -264,7 +282,7 @@ coursework, and babble on real data would need its own recording session.
   spec, keep the repo private and draft the disclosures before anything goes
   public.
 
-## 8. Working with an AI assistant on this
+## 9. Working with an AI assistant on this
 
 - Paste this file, `CLAUDE.md`, and the specific files the task names. The
   assistant can't see the repo, so give it the real file contents rather than

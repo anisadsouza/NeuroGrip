@@ -1,7 +1,8 @@
 # NeuroGrip
 
-Real-time surface-EMG hand-gesture decoding for prosthetic control, running
-entirely in the browser.
+Software-only surface-EMG hand-gesture decoding for prosthetic control. The
+browser replays simulated EMG or a locally staged NinaPro DB2 recording; it
+does not read live electrodes.
 
 **Research prototype. Not a medical device. Not validated for clinical use.**
 
@@ -12,13 +13,17 @@ BTECH CAP 501, Project Life Cycle Management — ATLAS SkillTech / uGDX
 
 ## What it does
 
-Reads eight channels of forearm muscle signal, decodes which of ten hand
-gestures the wearer intends, and moves the hand *progressively* — starting to
-move as evidence accumulates, and committing only when it is sure enough. How
-sure it needs to be depends on how hard the mistake would be to undo: closing a
-power grip must clear a higher bar than opening a hand.
+Processes eight channels of forearm EMG, decodes one of ten gestures, and moves
+the virtual hand *progressively* — starting to move as evidence accumulates,
+and committing only when it is sure enough. How sure it needs to be depends on
+how hard the mistake would be to undo: closing a power grip must clear a higher
+bar than opening a hand. Input is a simulator or a recording replay, not live
+electrode data.
 
-Everything runs on-device. No signal is uploaded, and none is stored.
+Inference runs in the browser. The app does not upload signal data or persist
+live input. NinaPro source files and the generated held-out replay are local
+research assets; do not commit or deploy them without checking the dataset
+terms.
 
 ## End goal
 
@@ -57,17 +62,28 @@ every number on it means.
 
 | | |
 | --- | --- |
-| Decoder | RBF SVM, 95.6% leave-one-subject-out, ECE 0.022 |
-| Latency | 2.0 ms P95 in the browser, against a 10 ms budget, gated in CI |
+| Simulator decoder | RBF SVM, 95.63% LOSO accuracy, ECE 0.022 |
+| NinaPro held-out result | LDA, trained on S1 / tested on S10: 45.09% on 17,293 windows, ECE 0.1644; exploratory two-subject result |
+| Browser latency | Latest held-out replay run: 1.325 ms P95, 1,000 / 1,000 windows passed the recorded-rest calibrated gate; 10 ms budget met with WASM threads |
 | Time to motion | 40 ms median before the hand starts moving, 260 ms to latch |
-| Tests | 176 Python + 246 TypeScript tests; type-check and feature-conformance gates pass |
-| Built | Simulator, feature pipeline, decoder, evidence accumulation, Live screen, virtual hand, electrode-shift robustness runner, NinaPro DB2 loader and evaluation path |
-| Needs data / follow-up | NinaPro run + recorded replay, results screen, clinician mode, error attribution, recorded amputee stratum |
+| Tests | 182 Python + 250 TypeScript tests; latest browser suite 24/24; typecheck passes |
+| Built | Simulator and decoder, DB2 loader and comparison, subject-held-out ONNX export/replay, Live source selector, Results comparison/confusion/timeline/latency views |
+| Follow-up | More independent subjects and broader validation; clinician mode, error attribution, amputee stratum, deployment |
 
-**The accuracy figure comes from simulated data** and is optimistic relative to
-recorded human sEMG. There is no amputee stratum yet. See
-[`docs/model_card.md`](docs/model_card.md) for the full evaluation and its
-limitations.
+The NinaPro replay uses per-channel quality floors calibrated at 25% of each
+channel's RMS in the held-out subject's recorded rest segment, capped at the
+shared 5 µV floor. This is a replay-specific calibration for demonstrating the
+recorded dataset; it is not validated for live electrodes or a safety claim.
+The simulator keeps the original fixed 5 µV gate.
+
+The simulator accuracy and the exploratory NinaPro result are separate
+experiments and must not be conflated. The recorded split has only two
+subjects: S1 training and S10 held out. It is not broad validation or a
+clinical result. The DB2 label mapped to `open_hand` is label 5, *abduction of
+all fingers*; it is a qualified proxy, not an exact general open-hand match.
+There is no amputee stratum yet. See [`docs/model_card.md`](docs/model_card.md)
+for the simulator model card and [`context.md`](context.md) for the DB2 audit,
+recorded results, and detailed limitations.
 
 The simulated electrode-shift screen stays within its 8 percentage-point
 degradation bound through a 0.2 rad shift, but fails at 0.3 and 0.4 rad. This
@@ -80,9 +96,9 @@ not evidence that the system is robust on people.
    evaluation, ONNX export, latency, and model card.
 2. Keep the browser app usable as the main final demo: live signal, decoded
    gesture, confidence/evidence, latency, and virtual hand motion.
-3. Add the missing report-grade studies when time allows: clinician mode,
-   attribution/error explanation, replay of a held-out recording, and amputee
-   data evaluation if a recorded dataset is available.
+3. Expand recorded evaluation to more subjects; then add the missing
+   report-grade studies: clinician mode, attribution/error explanation, and
+   amputee data evaluation if a suitable dataset is available.
 4. Keep documentation updated after each meaningful change: README for project
    status, `docs/walkthrough.md` for demo usage, and `docs/model_card.md` for
    model limitations.
@@ -116,8 +132,10 @@ npm run test:e2e           # the browser tier: latency budget, axe, keyboard, la
 3. Choose a gesture, press **Start**, and watch the oscilloscope, decoder,
    evidence bar, and virtual hand. This default mode replays simulated EMG.
 4. Press **Stop** before changing gestures if you want a clean demonstration.
-5. Open the **Results** tab to view staged simulator and, once generated,
-   NinaPro DB2 evaluation artifacts side by side without mixing their claims.
+5. Use **Replay source** to switch between the simulator and the local S10
+   NinaPro replay (when its assets are staged). Open **Results** to see
+   separately labeled simulator/recorded evaluations, the held-out confusion
+   matrix and timeline, and distinct CPU versus browser latency.
 
 Electrode-shift robustness can be generated separately:
 
@@ -125,37 +143,61 @@ Electrode-shift robustness can be generated separately:
 python -m neurogrip.experiments robustness --out artifacts/electrode_shift_robustness.json
 ```
 
-To run the recorded-data path, register for NinaPro DB2, place its `.mat` files
-under `data/ninapro/DB2/`, verify the movement labels for that release, then run:
+The current local audit has six A1 files (S1 and S10, exercises E1-E3) under
+`data/ninapro/DB2/`. For a fresh, licensed DB2 copy, verify its version and
+movement mapping before reporting results. The exploratory comparison can be
+rerun with:
 
 ```bash
 python -m neurogrip.experiments compare --source ninapro --data-root data/ninapro/DB2 --out artifacts/model_comparison_ninapro.json
-python -m neurogrip.experiments export --source ninapro --data-root data/ninapro/DB2 --out artifacts
 ```
 
 The comparison writes both leave-one-subject-out and the NinaPro repetition
 split (train repetitions 1/3/4/6; test 2/5). These recorded results must always
 be reported separately from simulator figures.
 
-To demonstrate a recording in the Live screen, choose a subject that was held
-out of decoder training, then create the replay bundle and start the app:
+The separate held-out command below trains LDA on S1, tests on S10, exports a
+separate ONNX model, and generates the S10 replay. Do not select a test subject
+that also appears among the training subjects.
 
 ```bash
-python -m neurogrip.replay --source ninapro --data-root data/ninapro/DB2 --subject 12 --out apps/web/public/replay
+python -m neurogrip.heldout \
+  --data-root data/ninapro/DB2 \
+  --train-subjects 1 \
+  --test-subject 10 \
+  --model lda \
+  --out artifacts/ninapro_holdout \
+  --replay-out apps/web/public/replay/ninapro
+npm run build:assets
+npm run test:e2e
 npm run dev:web
 ```
 
-The app will label the source as recorded and identify the selected subject.
-Do not use the same subject in both training and this demo.
+The app identifies the source as recorded, shows the test subject and training
+subjects, and keeps the recorded decoder separate from the simulator decoder.
+The locally generated replay under `apps/web/public/replay/ninapro/` is
+git-ignored. A build made while that bundle exists will include it in local
+static output, so do not publish that output unless redistribution is allowed.
 
-After an export, rebuild the browser assets with `npm run build:assets`. Use a
-Node and Python installation built for the same CPU architecture; otherwise
-native Python packages such as NumPy cannot be launched by the build script.
+After evaluation or latency measurements change, rebuild the browser bundle so
+the Results page serves the latest staged JSON. After a new held-out evaluation,
+run `npm run build:assets` first to copy its model/evaluation/replay into the
+web's public assets; after `npm run test:e2e`, run the web build because the
+latency test writes its measurement after the preview build:
 
-The asset build also copies `artifacts/model_comparison.json` and, when it
-exists, `artifacts/model_comparison_ninapro.json` into the Results tab.
+```bash
+npm run build --workspace @neurogrip/web
+```
 
-That last one is the gate that matters: Python trains the model and TypeScript
+`npm run build:assets` regenerates simulator model/replay assets and stages
+available results; it is not required for every web test or source change.
+Playwright builds the production web app directly; the Vite part took about
+5 seconds on the machine used for this update. The build-assets script itself
+was not timed in this pass. No optimization was made: it is an explicit asset
+regeneration workflow, not normal startup or E2E, and there is no measured
+recurring bottleneck justifying a more complex pipeline.
+
+The feature-conformance gate matters: Python trains the model and TypeScript
 feeds it at inference, so if the two feature implementations diverge, accuracy
 degrades silently with no error anywhere.
 
