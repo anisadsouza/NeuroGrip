@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import pathlib
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 
 import numpy as np
 from scipy.io import loadmat
@@ -23,8 +24,10 @@ from neurogrip.simulator import GESTURES
 from neurogrip.spec import feature_names
 from neurogrip.windowing import WindowConfig
 
-# Provisional DB2 global labels.  Verify these against the DB2 movement list
-# supplied with the exact download before treating an experiment as evidence.
+# DB2 movement IDs follow the exercise order in the official DB2 guide and
+# Atzori et al. (2014), Figure 2 and Table 1. `restimulus` is the post-hoc
+# realigned performed-movement label. The app vocabulary is not identical to
+# DB2, so DATASET_MOVEMENTS records semantic proxies explicitly.
 DEFAULT_MAPPING: dict[str, int] = {
     "thumb_up": 1,
     "two_finger": 2,
@@ -36,6 +39,35 @@ DEFAULT_MAPPING: dict[str, int] = {
     "spherical_grip": 27,
     "pinch": 32,
 }
+
+DATASET_MOVEMENTS: dict[str, str] = {
+    "thumb_up": "Thumb up",
+    "two_finger": "Index and middle extended; other fingers flexed",
+    "open_hand": "Finger abduction (proxy for the app's open-hand class)",
+    "fist": "Fingers flexed together in fist",
+    "point": "Pointing index",
+    "wrist_flexion": "Wrist flexion",
+    "wrist_extension": "Wrist extension",
+    "spherical_grip": "Power sphere grasp",
+    "pinch": "Tip pinch grasp",
+}
+
+MAPPING_SOURCES = {
+    "official_db2_guide": "https://ninapro.hevs.ch/instructions/DB2.html",
+    "dataset_paper": "https://doi.org/10.1038/sdata.2014.53",
+    "exercise_movement_figure": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4421935/",
+}
+
+
+@dataclass(frozen=True)
+class NinaProWindow:
+    """Source location and target metadata for one extracted DB2 window."""
+
+    subject: int
+    recording: str
+    sample_start: int
+    label: int
+    repetition: int
 
 
 def _as_vector(value: np.ndarray, name: str) -> np.ndarray:
@@ -107,18 +139,20 @@ def _subject_number(path: pathlib.Path) -> int:
     return int(token[1:])
 
 
-def build_ninapro_corpus(
+def build_ninapro_corpus_with_provenance(
     root: pathlib.Path,
     subjects: Sequence[int] | None = None,
     mapping: Mapping[str, int] = DEFAULT_MAPPING,
     rest_stride: int = 8,
-) -> Corpus:
+) -> tuple[Corpus, tuple[NinaProWindow, ...]]:
     """Feature-extract mapped DB2 movements into the common :class:`Corpus`.
 
     A 200 ms window is emitted every 20 ms only when every sample shares one
     ``restimulus`` label and repetition.  Rest is subsampled because its long
     pauses would otherwise dominate both fitting and reported accuracy.  Real
     recording fatigue is unknown, so its corpus field is zero by definition.
+    The parallel provenance tuple identifies each emitted window in its source
+    recording so held-out results can be shown in recording order.
     """
     root = pathlib.Path(root)
     if rest_stride < 1:
@@ -138,6 +172,7 @@ def build_ninapro_corpus(
     labels_out: list[int] = []
     subject_out: list[int] = []
     reps_out: list[int] = []
+    provenance: list[NinaProWindow] = []
     window = WindowConfig(window_ms=200, hop_ms=20, sampling_rate_hz=2000)
     feature_config = FeatureConfig(sampling_rate_hz=2000)
     rest_seen = 0
@@ -163,16 +198,41 @@ def build_ninapro_corpus(
             labels_out.append(label_to_class[raw_label])
             subject_out.append(subject)
             reps_out.append(repetition)
+            provenance.append(
+                NinaProWindow(
+                    subject=subject,
+                    recording=path.name,
+                    sample_start=start,
+                    label=raw_label,
+                    repetition=repetition,
+                )
+            )
 
     if not features:
         raise ValueError("no complete mapped NinaPro windows were found")
-    return Corpus(
-        features=np.asarray(features, dtype=np.float32),
-        labels=np.asarray(labels_out, dtype=np.int16),
-        subjects=np.asarray(subject_out, dtype=np.int16),
-        reps=np.asarray(reps_out, dtype=np.int16),
-        # DB2 does not provide a per-window fatigue ground truth.
-        fatigue=np.zeros(len(features), dtype=np.float32),
-        feature_names=feature_names(8),
-        gestures=GESTURES,
+    return (
+        Corpus(
+            features=np.asarray(features, dtype=np.float32),
+            labels=np.asarray(labels_out, dtype=np.int16),
+            subjects=np.asarray(subject_out, dtype=np.int16),
+            reps=np.asarray(reps_out, dtype=np.int16),
+            # DB2 does not provide a per-window fatigue ground truth.
+            fatigue=np.zeros(len(features), dtype=np.float32),
+            feature_names=feature_names(8),
+            gestures=GESTURES,
+        ),
+        tuple(provenance),
     )
+
+
+def build_ninapro_corpus(
+    root: pathlib.Path,
+    subjects: Sequence[int] | None = None,
+    mapping: Mapping[str, int] = DEFAULT_MAPPING,
+    rest_stride: int = 8,
+) -> Corpus:
+    """Build the model-ready NinaPro corpus without source-window metadata."""
+    corpus, _ = build_ninapro_corpus_with_provenance(
+        root, subjects=subjects, mapping=mapping, rest_stride=rest_stride
+    )
+    return corpus

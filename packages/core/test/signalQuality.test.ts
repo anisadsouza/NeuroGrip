@@ -23,6 +23,38 @@ describe('checkSignalQuality', () => {
     expect(result.failedChannel).toBe(1);
   });
 
+  it('uses per-channel recorded-rest floors without weakening the shared default', () => {
+    const channels = [
+      new Float64Array(400).fill(0.8e-6),
+      new Float64Array(400).fill(0),
+    ];
+    const calibrated = {
+      ...DEFAULT_SIGNAL_QUALITY_CONFIG,
+      minChannelRmsByChannel: [0.5e-6, 0.75e-6],
+    };
+
+    expect(checkSignalQuality(channels, calibrated)).toMatchObject({
+      ok: false,
+      reason: 'channel RMS below calibrated minimum',
+      failedChannel: 1,
+    });
+    expect(checkSignalQuality([channels[0]!], DEFAULT_SIGNAL_QUALITY_CONFIG)).toMatchObject({
+      ok: false,
+      failedChannel: 0,
+    });
+  });
+
+  it('rejects a per-channel calibration with the wrong number of channels', () => {
+    const result = checkSignalQuality(good(), {
+      ...DEFAULT_SIGNAL_QUALITY_CONFIG,
+      minChannelRmsByChannel: [1e-6],
+    });
+    expect(result).toMatchObject({
+      ok: false,
+      reason: 'quality calibration channel count mismatch',
+    });
+  });
+
   it('rejects a channel exceeding the expected EMG range', () => {
     const channels = good();
     channels[0]![10] = 99;

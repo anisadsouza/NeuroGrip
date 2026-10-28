@@ -32,7 +32,7 @@ import numpy as np
 
 from neurogrip import FEATURE_SPEC_VERSION
 from neurogrip.anatomy import muscle_group_weights
-from neurogrip.ninapro import DEFAULT_MAPPING, load_session
+from neurogrip.ninapro import DATASET_MOVEMENTS, DEFAULT_MAPPING, load_session
 from neurogrip.simulator import (
     GESTURES,
     SimulatorConfig,
@@ -117,6 +117,7 @@ def build_ninapro_bundle(
     subject: int,
     duration_s: float = SEGMENT_SECONDS,
     mapping: dict[str, int] = DEFAULT_MAPPING,
+    trained_subjects: tuple[int, ...] = (),
 ) -> tuple[dict, np.ndarray]:
     """Cut one complete performed segment per gesture from a DB2 subject.
 
@@ -124,6 +125,8 @@ def build_ninapro_bundle(
     simulator bundle, this manifest intentionally omits muscle-group weights:
     simulated anatomy weights would falsely imply an anatomical measurement.
     """
+    if subject in trained_subjects:
+        raise ValueError("NinaPro replay subject must be excluded from training")
     paths = sorted(pathlib.Path(root).glob(f"S{subject}_E*_A*.mat"))
     if not paths:
         raise FileNotFoundError(f"no DB2 sessions found for subject S{subject}")
@@ -152,6 +155,10 @@ def build_ninapro_bundle(
     peak = float(np.max(np.abs(counts)))
     if peak > np.iinfo(np.int16).max:
         raise ValueError("NinaPro replay would clip; increase VOLTS_PER_COUNT")
+    rest_rms = np.sqrt(np.mean(segments["rest"].astype(np.float64) ** 2, axis=1))
+    if not np.all(np.isfinite(rest_rms)) or np.any(rest_rms <= 0):
+        raise ValueError("NinaPro rest segment must provide a finite baseline on every channel")
+    min_channel_rms = np.minimum(5e-6, rest_rms * 0.25)
     manifest = {
         "formatVersion": 1,
         "featureSpecVersion": FEATURE_SPEC_VERSION,
@@ -162,11 +169,22 @@ def build_ninapro_bundle(
         "dtype": "int16",
         "layout": "gesture-major, then channel-major, then time",
         "gestures": list(GESTURES),
+        "gestureLabels": {"rest": "Rest", **DATASET_MOVEMENTS},
+        "signalQuality": {
+            "minChannelRmsByChannel": min_channel_rms.tolist(),
+            "method": (
+                "Per-channel minimum is 25% of RMS measured in this subject's "
+                "recorded rest segment, capped at the shared 5 uV minimum. "
+                "This replay calibration is not validated for live electrodes."
+            ),
+        },
         "subject": f"S{subject}",
+        "trainedSubjects": [f"S{value}" for value in sorted(trained_subjects)],
         "peakCounts": int(peak),
         "source": "ninapro_db2",
         "caveat": (
-            "Recorded NinaPro DB2 signal. Subject must be held out of model training; "
+            "Recorded NinaPro DB2 signal. This subject is excluded from the named "
+            "training subjects; "
             "no simulated muscle-group weights are shown for recorded electrodes."
         ),
     }
@@ -175,12 +193,14 @@ def build_ninapro_bundle(
 
 def write_bundle(
     out_dir: pathlib.Path, *, source: str = "simulator", root: pathlib.Path | None = None,
-    subject: int | None = None,
+    subject: int | None = None, trained_subjects: tuple[int, ...] = (),
 ) -> dict:
     if source == "ninapro":
         if root is None or subject is None:
             raise ValueError("NinaPro replay needs a data root and subject")
-        manifest, samples = build_ninapro_bundle(root, subject)
+        manifest, samples = build_ninapro_bundle(
+            root, subject, trained_subjects=trained_subjects
+        )
     else:
         manifest, samples = build_bundle()
     out_dir.mkdir(parents=True, exist_ok=True)

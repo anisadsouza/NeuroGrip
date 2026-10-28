@@ -7,6 +7,7 @@
 
 export interface SignalQualityConfig {
   minChannelRms: number;
+  minChannelRmsByChannel?: readonly number[];
   maxAbsAmplitude: number;
 }
 
@@ -31,6 +32,12 @@ export function checkSignalQuality(
   if (channels.length < 1) {
     return { ok: false, reason: 'input must contain at least one channel' };
   }
+  if (
+    config.minChannelRmsByChannel !== undefined &&
+    config.minChannelRmsByChannel.length !== channels.length
+  ) {
+    return { ok: false, reason: 'quality calibration channel count mismatch' };
+  }
 
   for (let index = 0; index < channels.length; index++) {
     const values = channels[index]!;
@@ -50,8 +57,18 @@ export function checkSignalQuality(
       if (magnitude > maxAbs) maxAbs = magnitude;
     }
 
-    if (Math.sqrt(sumSquares / values.length) < config.minChannelRms) {
-      return { ok: false, reason: 'channel RMS below noise floor', failedChannel: index };
+    const rmsFloor = config.minChannelRmsByChannel?.[index] ?? config.minChannelRms;
+    if (!Number.isFinite(rmsFloor) || rmsFloor <= 0) {
+      return { ok: false, reason: 'invalid channel RMS calibration', failedChannel: index };
+    }
+    if (Math.sqrt(sumSquares / values.length) < rmsFloor) {
+      return {
+        ok: false,
+        reason: config.minChannelRmsByChannel
+          ? 'channel RMS below calibrated minimum'
+          : 'channel RMS below noise floor',
+        failedChannel: index,
+      };
     }
     if (maxAbs > config.maxAbsAmplitude) {
       return {

@@ -4,7 +4,11 @@ import numpy as np
 import pytest
 from scipy.io import savemat
 
-from neurogrip.ninapro import build_ninapro_corpus, load_session
+from neurogrip.ninapro import (
+    build_ninapro_corpus,
+    build_ninapro_corpus_with_provenance,
+    load_session,
+)
 from neurogrip.simulator import GESTURES
 
 
@@ -45,6 +49,20 @@ def test_build_ninapro_corpus_drops_transition_windows_and_subsamples_rest(tmp_p
     assert corpus.reps.tolist() == [1, 2, 2]
     assert corpus.subjects.tolist() == [1, 1, 1]
     assert np.array_equal(corpus.fatigue, np.zeros(3, dtype=np.float32))
+
+
+def test_build_ninapro_corpus_provenance_tracks_recording_windows(tmp_path):
+    _write_session(tmp_path / "S10_E1_A1.mat")
+    corpus, provenance = build_ninapro_corpus_with_provenance(
+        tmp_path, subjects=[10], mapping={"thumb_up": 1, "fist": 6}, rest_stride=2
+    )
+
+    assert len(provenance) == corpus.n_windows == 3
+    assert provenance[0].recording == "S10_E1_A1.mat"
+    assert provenance[0].subject == 10
+    assert provenance[0].sample_start == 400
+    assert provenance[0].label == 1
+    assert provenance[0].repetition == 1
 
 
 def test_load_session_rejects_a_file_without_required_variables(tmp_path):

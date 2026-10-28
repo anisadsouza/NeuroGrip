@@ -125,5 +125,17 @@ def test_ninapro_bundle_marks_the_recording_and_omits_simulated_anatomy(tmp_path
     )
     assert manifest["source"] == "ninapro_db2"
     assert manifest["subject"] == "S12"
+    assert manifest["trainedSubjects"] == []
+    assert "finger abduction" in manifest["gestureLabels"]["open_hand"].lower()
     assert "muscleGroups" not in manifest
+    assert len(manifest["signalQuality"]["minChannelRmsByChannel"]) == 8
+    assert all(value > 0 for value in manifest["signalQuality"]["minChannelRmsByChannel"])
+    assert "rest segment" in manifest["signalQuality"]["method"]
     assert samples.shape == (len(GESTURES), 8, 10)
+
+
+def test_ninapro_replay_refuses_a_training_subject(tmp_path):
+    from neurogrip.replay import build_ninapro_bundle
+
+    with pytest.raises(ValueError, match="excluded from training"):
+        build_ninapro_bundle(tmp_path, subject=12, trained_subjects=(12,))

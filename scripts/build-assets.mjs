@@ -90,9 +90,43 @@ stageModel();
 // fabricate a recorded result for the screen.
 const results = join(root, 'apps', 'web', 'public', 'results');
 mkdirSync(results, { recursive: true });
-for (const name of ['model_comparison.json', 'model_comparison_ninapro.json']) {
+for (const name of [
+  'model_comparison.json',
+  'model_comparison_ninapro.json',
+  'browser_latency.json',
+  'browser_latency_ninapro.json',
+]) {
   const source = join(root, 'artifacts', name);
   if (existsSync(source)) copyFileSync(source, join(results, name));
+}
+
+// A subject-held-out NinaPro export is optional and never replaces the
+// simulator-trained decoder. If any part exists, require and stage the full
+// model/evaluation/replay set so the UI cannot mix partial artifacts.
+const heldoutFiles = [
+  [join(root, 'artifacts', 'ninapro_holdout', 'model', 'decoder.onnx'),
+    join(models, 'ninapro', 'decoder.onnx')],
+  [join(root, 'artifacts', 'ninapro_holdout', 'model', 'decoder.json'),
+    join(models, 'ninapro', 'decoder.json')],
+  [join(root, 'artifacts', 'ninapro_holdout', 'evaluation.json'),
+    join(results, 'ninapro_holdout.json')],
+  [join(root, 'apps', 'web', 'public', 'replay', 'ninapro', 'emg-replay.bin'),
+    join(root, 'apps', 'web', 'public', 'replay', 'ninapro', 'emg-replay.bin')],
+  [join(root, 'apps', 'web', 'public', 'replay', 'ninapro', 'emg-replay.json'),
+    join(root, 'apps', 'web', 'public', 'replay', 'ninapro', 'emg-replay.json')],
+];
+const hasHeldoutAssets = heldoutFiles.some(([source]) => existsSync(source));
+if (hasHeldoutAssets) {
+  for (const [source, destination] of heldoutFiles) {
+    if (!existsSync(source) || statSync(source).size === 0) {
+      console.error(`Incomplete NinaPro held-out assets: ${source} is missing or empty.`);
+      process.exit(1);
+    }
+    if (source !== destination) {
+      mkdirSync(dirname(destination), { recursive: true });
+      copyFileSync(source, destination);
+    }
+  }
 }
 
 // Verify rather than assume: an empty or missing file here produces a runtime
@@ -102,6 +136,9 @@ const required = [
   join(models, 'decoder.json'),
   join(root, 'apps', 'web', 'public', 'replay', 'emg-replay.bin'),
   join(root, 'apps', 'web', 'public', 'replay', 'emg-replay.json'),
+  ...(hasHeldoutAssets
+    ? heldoutFiles.map(([, destination]) => destination)
+    : []),
 ];
 
 console.log('');
