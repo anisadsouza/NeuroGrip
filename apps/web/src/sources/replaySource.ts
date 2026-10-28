@@ -20,6 +20,13 @@ export interface ReplayManifest {
   readonly samplesPerGesture: number;
   readonly voltsPerCount: number;
   readonly gestures: readonly string[];
+  /** Source-specific movement descriptions; e.g. DB2 finger abduction proxy. */
+  readonly gestureLabels?: Readonly<Record<string, string>>;
+  /** Recorded-only per-channel detachment floors calibrated from the rest segment. */
+  readonly signalQuality?: {
+    readonly minChannelRmsByChannel: readonly number[];
+    readonly method: string;
+  };
   /**
    * Per-electrode weighting for each functional muscle group, computed from
    * the forearm volume-conduction model in `neurogrip.anatomy`.
@@ -38,14 +45,20 @@ export interface ReplayManifest {
   readonly source: string;
   /** Present for recorded bundles, e.g. `S12`; absent for simulation. */
   readonly subject?: string;
+  /** Training subjects recorded by a subject-held-out NinaPro export. */
+  readonly trainedSubjects?: readonly string[];
   readonly caveat: string;
 }
 
 /** Human-readable provenance. Never infer “recorded” from the URL or name. */
 export function replaySourceLabel(manifest: ReplayManifest): string {
-  return manifest.source === 'ninapro_db2'
-    ? `Recorded · NinaPro DB2 · subject ${manifest.subject ?? 'unknown'}`
-    : 'Simulated · NeuroGrip motor-unit model';
+  if (manifest.source !== 'ninapro_db2') {
+    return 'Simulated · NeuroGrip motor-unit model';
+  }
+  const excluded = manifest.trainedSubjects?.length
+    ? ` · held out from ${manifest.trainedSubjects.join(', ')}`
+    : '';
+  return `Recorded · NinaPro DB2 · subject ${manifest.subject ?? 'unknown'}${excluded}`;
 }
 
 export interface ReplayBundle {

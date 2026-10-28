@@ -98,8 +98,8 @@ export function App() {
         </div>
 
         <p className="colophon-safety" role="note">
-          Research prototype. Not a medical device. The signal shown is
-          simulated, not a recording of a person.
+          Research prototype. Not a medical device. The application replays
+          simulated or NinaPro research data; it does not read live electrodes.
         </p>
       </footer>
     </div>

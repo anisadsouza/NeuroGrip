@@ -36,6 +36,8 @@ const WINDOWS = 1000;
 const HOPS_PER_TRIAL = 41;
 
 export interface BenchResult {
+  readonly windowsProcessed: number;
+  readonly rejectedWindows: number;
   readonly n: number;
   readonly threaded: boolean;
   readonly backend: string;
@@ -58,7 +60,14 @@ function percentile(samples: readonly number[], fraction: number): number {
 
 async function main(): Promise<void> {
   const status = document.getElementById('bench-status')!;
-  const bundle = await loadReplayBundle(`${import.meta.env.BASE_URL}replay`);
+  const recorded = new URLSearchParams(location.search).get('source') === 'ninapro';
+  const replayUrl = recorded
+    ? `${import.meta.env.BASE_URL}replay/ninapro`
+    : `${import.meta.env.BASE_URL}replay`;
+  const modelUrl = recorded
+    ? `${import.meta.env.BASE_URL}models/ninapro/decoder.onnx`
+    : `${import.meta.env.BASE_URL}models/decoder.onnx`;
+  const bundle = await loadReplayBundle(replayUrl);
   const { nChannels, samplingRateHz, samplesPerGesture, gestures } = bundle.manifest;
 
   const worker = new Worker(new URL('../worker/inference.worker.ts', import.meta.url), {
@@ -81,13 +90,34 @@ async function main(): Promise<void> {
       worker.addEventListener('message', listener);
     });
 
+  const nextDecision = () =>
+    new Promise<DecisionResponse | null>((resolve, reject) => {
+      const listener = (event: MessageEvent<WorkerResponse>) => {
+        const message = event.data;
+        if (message.type === 'error') {
+          worker.removeEventListener('message', listener);
+          reject(new Error(message.message));
+        } else if (message.type === 'decision' || message.type === 'rejected') {
+          worker.removeEventListener('message', listener);
+          resolve(message.type === 'decision' ? message : null);
+        }
+      };
+      worker.addEventListener('message', listener);
+    });
+
   const readyPromise = next('ready');
   worker.postMessage({
     type: 'init',
-    modelUrl: `${import.meta.env.BASE_URL}models/decoder.onnx`,
+    modelUrl,
     nChannels,
     samplingRateHz,
     risks: risksFor(gestures),
+    ...(bundle.manifest.signalQuality
+      ? {
+          minChannelRmsByChannel:
+            bundle.manifest.signalQuality.minChannelRmsByChannel,
+        }
+      : {}),
   } satisfies WorkerRequest);
   const ready = await readyPromise;
 
@@ -116,8 +146,8 @@ async function main(): Promise<void> {
   }
 
   /** Push exactly one hop and wait for the single decision it produces. */
-  function push(gesture: number, cursor: number, count: number): Promise<DecisionResponse> {
-    const decision = next('decision');
+  function push(gesture: number, cursor: number, count: number): Promise<DecisionResponse | null> {
+    const decision = nextDecision();
     pushOnly(gesture, cursor, count);
     return decision;
   }
@@ -125,6 +155,7 @@ async function main(): Promise<void> {
   const latencies: number[] = [];
   const featureMs: number[] = [];
   const inferenceMs: number[] = [];
+  let rejectedWindows = 0;
 
   let gesture = 0;
   let cursor = 0;
@@ -142,9 +173,13 @@ async function main(): Promise<void> {
     const decision = await push(gesture, cursor, hopSamples);
     cursor = (cursor + hopSamples) % samplesPerGesture;
 
-    latencies.push(decision.latencyMs);
-    featureMs.push(decision.featureMs);
-    inferenceMs.push(decision.inferenceMs);
+    if (decision) {
+      latencies.push(decision.latencyMs);
+      featureMs.push(decision.featureMs);
+      inferenceMs.push(decision.inferenceMs);
+    } else {
+      rejectedWindows++;
+    }
 
     hopInTrial++;
     if (hopInTrial >= HOPS_PER_TRIAL) {
@@ -161,7 +196,13 @@ async function main(): Promise<void> {
     if (i % 100 === 0) status.textContent = `${i} / ${WINDOWS}`;
   }
 
+  if (latencies.length === 0) {
+    throw new Error(`all ${WINDOWS} windows were rejected by signal-quality checks`);
+  }
+
   const result: BenchResult = {
+    windowsProcessed: WINDOWS,
+    rejectedWindows,
     n: latencies.length,
     threaded: ready.threaded,
     backend: ready.backend,
@@ -174,12 +215,16 @@ async function main(): Promise<void> {
     inferenceP95Ms: percentile(inferenceMs, 0.95),
     hopMs: 20,
     note:
-      'Simulated signal. Latency covers feature extraction plus ONNX inference ' +
-      'in the worker, measured one window at a time. Windows are pushed in ' +
-      'lockstep rather than in real time, so this measures the decode path and ' +
-      'not the scheduler. Latency excludes the postMessage round trip and the ' +
-      'UI thread: it is what the worker spent, which is the part under the ' +
-      'ten-millisecond budget.',
+      `${recorded ? `Recorded NinaPro DB2 subject ${bundle.manifest.subject ?? 'unknown'}` : 'Simulated signal'}. ` +
+      (recorded
+        ? "Recorded channel floors are calibrated from this subject's rest segment. "
+        : '') +
+      'Latency covers feature extraction plus ONNX inference in the worker, ' +
+      'measured one window at a time. Windows are pushed in lockstep rather ' +
+      'than in real time, so this measures the decode path and not the scheduler. ' +
+      'Latency excludes the postMessage round trip and the UI thread: it is ' +
+      'what the worker spent, which is the part under the ten-millisecond budget. ' +
+      'Signal-quality rejects are counted and excluded from latency percentiles.',
   };
 
   status.textContent = 'done';

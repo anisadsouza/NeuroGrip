@@ -15,26 +15,98 @@ interface Comparison {
   readonly caveat: string;
 }
 
+interface DecodedRun {
+  readonly gesture: string;
+  readonly windows: number;
+}
+
+interface TimelineEvent {
+  readonly recording: string;
+  readonly repetition: number;
+  readonly performed: string;
+  readonly start_ms: number;
+  readonly end_ms: number;
+  readonly windows: number;
+  readonly decoded: readonly DecodedRun[];
+}
+
+interface HeldoutEvaluation {
+  readonly source: string;
+  readonly model: string;
+  readonly training_subjects: readonly number[];
+  readonly test_subject: number;
+  readonly n_test: number;
+  readonly gesture_order: readonly string[];
+  readonly dataset_movements: Readonly<Record<string, string>>;
+  readonly accuracy: number;
+  readonly expected_calibration_error: number;
+  readonly confusion_matrix: readonly (readonly number[])[];
+  readonly latency: {
+    readonly runtime: string;
+    readonly n_windows: number;
+    readonly scope: string;
+    readonly p50_ms: number;
+    readonly p95_ms: number;
+    readonly p99_ms: number;
+    readonly max_ms: number;
+  };
+  readonly timeline: readonly TimelineEvent[];
+  readonly caveat: string;
+}
+
+interface BrowserLatency {
+  readonly n: number;
+  readonly windowsProcessed?: number;
+  readonly rejectedWindows?: number;
+  readonly threaded: boolean;
+  readonly backend: string;
+  readonly p95Ms: number;
+  readonly note: string;
+}
+
 function percentage(value: number): string {
   return `${(value * 100).toFixed(1)}%`;
 }
 
-async function readComparison(url: string): Promise<Comparison | null> {
+function headingId(title: string): string {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-heading';
+}
+
+async function readOptionalJson<T>(url: string): Promise<T | null> {
   const response = await fetch(url);
-  return response.ok ? response.json() as Promise<Comparison> : null;
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`Could not load ${url}: HTTP ${response.status}`);
+  if (response.headers.get('content-type')?.includes('text/html')) {
+    // Vite preview and some static hosts serve index.html with HTTP 200 for a
+    // missing optional public artifact instead of returning a 404.
+    return null;
+  }
+  return response.json() as Promise<T>;
 }
 
 export function Results() {
   const [simulated, setSimulated] = useState<Comparison | null>(null);
   const [recorded, setRecorded] = useState<Comparison | null>(null);
+  const [heldout, setHeldout] = useState<HeldoutEvaluation | null>(null);
+  const [simulatedLatency, setSimulatedLatency] = useState<BrowserLatency | null>(null);
+  const [recordedLatency, setRecordedLatency] = useState<BrowserLatency | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     void Promise.all([
-      readComparison(`${import.meta.env.BASE_URL}results/model_comparison.json`),
-      readComparison(`${import.meta.env.BASE_URL}results/model_comparison_ninapro.json`),
-    ]).then(([simulation, ninaPro]) => {
+      readOptionalJson<Comparison>(`${import.meta.env.BASE_URL}results/model_comparison.json`),
+      readOptionalJson<Comparison>(`${import.meta.env.BASE_URL}results/model_comparison_ninapro.json`),
+      readOptionalJson<HeldoutEvaluation>(`${import.meta.env.BASE_URL}results/ninapro_holdout.json`),
+      readOptionalJson<BrowserLatency>(`${import.meta.env.BASE_URL}results/browser_latency.json`),
+      readOptionalJson<BrowserLatency>(`${import.meta.env.BASE_URL}results/browser_latency_ninapro.json`),
+    ]).then(([simulation, ninaPro, evaluation, simulationLatency, ninaProLatency]) => {
       setSimulated(simulation);
       setRecorded(ninaPro);
+      setHeldout(evaluation);
+      setSimulatedLatency(simulationLatency);
+      setRecordedLatency(ninaProLatency);
+    }).catch((error: unknown) => {
+      setLoadError(error instanceof Error ? error.message : String(error));
     });
   }, []);
 
@@ -45,16 +117,21 @@ export function Results() {
         <p className="muted">Simulator and recorded-data results are deliberately never merged.</p>
       </header>
 
+      {loadError ? <p className="notice notice-stop" role="alert">{loadError}</p> : null}
       <ResultTable title="Simulated sEMG" result={simulated} />
       <ResultTable title="Recorded NinaPro DB2" result={recorded} />
+      <LatencyPanel title="Simulated browser decode latency" result={simulatedLatency} />
+      <LatencyPanel title="Held-out NinaPro browser decode latency" result={recordedLatency} />
+      <HeldoutPanel result={heldout} />
     </section>
   );
 }
 
 function ResultTable({ title, result }: { title: string; result: Comparison | null }) {
+  const id = headingId(title);
   return (
-    <section className="panel results-table" aria-labelledby={`${title}-heading`}>
-      <h3 id={`${title}-heading`}>{title}</h3>
+    <section className="panel results-table" aria-labelledby={id}>
+      <h3 id={id}>{title}</h3>
       {result === null ? (
         <p className="muted">
           No artifact staged yet. Run the corresponding experiment, then
@@ -77,8 +154,144 @@ function ResultTable({ title, result }: { title: string; result: Comparison | nu
             </tbody>
           </table>
           <p className="small muted">{result.caveat}</p>
+          {result.source === 'ninapro_db2' ? (
+            <p className="small muted">
+              DB2 label 5 is finger abduction; it is an explicitly qualified proxy
+              for the app's open-hand class, not an exact movement-name match.
+            </p>
+          ) : null}
         </>
       )}
+    </section>
+  );
+}
+
+function LatencyPanel({
+  title,
+  result,
+}: {
+  title: string;
+  result: BrowserLatency | null;
+}) {
+  const id = headingId(title);
+  return (
+    <section className="panel results-table" aria-labelledby={id}>
+      <h3 id={id}>{title}</h3>
+      {result ? (
+        <>
+          <dl className="readout-list">
+            <div><dt>Worker P95</dt><dd className="ng-num">{result.p95Ms.toFixed(3)} ms</dd></div>
+            <div>
+              <dt>Measured windows</dt>
+              <dd className="ng-num">
+                {result.n}
+                {typeof result.rejectedWindows === 'number'
+                  ? ` decoded · ${result.rejectedWindows} rejected`
+                  : ' decoded'}
+              </dd>
+            </div>
+            <div><dt>Backend</dt><dd>{result.backend}{result.threaded ? ' · threads enabled' : ' · single-threaded'}</dd></div>
+          </dl>
+          <p className="small muted">{result.note}</p>
+        </>
+      ) : (
+        <p className="muted">No browser measurement staged. Run <code>npm run test:e2e</code>.</p>
+      )}
+    </section>
+  );
+}
+
+function HeldoutPanel({ result }: { result: HeldoutEvaluation | null }) {
+  if (!result) {
+    return (
+      <section className="panel results-table" aria-labelledby="heldout-heading">
+        <h3 id="heldout-heading">Subject-held-out NinaPro evaluation</h3>
+        <p className="muted">No held-out export staged. The recorded comparison above is not a held-out-subject test.</p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="panel results-table" aria-labelledby="heldout-heading">
+      <h3 id="heldout-heading">Subject-held-out NinaPro evaluation</h3>
+      <p>
+        {result.model} · trained on {result.training_subjects.map((subject) => `S${subject}`).join(', ')}
+        {' · tested on '}S{result.test_subject} · {result.n_test.toLocaleString()} windows
+      </p>
+      <dl className="readout-list">
+        <div><dt>Held-out accuracy</dt><dd>{percentage(result.accuracy)}</dd></div>
+        <div><dt>Expected calibration error</dt><dd>{result.expected_calibration_error.toFixed(3)}</dd></div>
+        <div><dt>CPU ONNX P95</dt><dd className="ng-num">{result.latency.p95_ms.toFixed(2)} ms</dd></div>
+        <div><dt>Measured windows</dt><dd className="ng-num">{result.latency.n_windows}</dd></div>
+      </dl>
+      <p className="small muted">{result.latency.scope}</p>
+      <ConfusionMatrix result={result} />
+      <Timeline events={result.timeline} />
+      <p className="small muted">{result.caveat}</p>
+    </section>
+  );
+}
+
+function ConfusionMatrix({ result }: { result: HeldoutEvaluation }) {
+  return (
+    <div className="matrix-scroll">
+      <table className="confusion-matrix">
+        <caption>Held-out confusion matrix · rows are performed, columns are decoded</caption>
+        <thead>
+          <tr>
+            <th scope="col">Performed ↓ / Decoded →</th>
+            {result.gesture_order.map((gesture) => (
+              <th scope="col" key={gesture}>{result.dataset_movements[gesture] ?? gesture}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {result.gesture_order.map((gesture, row) => (
+            <tr key={gesture}>
+              <th scope="row">{result.dataset_movements[gesture] ?? gesture}</th>
+              {result.confusion_matrix[row]?.map((count, column) => (
+                <td key={`${gesture}-${result.gesture_order[column]}`}>{count}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function Timeline({ events }: { events: readonly TimelineEvent[] }) {
+  return (
+    <section className="performed-timeline" aria-labelledby="timeline-heading">
+      <h4 id="timeline-heading">Performed vs decoded timeline</h4>
+      <p className="small muted">
+        Mapped, eligible 200 ms windows in recording order; each window advances 20 ms.
+        Transition and unmapped-label windows are omitted.
+      </p>
+      <ol>
+        {events.map((event, index) => (
+          <li key={`${event.recording}-${event.repetition}-${event.start_ms}-${index}`}>
+            <div className="timeline-label">
+              <strong>{event.performed}</strong>
+              <span>{event.recording} · rep {event.repetition} · {event.start_ms.toFixed(0)}–{event.end_ms.toFixed(0)} ms</span>
+            </div>
+            <div className="timeline-track" role="img" aria-label={`${event.performed} performed; decoded sequence ${event.decoded.map((run) => `${run.gesture} for ${run.windows} windows`).join(', ')}`}>
+              {event.decoded.map((run, runIndex) => (
+                <span
+                  className="timeline-part"
+                  data-correct={run.gesture === event.performed || undefined}
+                  key={`${run.gesture}-${runIndex}`}
+                  style={{ flexGrow: run.windows }}
+                  title={`${run.gesture}: ${run.windows} windows`}
+                />
+              ))}
+            </div>
+            <p className="timeline-decoded">
+              {event.decoded.map((run) => `${run.gesture} × ${run.windows}`).join(' · ')}
+            </p>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }

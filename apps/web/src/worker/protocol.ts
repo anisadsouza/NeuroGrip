@@ -30,6 +30,8 @@ export interface InitRequest {
   readonly samplingRateHz: number;
   /** Commit cost per gesture, indexed like the model's classes. */
   readonly risks: readonly number[];
+  /** Optional recorded-replay quality floors, calibrated per electrode from rest. */
+  readonly minChannelRmsByChannel?: readonly number[];
 }
 
 export interface SamplesRequest {

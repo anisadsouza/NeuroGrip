@@ -24,7 +24,7 @@ import { Oscilloscope } from '../components/Oscilloscope.js';
 import { VirtualHand, type MuscleDrive } from '../components/VirtualHand.js';
 import { GestureChoices } from '../components/GestureChoices.js';
 import { Icon } from '../components/Icon.js';
-import { GESTURE_LABEL, labelsFor, risksFor } from '../decode/commitCost.js';
+import { labelsFor, risksFor } from '../decode/commitCost.js';
 import { percentile95, trimRing } from '../decode/latency.js';
 import { projectDrive } from '../decode/muscleDrive.js';
 import { ReplaySource, loadReplayBundle, replaySourceLabel, type ReplayBundle } from '../sources/replaySource.js';
@@ -54,12 +54,15 @@ interface Status {
   rejected: { reason: string; channel: number | null } | null;
 }
 
+type ReplayMode = 'simulated' | 'ninapro';
+
 export function Live() {
   const workerRef = useRef<Worker | null>(null);
   const sourceRef = useRef<ReplaySource | null>(null);
 
   const [bundle, setBundle] = useState<ReplayBundle | null>(null);
   const [gestures, setGestures] = useState<readonly string[]>([]);
+  const [replayMode, setReplayMode] = useState<ReplayMode>('simulated');
   const [decision, setDecision] = useState<DecisionResponse | null>(null);
   const [intended, setIntended] = useState(0);
   // Mirrored in a ref because the transport callback reads it. Reading the
@@ -81,7 +84,13 @@ export function Live() {
   // so the wearer can pick a gesture while the model is still loading. The
   // compatibility gate guarantees the two agree.
   const gestureLabels = useMemo(
-    () => labelsFor(gestures.length > 0 ? gestures : (bundle?.manifest.gestures ?? [])),
+    () => {
+      const names = gestures.length > 0 ? gestures : (bundle?.manifest.gestures ?? []);
+      return labelsFor(names).map((label, index) => {
+        const name = names[index];
+        return name ? (bundle?.manifest.gestureLabels?.[name] ?? label) : label;
+      });
+    },
     [gestures, bundle],
   );
 
@@ -101,6 +110,14 @@ export function Live() {
 
   useEffect(() => {
     let disposed = false;
+    setStatus({ ready: false, threaded: false, error: null, rejected: null });
+    setBundle(null);
+    setGestures([]);
+    setDecision(null);
+    setLatency([]);
+    setRunning(false);
+    sourceRef.current?.stop();
+    sourceRef.current = null;
 
     const worker = new Worker(new URL('../worker/inference.worker.ts', import.meta.url), {
       type: 'module',
@@ -132,16 +149,29 @@ export function Live() {
       }
     };
 
-    loadReplayBundle(`${import.meta.env.BASE_URL}replay`)
+    const replayBase = replayMode === 'ninapro'
+      ? `${import.meta.env.BASE_URL}replay/ninapro`
+      : `${import.meta.env.BASE_URL}replay`;
+    const modelUrl = replayMode === 'ninapro'
+      ? `${import.meta.env.BASE_URL}models/ninapro/decoder.onnx`
+      : `${import.meta.env.BASE_URL}models/decoder.onnx`;
+
+    loadReplayBundle(replayBase)
       .then((loaded) => {
         if (disposed) return;
         setBundle(loaded);
         const request: WorkerRequest = {
           type: 'init',
-          modelUrl: `${import.meta.env.BASE_URL}models/decoder.onnx`,
+          modelUrl,
           nChannels: loaded.manifest.nChannels,
           samplingRateHz: loaded.manifest.samplingRateHz,
           risks: risksFor(loaded.manifest.gestures),
+          ...(loaded.manifest.signalQuality
+            ? {
+                minChannelRmsByChannel:
+                  loaded.manifest.signalQuality.minChannelRmsByChannel,
+              }
+            : {}),
         };
         worker.postMessage(request);
       })
@@ -156,7 +186,7 @@ export function Live() {
       sourceRef.current?.stop();
       worker.terminate();
     };
-  }, []);
+  }, [replayMode]);
 
   const toggleRunning = useCallback(() => {
     const worker = workerRef.current;
@@ -214,6 +244,30 @@ export function Live() {
         <p className="panel muted" role="status">
           Source: {bundle ? replaySourceLabel(bundle.manifest) : 'Loading replay bundle…'}
         </p>
+        <div className="panel replay-source">
+          <label htmlFor="replay-source">Replay source</label>
+          <select
+            id="replay-source"
+            value={replayMode}
+            onChange={(event) => {
+              const { value } = event.currentTarget;
+              if (value === 'simulated' || value === 'ninapro') setReplayMode(value);
+            }}
+            disabled={running}
+          >
+            <option value="simulated">Simulated sEMG</option>
+            <option value="ninapro">Held-out NinaPro DB2 recording</option>
+          </select>
+          <p className="small muted">
+            Recorded replay uses a separate model trained without the replay subject.
+          </p>
+          {replayMode === 'ninapro' && bundle?.manifest.signalQuality ? (
+            <p className="small muted">
+              Recorded-data channel checks use per-channel rest calibration. A
+              rejected window still produces no gesture.
+            </p>
+          ) : null}
+        </div>
         <Oscilloscope
           display={decision?.display ?? null}
           nChannels={nChannels}
@@ -240,7 +294,7 @@ export function Live() {
             gesture={decision ? (gestures[decision.leader] ?? '') : 'rest'}
             label={
               decision
-                ? (GESTURE_LABEL[gestures[decision.leader] ?? ''] ?? 'this gesture')
+                ? (gestureLabels[decision.leader] ?? 'this gesture')
                 : 'Rest'
             }
             commitment={decision?.commitment ?? 0}
@@ -282,7 +336,7 @@ export function Live() {
                     {decision?.latched
                       ? decision.timedOut
                         ? 'No clear intent'
-                        : (GESTURE_LABEL[gestures[decision.latchedClass ?? 0] ?? ''] ?? '—')
+                        : (gestureLabels[decision.latchedClass ?? 0] ?? '—')
                       : '—'}
                   </dd>
                 </div>

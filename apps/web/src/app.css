@@ -114,7 +114,7 @@ main {
   margin: 0 0 var(--ng-space-2);
   line-height: var(--ng-leading-tight);
 }
-.results { max-width: 980px; margin: 0 auto; display: grid; gap: var(--ng-space-6); }
+.results { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ng-space-6); }
 .results-head h2 { margin: 0; font-size: var(--ng-text-xl); }
 .results-head p { margin-bottom: 0; }
 .results-table h3 { margin-top: 0; font-size: var(--ng-text-lg); }
@@ -122,6 +122,21 @@ main {
 .results-table caption { text-align: left; color: var(--ng-ink-muted); padding-bottom: var(--ng-space-3); }
 .results-table th, .results-table td { border-bottom: var(--ng-hairline) solid var(--ng-rule); padding: var(--ng-space-2); text-align: left; }
 .results-table tr[data-selected] { font-weight: 700; }
+.matrix-scroll { max-width: 100%; overflow-x: auto; }
+.confusion-matrix { min-width: 760px; font-size: var(--ng-text-sm); }
+.performed-timeline { margin-top: var(--ng-space-5); }
+.performed-timeline h4 { margin: 0 0 var(--ng-space-2); }
+.performed-timeline ol { list-style: none; padding: 0; display: grid; gap: var(--ng-space-3); }
+.performed-timeline li { border-top: var(--ng-hairline) solid var(--ng-rule); padding-top: var(--ng-space-2); }
+.timeline-label { display: flex; justify-content: space-between; gap: var(--ng-space-3); font-size: var(--ng-text-sm); }
+.timeline-track { display: flex; min-height: 10px; margin-top: var(--ng-space-2); border: var(--ng-hairline) solid var(--ng-rule); }
+.timeline-part { min-width: 2px; background: var(--ng-ink-muted); }
+.timeline-part[data-correct] { background: var(--ng-ink); }
+.timeline-decoded { margin: var(--ng-space-1) 0 0; color: var(--ng-ink-muted); font-size: var(--ng-text-sm); }
+.replay-source { display: grid; gap: var(--ng-space-2); }
+.replay-source label { font-weight: 700; }
+.replay-source select { width: 100%; max-width: 28rem; min-width: 0; }
+.replay-source p { margin: 0; }
 .muted {
   color: var(--ng-ink-muted);
 }
@@ -607,6 +622,14 @@ main {
 }
 
 @media (max-width: 520px) {
+  .masthead {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'title theme' 'nav nav';
+  }
+  .masthead-title { grid-area: title; min-width: 0; }
+  .screen-nav { grid-area: nav; margin-inline-start: 0; }
+  .theme-toggle { grid-area: theme; }
   main {
     padding: var(--ng-space-4) var(--ng-space-3) var(--ng-space-8);
   }

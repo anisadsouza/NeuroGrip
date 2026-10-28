@@ -45,6 +45,7 @@ interface Runtime {
   windowWidth: number;
   hop: number;
   gestures: readonly string[];
+  signalQualityConfig: typeof DEFAULT_SIGNAL_QUALITY_CONFIG;
   /** Samples pushed since the last decision, so hops land on exact boundaries. */
   pending: number;
 }
@@ -67,6 +68,7 @@ async function init(
   nChannels: number,
   samplingRateHz: number,
   risks: readonly number[],
+  minChannelRmsByChannel?: readonly number[],
 ): Promise<void> {
   // Multi-threaded WASM needs SharedArrayBuffer, which needs cross-origin
   // isolation. Where that is unavailable the runtime still works, single
@@ -106,6 +108,16 @@ async function init(
 
   const windowConfig = { ...DEFAULT_WINDOW_CONFIG, samplingRateHz };
   const windowWidth = windowSamples(windowConfig);
+  if (
+    minChannelRmsByChannel !== undefined &&
+    (minChannelRmsByChannel.length !== nChannels ||
+      minChannelRmsByChannel.some((value) => !Number.isFinite(value) || value <= 0))
+  ) {
+    throw new Error('recorded replay quality calibration does not match its channels');
+  }
+  const signalQualityConfig = minChannelRmsByChannel
+    ? { ...DEFAULT_SIGNAL_QUALITY_CONFIG, minChannelRmsByChannel }
+    : DEFAULT_SIGNAL_QUALITY_CONFIG;
 
   runtime = {
     session,
@@ -118,6 +130,7 @@ async function init(
     windowWidth,
     hop: hopSamples(windowConfig),
     gestures: metadata.gestures as string[],
+    signalQualityConfig,
     pending: 0,
   };
 
@@ -136,7 +149,7 @@ async function decodeWindow(active: Runtime): Promise<void> {
   const window = active.ring.readLatestWindow(active.windowWidth);
   if (!window) return;
 
-  const quality = checkSignalQuality(window, DEFAULT_SIGNAL_QUALITY_CONFIG);
+  const quality = checkSignalQuality(window, active.signalQualityConfig);
   if (!quality.ok) {
     // A rejected window is not a prediction of "rest" -- it is a refusal to
     // predict. Letting it reach the accumulator would let a detached electrode
@@ -222,6 +235,7 @@ async function handle(request: WorkerRequest): Promise<void> {
           request.nChannels,
           request.samplingRateHz,
           request.risks,
+          request.minChannelRmsByChannel,
         );
         return;
 

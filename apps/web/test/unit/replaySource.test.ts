@@ -76,6 +76,12 @@ describe('loadReplayBundle', () => {
     expect(replaySourceLabel(bundle.manifest)).toContain('Simulated');
     expect(replaySourceLabel({ ...bundle.manifest, source: 'ninapro_db2', subject: 'S12' }))
       .toBe('Recorded · NinaPro DB2 · subject S12');
+    expect(replaySourceLabel({
+      ...bundle.manifest,
+      source: 'ninapro_db2',
+      subject: 'S10',
+      trainedSubjects: ['S1'],
+    })).toBe('Recorded · NinaPro DB2 · subject S10 · held out from S1');
   });
 
   /**
