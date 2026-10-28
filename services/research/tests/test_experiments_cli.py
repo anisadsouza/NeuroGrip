@@ -11,10 +11,13 @@ from __future__ import annotations
 
 import pathlib
 import sys
+from types import SimpleNamespace
 
+import numpy as np
 import pytest
 
 from neurogrip import experiments
+from neurogrip.datasets import Corpus, CorpusConfig
 
 
 @pytest.fixture
@@ -189,3 +192,64 @@ def test_ninapro_source_builds_a_recorded_corpus(monkeypatch, spy, tmp_path):
     assert captured["root"] == tmp_path
     assert spy["corpus"] is sentinel
     assert spy["source"] == "ninapro_db2"
+
+
+def test_ninapro_comparison_passes_calibration_folds_by_name_and_reports_actual_corpus(
+    monkeypatch, capsys
+):
+    corpus = Corpus(
+        features=np.zeros((2, 1), dtype=np.float32),
+        labels=np.array([0, 1], dtype=np.int16),
+        subjects=np.array([1, 10], dtype=np.int16),
+        reps=np.array([1, 6], dtype=np.int16),
+        fatigue=np.zeros(2, dtype=np.float32),
+        feature_names=("feature",),
+        gestures=("rest", "gesture"),
+    )
+    spec = SimpleNamespace(name="lda")
+    model_result = SimpleNamespace(
+        loso=SimpleNamespace(
+            mean_accuracy=0.5,
+            accuracies=np.array([0.5]),
+        ),
+        summary=lambda: {
+            "mean_accuracy": 0.5,
+            "std_accuracy": 0.0,
+            "min_accuracy": 0.5,
+            "expected_calibration_error": 0.1,
+        },
+    )
+    repetition_call = {}
+
+    monkeypatch.setattr(experiments, "MODEL_ZOO", (spec,))
+    monkeypatch.setattr(experiments, "evaluate_model", lambda *args: model_result)
+
+    def fake_repetition_split(
+        _corpus, _spec, *, train_repetitions=(1, 3, 4, 6),
+        test_repetitions=(2, 5), calibration_folds=3
+    ):
+        repetition_call.update(
+            train_repetitions=train_repetitions,
+            test_repetitions=test_repetitions,
+            calibration_folds=calibration_folds,
+        )
+        return SimpleNamespace(summary=lambda _gestures: {"accuracy": 0.5})
+
+    monkeypatch.setattr(experiments, "evaluate_repetition_split", fake_repetition_split)
+    payload = experiments.compare_models(
+        CorpusConfig(), calibration_folds=2, corpus=corpus, source="ninapro_db2"
+    )
+
+    assert repetition_call == {
+        "train_repetitions": (1, 3, 4, 6),
+        "test_repetitions": (2, 5),
+        "calibration_folds": 2,
+    }
+    assert payload["corpus"]["n_subjects"] == 2
+    assert payload["corpus"]["subject_ids"] == [1, 10]
+    assert payload["corpus"]["movement_repetitions"] == [1, 6]
+    assert payload["corpus"]["reps_per_gesture"] is None
+    assert payload["corpus"]["rep_seconds"] is None
+    output = capsys.readouterr().out
+    assert "2 subjects (S1, S10)" in output
+    assert "8 subjects" not in output

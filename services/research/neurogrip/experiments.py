@@ -40,11 +40,23 @@ def compare_models(
     source: str = "simulator",
 ) -> dict:
     started = time.perf_counter()
-    print(
-        f"building corpus: {config.n_subjects} subjects x "
-        f"{config.reps_per_gesture} reps x {config.rep_seconds}s ..."
-    )
-    corpus = build_corpus(config) if corpus is None else corpus
+    if corpus is None:
+        print(
+            f"building corpus: {config.n_subjects} subjects x "
+            f"{config.reps_per_gesture} reps x {config.rep_seconds}s ..."
+        )
+        corpus = build_corpus(config)
+    else:
+        subject_ids = sorted(int(subject) for subject in np.unique(corpus.subjects))
+        subject_names = ", ".join(f"S{subject}" for subject in subject_ids)
+        movement_repetitions = sorted(
+            int(repetition) for repetition in np.unique(corpus.reps) if repetition > 0
+        )
+        print(
+            f"using recorded corpus: {corpus.n_subjects} subjects ({subject_names}), "
+            f"{len(movement_repetitions)} movement repetitions "
+            f"({', '.join(map(str, movement_repetitions))}) ..."
+        )
     print(
         f"  {corpus.n_windows} windows x {corpus.n_features} features "
         f"({time.perf_counter() - started:.1f}s)"
@@ -97,8 +109,14 @@ def compare_models(
     payload = {
         "corpus": {
             "n_subjects": corpus.n_subjects,
-            "reps_per_gesture": config.reps_per_gesture,
-            "rep_seconds": config.rep_seconds,
+            "subject_ids": sorted(int(subject) for subject in np.unique(corpus.subjects)),
+            "movement_repetitions": sorted(
+                int(repetition) for repetition in np.unique(corpus.reps) if repetition > 0
+            ),
+            "reps_per_gesture": (
+                config.reps_per_gesture if source == "simulator" else None
+            ),
+            "rep_seconds": config.rep_seconds if source == "simulator" else None,
             "n_electrodes": config.n_electrodes,
             "window_ms": config.window_ms,
             "hop_ms": config.hop_ms,
@@ -133,7 +151,9 @@ def compare_models(
     }
     if source == "ninapro_db2":
         payload["ninaPro_repetition_split"] = {
-            name: evaluate_repetition_split(corpus, spec, calibration_folds).summary(corpus.gestures)
+            name: evaluate_repetition_split(
+                corpus, spec, calibration_folds=calibration_folds
+            ).summary(corpus.gestures)
             for name, spec in ((name, model_by_name(name)) for name in results)
         }
     return payload

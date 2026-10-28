@@ -89,7 +89,7 @@ def load_session(path: pathlib.Path) -> tuple[np.ndarray, np.ndarray, np.ndarray
         # DB2 E3 files can contain one unlabelled tail sample. It cannot form a
         # valid labelled window, so retaining it would only make the arrays
         # inconsistent. Larger discrepancies are evidence of the wrong file.
-        if abs(emg.shape[0] - labels.size) != 1:
+        if abs(emg.shape[0] - labels.size) > 2:
             raise ValueError("emg, restimulus and rerepetition have incompatible shapes")
         length = min(emg.shape[0], labels.size)
         emg, labels, reps = emg[:length], labels[:length], reps[:length]
