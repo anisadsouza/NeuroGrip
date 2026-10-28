@@ -21,12 +21,14 @@ from neurogrip import experiments
 def spy(monkeypatch):
     calls: dict[str, object] = {}
 
-    def fake_compare(config, calibration_folds=3, posteriors_stem=None):
+    def fake_compare(config, calibration_folds=3, posteriors_stem=None, corpus=None, source="simulator"):
         calls["compare"] = config
         calls["posteriors_stem"] = posteriors_stem
+        calls["corpus"] = corpus
+        calls["source"] = source
         return {"best_model": "stub", "models": {}, "paired_significance": {}}
 
-    def fake_export(config, model_name, out_dir):
+    def fake_export(config, model_name, out_dir, corpus=None, source="simulator"):
         calls["export"] = (config, model_name, out_dir)
         return {"model": model_name}
 
@@ -169,3 +171,21 @@ def test_posteriors_flag_reaches_the_experiment(monkeypatch, spy, tmp_path):
 def test_posteriors_are_not_written_unless_asked(monkeypatch, spy, tmp_path):
     _run(monkeypatch, "compare", "--out", str(tmp_path / "c.json"))
     assert spy["posteriors_stem"] is None
+
+
+def test_ninapro_source_builds_a_recorded_corpus(monkeypatch, spy, tmp_path):
+    sentinel = object()
+    captured = {}
+
+    def fake_ninapro(root):
+        captured["root"] = root
+        return sentinel
+
+    monkeypatch.setattr(experiments, "build_ninapro_corpus", fake_ninapro)
+    _run(
+        monkeypatch, "compare", "--source", "ninapro", "--data-root", str(tmp_path),
+        "--out", str(tmp_path / "result.json"),
+    )
+    assert captured["root"] == tmp_path
+    assert spy["corpus"] is sentinel
+    assert spy["source"] == "ninapro_db2"

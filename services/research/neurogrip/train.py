@@ -137,6 +137,36 @@ class ModelEvaluation:
         }
 
 
+@dataclass(frozen=True)
+class RepetitionEvaluation:
+    """NinaPro's prescribed repetition-held-out evaluation."""
+
+    accuracy: float
+    calibration_error: float
+    n_train: int
+    n_test: int
+    train_repetitions: tuple[int, ...]
+    test_repetitions: tuple[int, ...]
+    confusion: np.ndarray
+
+    def summary(self, gestures: tuple[str, ...]) -> dict[str, object]:
+        support = self.confusion.sum(axis=1)
+        recall = {
+            name: (None if support[index] == 0 else round(float(self.confusion[index, index] / support[index]), 4))
+            for index, name in enumerate(gestures)
+        }
+        return {
+            "accuracy": round(self.accuracy, 4),
+            "expected_calibration_error": round(self.calibration_error, 4),
+            "n_train": self.n_train,
+            "n_test": self.n_test,
+            "train_repetitions": list(self.train_repetitions),
+            "test_repetitions": list(self.test_repetitions),
+            "per_gesture_recall": recall,
+            "confusion_matrix": self.confusion.tolist(),
+        }
+
+
 def evaluate_model(
     corpus: Corpus,
     spec: ModelSpec,
@@ -180,6 +210,39 @@ def evaluate_model(
         probabilities=probabilities,
         baseline_accuracy=majority_class_accuracy(corpus.labels),
         calibration_error=expected_calibration_error(probabilities, corpus.labels),
+    )
+
+
+def evaluate_repetition_split(
+    corpus: Corpus,
+    spec: ModelSpec,
+    train_repetitions: tuple[int, ...] = (1, 3, 4, 6),
+    test_repetitions: tuple[int, ...] = (2, 5),
+    calibration_folds: int = 3,
+) -> RepetitionEvaluation:
+    """Evaluate the DB2 convention without overlapping train/test repetitions.
+
+    DB2 marks rest with repetition zero. It is excluded here because it cannot
+    be assigned to a performed repetition without leaking long pauses into both
+    sides of the split.
+    """
+    train = np.flatnonzero(np.isin(corpus.reps, train_repetitions))
+    test = np.flatnonzero(np.isin(corpus.reps, test_repetitions))
+    if not train.size or not test.size:
+        raise ValueError("repetition split has an empty train or test partition")
+    model = _calibrated_pipeline(spec, calibration_folds)
+    model.fit(corpus.features[train], corpus.labels[train])
+    probabilities = model.predict_proba(corpus.features[test])
+    predictions = probabilities.argmax(axis=1)
+    truth = corpus.labels[test]
+    return RepetitionEvaluation(
+        accuracy=float((predictions == truth).mean()),
+        calibration_error=expected_calibration_error(probabilities, truth),
+        n_train=int(train.size),
+        n_test=int(test.size),
+        train_repetitions=train_repetitions,
+        test_repetitions=test_repetitions,
+        confusion=confusion_matrix(truth, predictions, labels=range(len(corpus.gestures))),
     )
 
 

@@ -19,14 +19,16 @@ import numpy as np
 
 from neurogrip import FEATURE_SPEC_VERSION
 from neurogrip.cartography import cartography_gate
-from neurogrip.datasets import CorpusConfig, build_corpus
+from neurogrip.datasets import Corpus, CorpusConfig, build_corpus
 from neurogrip.evaluation import paired_fold_test
 from neurogrip.export import export_to_onnx, load_session, predict_onnx, verify_parity
 from neurogrip.features import FeatureConfig, extract_features, feature_vector
 from neurogrip.posteriors import write_posteriors
 from neurogrip.robustness import robustness_curve
 from neurogrip.simulator import SimulatorConfig, make_subject, simulate
-from neurogrip.train import MODEL_ZOO, evaluate_model, fit_final_model, model_by_name, select_best
+from neurogrip.ninapro import build_ninapro_corpus
+from neurogrip.train import (MODEL_ZOO, evaluate_model, evaluate_repetition_split,
+                             fit_final_model, model_by_name, select_best)
 from neurogrip.windowing import WindowConfig, frame_windows
 
 
@@ -34,13 +36,15 @@ def compare_models(
     config: CorpusConfig,
     calibration_folds: int = 3,
     posteriors_stem: pathlib.Path | None = None,
+    corpus: Corpus | None = None,
+    source: str = "simulator",
 ) -> dict:
     started = time.perf_counter()
     print(
         f"building corpus: {config.n_subjects} subjects x "
         f"{config.reps_per_gesture} reps x {config.rep_seconds}s ..."
     )
-    corpus = build_corpus(config)
+    corpus = build_corpus(config) if corpus is None else corpus
     print(
         f"  {corpus.n_windows} windows x {corpus.n_features} features "
         f"({time.perf_counter() - started:.1f}s)"
@@ -90,16 +94,16 @@ def compare_models(
             ),
         }
 
-    return {
+    payload = {
         "corpus": {
-            "n_subjects": config.n_subjects,
+            "n_subjects": corpus.n_subjects,
             "reps_per_gesture": config.reps_per_gesture,
             "rep_seconds": config.rep_seconds,
             "n_electrodes": config.n_electrodes,
             "window_ms": config.window_ms,
             "hop_ms": config.hop_ms,
-            "max_fatigue": config.max_fatigue,
-            "base_seed": config.base_seed,
+            "max_fatigue": (config.max_fatigue if source == "simulator" else None),
+            "base_seed": (config.base_seed if source == "simulator" else None),
             "n_windows": corpus.n_windows,
             "n_features": corpus.n_features,
         },
@@ -115,15 +119,24 @@ def compare_models(
             }
         ),
         "paired_significance": significance,
-        "source": "simulator",
+        "source": source,
         "caveat": (
             "Accuracy here is measured on simulated sEMG. The simulator has no "
             "motion artefact, no skin-impedance drift and no cross-session "
             "electrode replacement, so these figures are optimistic relative to "
             "recorded data such as NinaPro. Report them as simulator results."
+            if source == "simulator" else
+            "Recorded NinaPro DB2 result. It is a research dataset evaluation, "
+            "not clinical validation or evidence of safe prosthetic actuation."
         ),
         "elapsed_seconds": round(time.perf_counter() - started, 1),
     }
+    if source == "ninapro_db2":
+        payload["ninaPro_repetition_split"] = {
+            name: evaluate_repetition_split(corpus, spec, calibration_folds).summary(corpus.gestures)
+            for name, spec in ((name, model_by_name(name)) for name in results)
+        }
+    return payload
 
 
 def _percentiles(samples: np.ndarray) -> dict[str, float]:
@@ -198,10 +211,11 @@ def benchmark_latency(
 
 
 def export_best(
-    config: CorpusConfig, model_name: str, out_dir: pathlib.Path
+    config: CorpusConfig, model_name: str, out_dir: pathlib.Path,
+    corpus: Corpus | None = None, source: str = "simulator",
 ) -> dict:
     print(f"building corpus for final fit ...")
-    corpus = build_corpus(config)
+    corpus = build_corpus(config) if corpus is None else corpus
     spec = model_by_name(model_name)
 
     print(f"fitting {spec.name} on all {corpus.n_windows} windows ...")
@@ -234,12 +248,14 @@ def export_best(
         "window_ms": config.window_ms,
         "hop_ms": config.hop_ms,
         "sampling_rate_hz": config.sampling_rate_hz,
-        "trained_on": "simulator",
+        "trained_on": source,
         "onnx_parity": parity.summary(),
         "latency": latency,
         "caveat": (
-            "Trained and evaluated on simulated sEMG. Not validated on recorded "
-            "data. Research prototype, not a medical device."
+            "Research prototype, not a medical device. "
+            + ("Trained on NinaPro DB2 recordings; not clinically validated."
+               if source == "ninapro_db2" else
+               "Trained and evaluated on simulated sEMG. Not validated on recorded data.")
         ),
     }
     (out_dir / "decoder.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
@@ -259,6 +275,8 @@ def main() -> None:
     parser.add_argument("--reps", type=int, default=4)
     parser.add_argument("--seconds", type=float, default=1.0)
     parser.add_argument("--model", default="rbf_svm")
+    parser.add_argument("--source", choices=["simulator", "ninapro"], default="simulator")
+    parser.add_argument("--data-root", type=pathlib.Path, default=pathlib.Path("data/ninapro/DB2"))
     parser.add_argument(
         "--shifts",
         default="0,0.1,0.2,0.3,0.4",
@@ -280,12 +298,18 @@ def main() -> None:
         reps_per_gesture=args.reps,
         rep_seconds=args.seconds,
     )
+    source = "ninapro_db2" if args.source == "ninapro" else "simulator"
+    recorded = (
+        build_ninapro_corpus(args.data_root)
+        if args.source == "ninapro" and args.experiment in {"compare", "export"}
+        else None
+    )
 
     if args.experiment == "compare":
         out = args.out or pathlib.Path("artifacts/model_comparison.json")
         if out.suffix != ".json":
             parser.error(f"compare --out must be a .json path, got {out}")
-        payload = compare_models(config, posteriors_stem=args.posteriors)
+        payload = compare_models(config, posteriors_stem=args.posteriors, corpus=recorded, source=source)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         print()
@@ -323,7 +347,7 @@ def main() -> None:
     if out_dir.suffix:
         parser.error(f"export --out must be a directory, got {out_dir}")
     out_dir.mkdir(parents=True, exist_ok=True)
-    export_best(config, args.model, out_dir)
+    export_best(config, args.model, out_dir, corpus=recorded, source=source)
     print(f"written to {out_dir / 'decoder.onnx'} and {out_dir / 'decoder.json'}")
 
 
