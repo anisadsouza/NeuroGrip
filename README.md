@@ -37,7 +37,9 @@ device or clinician calibration tool.
 
 ```bash
 python -m venv .venv
-source .venv/Scripts/activate      # POSIX: source .venv/bin/activate
+# macOS / Linux
+source .venv/bin/activate
+# Windows PowerShell: .venv\Scripts\Activate.ps1
 pip install -e "./services/research[dev,ml]"
 npm install
 npm run dev:web
@@ -58,7 +60,7 @@ every number on it means.
 | Decoder | RBF SVM, 95.6% leave-one-subject-out, ECE 0.022 |
 | Latency | 2.0 ms P95 in the browser, against a 10 ms budget, gated in CI |
 | Time to motion | 40 ms median before the hand starts moving, 260 ms to latch |
-| Tests | 175 Python verified locally; TypeScript/browser gates run with `npm` |
+| Tests | 176 Python + 246 TypeScript tests; type-check and feature-conformance gates pass |
 | Built | Simulator, feature pipeline, decoder, evidence accumulation, Live screen, virtual hand, electrode-shift robustness runner, NinaPro DB2 loader and evaluation path |
 | Needs data / follow-up | NinaPro run + recorded replay, results screen, clinician mode, error attribution, recorded amputee stratum |
 
@@ -66,6 +68,11 @@ every number on it means.
 recorded human sEMG. There is no amputee stratum yet. See
 [`docs/model_card.md`](docs/model_card.md) for the full evaluation and its
 limitations.
+
+The simulated electrode-shift screen stays within its 8 percentage-point
+degradation bound through a 0.2 rad shift, but fails at 0.3 and 0.4 rad. This
+is a useful finding: electrode placement must be checked or recalibrated; it is
+not evidence that the system is robust on people.
 
 ## Completion plan
 
@@ -101,6 +108,15 @@ npm run test:conformance   # proves Python and TypeScript agree on features
 npm run test:e2e           # the browser tier: latency budget, axe, keyboard, layout
 ```
 
+## How to run the demo
+
+1. Complete **Quick start**, then open the local URL printed by `npm run dev:web`
+   (normally `http://localhost:5173`).
+2. Wait for “Loading the decoder…” to disappear.
+3. Choose a gesture, press **Start**, and watch the oscilloscope, decoder,
+   evidence bar, and virtual hand. This default mode replays simulated EMG.
+4. Press **Stop** before changing gestures if you want a clean demonstration.
+
 Electrode-shift robustness can be generated separately:
 
 ```bash
@@ -118,6 +134,21 @@ python -m neurogrip.experiments export --source ninapro --data-root data/ninapro
 The comparison writes both leave-one-subject-out and the NinaPro repetition
 split (train repetitions 1/3/4/6; test 2/5). These recorded results must always
 be reported separately from simulator figures.
+
+To demonstrate a recording in the Live screen, choose a subject that was held
+out of decoder training, then create the replay bundle and start the app:
+
+```bash
+python -m neurogrip.replay --source ninapro --data-root data/ninapro/DB2 --subject 12 --out apps/web/public/replay
+npm run dev:web
+```
+
+The app will label the source as recorded and identify the selected subject.
+Do not use the same subject in both training and this demo.
+
+After an export, rebuild the browser assets with `npm run build:assets`. Use a
+Node and Python installation built for the same CPU architecture; otherwise
+native Python packages such as NumPy cannot be launched by the build script.
 
 That last one is the gate that matters: Python trains the model and TypeScript
 feeds it at inference, so if the two feature implementations diverge, accuracy

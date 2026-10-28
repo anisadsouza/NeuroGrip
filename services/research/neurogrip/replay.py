@@ -32,6 +32,7 @@ import numpy as np
 
 from neurogrip import FEATURE_SPEC_VERSION
 from neurogrip.anatomy import muscle_group_weights
+from neurogrip.ninapro import DEFAULT_MAPPING, load_session
 from neurogrip.simulator import (
     GESTURES,
     SimulatorConfig,
@@ -111,8 +112,77 @@ def build_bundle(
     return manifest, counts.astype(np.int16)
 
 
-def write_bundle(out_dir: pathlib.Path) -> dict:
-    manifest, samples = build_bundle()
+def build_ninapro_bundle(
+    root: pathlib.Path,
+    subject: int,
+    duration_s: float = SEGMENT_SECONDS,
+    mapping: dict[str, int] = DEFAULT_MAPPING,
+) -> tuple[dict, np.ndarray]:
+    """Cut one complete performed segment per gesture from a DB2 subject.
+
+    The selected person must be excluded from decoder training. Unlike the
+    simulator bundle, this manifest intentionally omits muscle-group weights:
+    simulated anatomy weights would falsely imply an anatomical measurement.
+    """
+    paths = sorted(pathlib.Path(root).glob(f"S{subject}_E*_A*.mat"))
+    if not paths:
+        raise FileNotFoundError(f"no DB2 sessions found for subject S{subject}")
+    n_samples = int(round(duration_s * 2000))
+    raw_labels = {"rest": 0, **mapping}
+    segments: dict[str, np.ndarray] = {}
+    for path in paths:
+        emg, labels, _ = load_session(path)
+        for gesture, raw_label in raw_labels.items():
+            if gesture in segments:
+                continue
+            starts = np.flatnonzero(labels == raw_label)
+            for start in starts:
+                stop = int(start) + n_samples
+                if stop <= labels.size and np.all(labels[start:stop] == raw_label):
+                    segments[gesture] = emg[:, start:stop]
+                    break
+    missing = [gesture for gesture in GESTURES if gesture not in segments]
+    if missing:
+        raise ValueError(
+            f"subject S{subject} has no {duration_s:g}s continuous segment for: {missing}"
+        )
+
+    stacked = np.stack([segments[gesture] for gesture in GESTURES])
+    counts = np.round(stacked / VOLTS_PER_COUNT)
+    peak = float(np.max(np.abs(counts)))
+    if peak > np.iinfo(np.int16).max:
+        raise ValueError("NinaPro replay would clip; increase VOLTS_PER_COUNT")
+    manifest = {
+        "formatVersion": 1,
+        "featureSpecVersion": FEATURE_SPEC_VERSION,
+        "samplingRateHz": 2000,
+        "nChannels": 8,
+        "samplesPerGesture": n_samples,
+        "voltsPerCount": VOLTS_PER_COUNT,
+        "dtype": "int16",
+        "layout": "gesture-major, then channel-major, then time",
+        "gestures": list(GESTURES),
+        "subject": f"S{subject}",
+        "peakCounts": int(peak),
+        "source": "ninapro_db2",
+        "caveat": (
+            "Recorded NinaPro DB2 signal. Subject must be held out of model training; "
+            "no simulated muscle-group weights are shown for recorded electrodes."
+        ),
+    }
+    return manifest, counts.astype(np.int16)
+
+
+def write_bundle(
+    out_dir: pathlib.Path, *, source: str = "simulator", root: pathlib.Path | None = None,
+    subject: int | None = None,
+) -> dict:
+    if source == "ninapro":
+        if root is None or subject is None:
+            raise ValueError("NinaPro replay needs a data root and subject")
+        manifest, samples = build_ninapro_bundle(root, subject)
+    else:
+        manifest, samples = build_bundle()
     out_dir.mkdir(parents=True, exist_ok=True)
 
     binary = out_dir / "emg-replay.bin"
@@ -130,8 +200,13 @@ def main() -> None:
     parser.add_argument(
         "--out", type=pathlib.Path, default=pathlib.Path("apps/web/public/replay")
     )
+    parser.add_argument("--source", choices=["simulator", "ninapro"], default="simulator")
+    parser.add_argument("--data-root", type=pathlib.Path, default=pathlib.Path("data/ninapro/DB2"))
+    parser.add_argument("--subject", type=int, default=None)
     args = parser.parse_args()
-    manifest = write_bundle(args.out)
+    if args.source == "ninapro" and args.subject is None:
+        parser.error("--source ninapro requires --subject S<number> as a number, e.g. --subject 12")
+    manifest = write_bundle(args.out, source=args.source, root=args.data_root, subject=args.subject)
     print(
         f"wrote {len(manifest['gestures'])} gestures x "
         f"{manifest['nChannels']} channels x {manifest['samplesPerGesture']} samples "

@@ -27,7 +27,7 @@ import { Icon } from '../components/Icon.js';
 import { GESTURE_LABEL, labelsFor, risksFor } from '../decode/commitCost.js';
 import { percentile95, trimRing } from '../decode/latency.js';
 import { projectDrive } from '../decode/muscleDrive.js';
-import { ReplaySource, loadReplayBundle, type ReplayBundle } from '../sources/replaySource.js';
+import { ReplaySource, loadReplayBundle, replaySourceLabel, type ReplayBundle } from '../sources/replaySource.js';
 import type { DecisionResponse, WorkerRequest, WorkerResponse } from '../worker/protocol.js';
 
 
@@ -211,6 +211,9 @@ export function Live() {
   return (
     <div className="live">
       <div className="live-main">
+        <p className="panel muted" role="status">
+          Source: {bundle ? replaySourceLabel(bundle.manifest) : 'Loading replay bundle…'}
+        </p>
         <Oscilloscope
           display={decision?.display ?? null}
           nChannels={nChannels}

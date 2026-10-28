@@ -36,7 +36,16 @@ export interface ReplayManifest {
     readonly wrist_extensor: readonly number[];
   };
   readonly source: string;
+  /** Present for recorded bundles, e.g. `S12`; absent for simulation. */
+  readonly subject?: string;
   readonly caveat: string;
+}
+
+/** Human-readable provenance. Never infer “recorded” from the URL or name. */
+export function replaySourceLabel(manifest: ReplayManifest): string {
+  return manifest.source === 'ninapro_db2'
+    ? `Recorded · NinaPro DB2 · subject ${manifest.subject ?? 'unknown'}`
+    : 'Simulated · NeuroGrip motor-unit model';
 }
 
 export interface ReplayBundle {

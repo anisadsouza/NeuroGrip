@@ -103,3 +103,27 @@ def test_manifest_states_that_the_signal_is_simulated(tmp_path):
     manifest = write_bundle(tmp_path)
     assert "simulated" in manifest["caveat"].lower()
     assert manifest["source"] == "neurogrip.simulator"
+
+
+def test_ninapro_bundle_marks_the_recording_and_omits_simulated_anatomy(tmp_path, monkeypatch):
+    """Recorded electrodes must not inherit anatomy weights from the simulator."""
+    from neurogrip import replay
+
+    (tmp_path / "S12_E1_A1.mat").touch()
+    mapping = {gesture: index + 1 for index, gesture in enumerate(GESTURES) if gesture != "rest"}
+    labels = np.concatenate([
+        np.full(10, 0 if gesture == "rest" else mapping[gesture], dtype=np.int16)
+        for gesture in GESTURES
+    ])
+    emg = np.full((8, labels.size), 20e-6, dtype=np.float32)
+    monkeypatch.setattr(
+        replay, "load_session", lambda _: (emg, labels, np.ones(labels.size, dtype=np.int16))
+    )
+
+    manifest, samples = replay.build_ninapro_bundle(
+        tmp_path, subject=12, duration_s=0.005, mapping=mapping
+    )
+    assert manifest["source"] == "ninapro_db2"
+    assert manifest["subject"] == "S12"
+    assert "muscleGroups" not in manifest
+    assert samples.shape == (len(GESTURES), 8, 10)

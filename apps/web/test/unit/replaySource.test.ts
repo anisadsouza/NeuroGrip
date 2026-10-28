@@ -17,6 +17,7 @@ import {
   type ReplayClock,
   ReplaySource,
   loadReplayBundle,
+  replaySourceLabel,
 } from '../../src/sources/replaySource.js';
 
 /** A clock the test advances by hand, running frames only when asked. */
@@ -71,6 +72,12 @@ function committedBundleFetch(url: string): Promise<Response> {
 const bundle: ReplayBundle = await loadReplayBundle('/replay', committedBundleFetch);
 
 describe('loadReplayBundle', () => {
+  it('labels recorded and simulated provenance without guessing from a URL', () => {
+    expect(replaySourceLabel(bundle.manifest)).toContain('Simulated');
+    expect(replaySourceLabel({ ...bundle.manifest, source: 'ninapro_db2', subject: 'S12' }))
+      .toBe('Recorded · NinaPro DB2 · subject S12');
+  });
+
   /**
    * The byte-length guard and the int16-to-volts scaling are only ever
    * exercised against the real bundle. Reading the committed bytes turns both

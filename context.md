@@ -5,9 +5,10 @@ ChatGPT or Claude along with the files a task names. Read `CLAUDE.md` alongside
 it: that file holds the rules, the measured numbers and the reasoning behind
 both. This file holds only what to do next.
 
-**Research prototype. Not a medical device.** Every number in the repo so far
-comes from simulated sEMG. Nothing has been evaluated on a human recording yet,
-and Task 1 changes that.
+**Research prototype. Not a medical device.** Every reported performance number
+in the repo still comes from simulated sEMG. The NinaPro DB2 code path is built
+and tested with synthetic `.mat` fixtures, but real DB2 must be registered for,
+downloaded, verified and run before any recorded-data claim can be made.
 
 ---
 
@@ -63,7 +64,7 @@ These are the ones an AI assistant is most likely to break. The full list is in
 | 0–1b | Simulator, features in Python and TypeScript, conformance gate, decoder, ONNX, browser app, Live screen, virtual hand | Done |
 | 2 | Neuromotor Cartography (Pillar 1) | Partly done; see §6 |
 | 3 | Error-attribution router, anatomical coaching | Not started |
-| 4 | Clinician screens, amputee stratum | Electrode-shift robustness eval exists (`neurogrip/robustness.py`) |
+| 4 | Robustness | Electrode-shift sweep complete: passes through 0.2 rad, fails at 0.3/0.4 rad; simulated only |
 | 5 | Azure deploy, patent disclosures | Not started |
 
 Only one screen exists: `apps/web/src/screens/Live.tsx`.
@@ -72,7 +73,24 @@ Only one screen exists: `apps/web/src/screens/Live.tsx`.
 
 ## 5. Next work, in priority order
 
-### Task 1: Load NinaPro DB2 and train on real EMG (Python)
+### Task 1: Run NinaPro DB2 evaluation (code complete; data required)
+
+`services/research/neurogrip/ninapro.py` now loads DB2 sessions, retains the
+first eight channels, converts the detected EMG unit scale to volts, excludes
+label-crossing windows, subsamples rest, and returns the shared `Corpus` type.
+`experiments.py` supports `--source ninapro --data-root ...` for comparison and
+export, reporting both LOSO and the 1/3/4/6 train versus 2/5 test split.
+
+Run after DB2 is available:
+
+```bash
+python -m neurogrip.experiments compare --source ninapro --data-root data/ninapro/DB2 --out artifacts/model_comparison_ninapro.json
+python -m neurogrip.experiments export --source ninapro --data-root data/ninapro/DB2 --out artifacts
+```
+
+Before reporting anything, verify the mapping and units below against the
+downloaded files. Do not replace the simulator figures in the README/model card
+until these commands have produced their own artifacts.
 
 **Why DB2:** it is recorded at **2 kHz**, the rate the whole pipeline already
 assumes, so no DSP constant changes. It has 40 intact subjects, and its first 8
@@ -141,6 +159,17 @@ artifact with both evaluations, and `export --source ninapro` produces a
 `decoder.onnx` with matching `decoder.json`.
 
 ### Task 2: Replay real recordings in the Live screen (visual)
+
+The Python bundle writer and browser provenance label are now built. Run:
+
+```bash
+python -m neurogrip.replay --source ninapro --data-root data/ninapro/DB2 --subject 12 --out apps/web/public/replay
+```
+
+Use a subject held out of decoder training. Recorded manifests carry
+`source: ninapro_db2` and `subject: S<n>` and omit simulated muscle weights.
+What remains for this task is the performed-versus-decoded timeline in the Live
+screen, followed by a manual browser check against an actual DB2 bundle.
 
 1. Add `--source ninapro --subject S<n>` to `neurogrip/replay.py`. It should
    write the same bundle format (int16 samples plus a JSON manifest, one
