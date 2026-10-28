@@ -1,7 +1,7 @@
 # Using NeuroGrip
 
-**Research prototype. Not a medical device. The signal it plays back is
-simulated, not a recording of a person.**
+**Research prototype. Not a medical device. Live replays simulated or NinaPro
+research data; it does not read live electrodes.**
 
 This walks through what the application does, screen by screen, and what each
 number on it means. It assumes nothing about the codebase.
@@ -18,8 +18,8 @@ npm install
 npm run dev:web
 ```
 
-Open the address it prints. Nothing else is required — no dataset download, no
-NinaPro registration, no account.
+Open the address it prints. The simulated demo needs no dataset download,
+NinaPro registration, or account.
 
 If the app reports **"The decoder could not start"**, the model or replay bundle
 is missing. Rebuild both:
@@ -31,6 +31,47 @@ npm run build:assets
 That takes about a minute: it regenerates the replay signal, retrains the
 decoder on the simulator, re-exports it to ONNX, verifies the exported model
 still agrees with scikit-learn, and copies both into the app.
+
+### Optional: subject-held-out NinaPro replay
+
+With locally available DB2 recordings and permission to use them, train a
+recorded-data decoder on one subject and hold another subject out:
+
+```bash
+python -m neurogrip.heldout \
+  --data-root data/ninapro/DB2 \
+  --train-subjects 1 \
+  --test-subject 10 \
+  --model lda \
+  --out artifacts/ninapro_holdout \
+  --replay-out apps/web/public/replay/ninapro
+npm run build:assets
+npm run test:e2e
+```
+
+This writes a separate `artifacts/ninapro_holdout/model/decoder.onnx`; it does
+not replace the simulator decoder. The held-out evaluation and source-ordered
+timeline are written to `artifacts/ninapro_holdout/evaluation.json`. The e2e
+latency test measures the actual browser worker on the recorded replay and
+writes `artifacts/browser_latency_ninapro.json`. These figures remain distinct
+from the simulator metrics.
+
+The recorded replay is a local generated asset. Do not commit or redistribute
+the NinaPro recording or generated replay bundle. The app maps DB2 label 5,
+“abduction of all fingers,” to its `open_hand` class only as an explicitly
+qualified proxy; the Results and Live screens show the dataset movement
+description rather than claiming the labels are identical. See
+[`context.md`](../context.md) for the mapping sources and other semantic
+approximations.
+
+The recorded replay also carries a per-channel signal-quality calibration:
+each channel's minimum RMS is 25% of that subject's RMS in the recorded rest
+segment, capped at the shared 5 µV threshold. This was needed because S10
+channels can have lower recorded baseline levels than the simulator. It lets
+the app demonstrate the held-out recording while still rejecting near-zero
+channels. This replay-specific threshold has not been validated for live
+electrodes and must not be presented as a clinical/safety threshold. The
+simulated replay continues to use the unchanged fixed 5 µV minimum.
 
 ---
 
@@ -50,6 +91,12 @@ All of this happens inside your browser. Nothing is uploaded.
 ---
 
 ## The Live screen
+
+The **Replay source** selector chooses either simulated sEMG with the
+simulator-trained decoder or the held-out NinaPro subject with a separate
+decoder trained on the listed training subject(s). The recorded source label
+names the subject and identifies the training subjects it was excluded from.
+If that model/replay has not been generated, use the optional workflow above.
 
 ### Intended gesture
 
@@ -105,6 +152,9 @@ those muscles sit on opposite sides of the forearm. If the ring did not move,
 something is wrong.
 
 An electrode outlined in red has been rejected by the signal-quality check.
+With NinaPro replay, the message names a channel that fell below its
+subject-specific calibrated minimum. That decision is not sent to the decoder;
+the quality check refuses to produce a gesture for rejected windows.
 
 ### Commitment
 
@@ -175,6 +225,19 @@ turns edge-on to you and becomes impossible to read.
 The budget is 10 ms at P95. If **WASM threads** reads `single`, the page is not
 cross-origin isolated and inference is roughly twice as slow; the number shown
 is still honest, just measured on a slower path.
+
+---
+
+## Results
+
+The Results section keeps simulator comparison, recorded-data comparison, and
+the subject-held-out run separate. The held-out panel includes the confusion
+matrix (performed rows, decoded columns), a timeline of decoded runs inside
+each mapped performed movement/repetition, CPU ONNX inference latency, and—if
+the browser test has run—the distinct worker P95 for the recorded replay.
+The CPU figure covers ONNX inference on pre-extracted held-out windows; the
+browser figure covers feature extraction plus ONNX inference in the worker.
+Neither includes wearer reaction time or establishes medical-device safety.
 
 ---
 

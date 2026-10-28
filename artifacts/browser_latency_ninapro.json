@@ -1,0 +1,19 @@
+{
+  "measuredAt": "2026-10-28",
+  "budgetMs": 10,
+  "meetsBudget": true,
+  "windowsProcessed": 1000,
+  "rejectedWindows": 0,
+  "n": 1000,
+  "threaded": true,
+  "backend": "wasm",
+  "meanMs": 0.8065950001478195,
+  "p50Ms": 0.625,
+  "p95Ms": 1.3250000476837158,
+  "p99Ms": 3.1649999618530273,
+  "maxMs": 58.60000002384186,
+  "featureP95Ms": 0.5750000476837158,
+  "inferenceP95Ms": 0.7450000047683716,
+  "hopMs": 20,
+  "note": "Recorded NinaPro DB2 subject S10. Recorded channel floors are calibrated from this subject's rest segment. Latency covers feature extraction plus ONNX inference in the worker, measured one window at a time. Windows are pushed in lockstep rather than in real time, so this measures the decode path and not the scheduler. Latency excludes the postMessage round trip and the UI thread: it is what the worker spent, which is the part under the ten-millisecond budget. Signal-quality rejects are counted and excluded from latency percentiles."
+}
