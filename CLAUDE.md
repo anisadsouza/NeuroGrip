@@ -9,9 +9,10 @@ Harsh Bavaskar · Anisa D'Souza · Shruti Shanklesha — BTECH CAP 501.
 
 ## What this is
 
-A dual-mode application (prosthesis wearer + clinician) built around four novel
-mechanisms. `docs/superpowers/specs/2026-09-04-neurogrip-design.md` holds the
-full design and the prior-art analysis behind each claim.
+A browser research prototype designed around four proposed mechanisms for
+prosthesis users and clinicians. The wearer-facing virtual control demo is
+implemented; clinician mode is not. `docs/superpowers/specs/2026-09-04-neurogrip-design.md`
+holds the full design and the prior-art analysis behind each claim.
 
 1. **Neuromotor Cartography** — map a user's reachable muscle-activation
    manifold, synthesise gesture prototypes optimised for separability,
@@ -48,7 +49,7 @@ full design and the prior-art analysis behind each claim.
 | 4 | Clinician mode, amputee stratum, robustness | Not started |
 | 5 | Azure deployment, patent disclosures | Not started |
 
-**438 tests** — 172 Python, 246 TypeScript, 20 browser.
+**479 tests** — 189 Python, 266 TypeScript, 24 browser.
 
 Not yet built: Cartography, the attribution router, clinician mode, and
 deployment.
@@ -514,6 +515,9 @@ Three gates are worth knowing by name:
 
 ## Working conventions
 
+- Playwright builds the production web app directly; the Vite build took about
+  5 seconds on the machine used for the last measurement. The asset-generation
+  script is a separate workflow and was not timed in that pass.
 - Tests first. Every gate in this repo was observed failing before it was
   trusted — the conformance gate, the signature gate, the contrast tests.
 - Never weaken an assertion to make a failure pass. Fix the thing, or fix the
