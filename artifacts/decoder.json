@@ -170,25 +170,25 @@
     "n_windows": 1000,
     "batched": false,
     "feature_extraction": {
-      "mean_ms": 0.8922,
-      "p50_ms": 0.8562,
-      "p95_ms": 1.2117,
-      "p99_ms": 1.4042,
-      "max_ms": 1.9883
+      "mean_ms": 0.8477,
+      "p50_ms": 0.8426,
+      "p95_ms": 0.8745,
+      "p99_ms": 1.0614,
+      "max_ms": 2.0252
     },
     "onnx_inference": {
-      "mean_ms": 0.53,
-      "p50_ms": 0.5111,
-      "p95_ms": 0.6183,
-      "p99_ms": 0.8103,
-      "max_ms": 1.1077
+      "mean_ms": 0.5101,
+      "p50_ms": 0.5063,
+      "p95_ms": 0.5219,
+      "p99_ms": 0.5972,
+      "max_ms": 0.9004
     },
     "end_to_end": {
-      "mean_ms": 1.4222,
-      "p50_ms": 1.3697,
-      "p95_ms": 1.7927,
-      "p99_ms": 2.0357,
-      "max_ms": 3.0731
+      "mean_ms": 1.3578,
+      "p50_ms": 1.3499,
+      "p95_ms": 1.4044,
+      "p99_ms": 1.6743,
+      "max_ms": 2.9151
     },
     "budget_ms": 10.0,
     "meets_budget": true

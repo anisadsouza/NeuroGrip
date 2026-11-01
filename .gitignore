@@ -33,9 +33,17 @@ models/
 mlruns/
 *.joblib
 *.pkl
+*.mat
 
 # Local NinaPro replay contains samples from a licensed research dataset.
+data/ninapro/
 apps/web/public/replay/ninapro/
+apps/web/public/models/ninapro/
+apps/web/public/results/*ninapro*.json
+artifacts/*ninapro*.json
+artifacts/ninapro_holdout/
+artifacts/ninapro_lda_baseline/
+artifacts/ninapro_lda_uniform/
 
 # OS/editor files
 .DS_Store
@@ -47,8 +55,12 @@ node_modules/
 .npm-cache/
 dist/
 *.tsbuildinfo
+apps/web/dist/
 
 # Playwright
 /test-results/
 /playwright-report/
 /artifacts/screens/
+
+apps/web/public/replay/ninapro*/
+artifacts/ninapro*/
