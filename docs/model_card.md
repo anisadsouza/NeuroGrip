@@ -2,13 +2,13 @@
 
 **Research prototype. Not a medical device. Not validated for clinical use.**
 
-Generated 2026-09-10 from recorded experiment artifacts.
+Generated 2026-10-30 from recorded experiment artifacts.
 
 ## Intended use
 
 Decodes a 200 ms window of multi-channel surface EMG into one of 10 hand-gesture classes with a calibrated confidence score, for driving a prosthetic-hand controller.
 
-**Out of scope:** any use on a person, any clinical decision, and any deployment connected to real actuation. The decoder has never been evaluated on recorded human sEMG.
+**Out of scope:** any use on a person, any clinical decision, and any deployment connected to real actuation. The simulator-trained model has not been evaluated on recorded human sEMG; the separate recorded-data development evaluation below is not clinical validation.
 
 ## Training data
 
@@ -71,9 +71,9 @@ Measured one window at a time on CPU, never batched: the deployed system decodes
 
 | Stage | Mean | P50 | P95 | P99 | Max |
 | --- | --- | --- | --- | --- | --- |
-| Feature extraction | 0.89 ms | 0.83 ms | 1.19 ms | 1.69 ms | 2.72 ms |
-| ONNX inference | 0.55 ms | 0.50 ms | 0.79 ms | 1.04 ms | 2.38 ms |
-| **End to end** | 1.44 ms | 1.33 ms | 2.01 ms | 2.68 ms | 4.71 ms |
+| Feature extraction | 0.89 ms | 0.86 ms | 1.21 ms | 1.40 ms | 1.99 ms |
+| ONNX inference | 0.53 ms | 0.51 ms | 0.62 ms | 0.81 ms | 1.11 ms |
+| **End to end** | 1.42 ms | 1.37 ms | 1.79 ms | 2.04 ms | 3.07 ms |
 
 Budget 10 ms at P95 over 1,000 windows — **PASS**.
 
@@ -113,14 +113,47 @@ Each trial is 41 hops, and the urgency timeout fires at 75, so within a trial th
 
 ### Python-to-ONNX parity
 
-Maximum absolute probability difference between scikit-learn and ONNX Runtime across 2,000 windows: **5.13e-07** (tolerance rtol=0.0001, atol=1e-05). Within tolerance.
+Maximum absolute probability difference between scikit-learn and ONNX Runtime across 2,000 windows: **5.12e-07** (tolerance rtol=0.0001, atol=1e-05). Within tolerance.
+
+## Recorded NinaPro DB2 development evaluation
+
+This is a separate recorded-data model and must not be conflated with the simulator model above.
+
+| Property | Value |
+| --- | --- |
+| Model | `lda_uniform` |
+| Split | Trained on S1; tested on S10 |
+| Held-out windows | 17,293 |
+| Accuracy | 46.9% |
+| Majority-class baseline | 36.5% |
+| Expected calibration error | 0.0293 |
+| Ordinary LDA reference | 45.1% accuracy; ECE 0.1644 |
+
+**Exploratory only.** At the time this S1→S10 evaluation was generated, only S1 and S10 were available; S10 informed model diagnostics, so this is not an untouched final test. NinaPro DB2 subjects are intact participants; no amputee stratum has been evaluated.
+
+The DB2 label mapped to `open_hand` is label 5, **abduction of all fingers**, used only as a qualified proxy rather than an exact open-hand movement.
+
+## Additional S11 subject-held-out check
+
+This follow-up trains on S1 and S10 and evaluates only on S11.
+
+| Property | Value |
+| --- | --- |
+| Model | `lda_uniform` |
+| Split | Trained on S1, S10; tested on S11 |
+| Held-out windows | 20,956 |
+| Accuracy | 23.1% |
+| Majority-class baseline | 22.3% |
+| Expected calibration error | 0.3664 |
+
+**Poor cross-subject result.** Accuracy is only slightly above the majority baseline, and calibration is poor. S10 has informed earlier diagnostics, so this is a development check, not a fully untouched final evaluation.
 
 ## Limitations
 
-- **Trained on simulated data.** The simulator has no motion artefact, no skin-impedance drift, and no cross-session electrode replacement. These figures are optimistic relative to recorded data such as NinaPro; published NinaPro leave-one-subject-out results for a ten-gesture vocabulary typically fall well below what is reported here.
+- **Simulator-model limitation.** The simulator has no motion artefact, no skin-impedance drift, and no cross-session electrode replacement. Its figures are optimistic relative to recorded data such as NinaPro; published NinaPro leave-one-subject-out results for a ten-gesture vocabulary typically fall well below what is reported here.
 - **No amputee stratum.** Every simulated subject is able-bodied by construction. The report's amputee-stratum requirement cannot be satisfied until recorded amputee data is available.
 - **8 subjects.** Confidence intervals are wide and the worst-subject figure matters more than the mean.
-- **No electrode-shift robustness curve yet.** The corpus builder supports a shift override; the sweep itself is not yet run.
+- **Electrode-shift robustness.** The recorded result is not a human robustness study; the simulator sweep is reported separately in its artifact and does not establish robustness on people.
 
 ## Reproducing
 
@@ -128,6 +161,13 @@ Maximum absolute probability difference between scikit-learn and ONNX Runtime ac
 python -m neurogrip.experiments compare --out artifacts/model_comparison.json     --posteriors artifacts/posteriors
 npm run ttum
 python -m neurogrip.experiments export  --out artifacts/ --model rbf_svm
+python -m neurogrip.model_card --artifacts artifacts --out docs/model_card.md
+```
+
+The recorded-data section requires a separately obtained NinaPro DB2 copy; it is generated from the held-out evaluation artifact.
+
+```bash
+python -m neurogrip.heldout --data-root data/ninapro/DB2 --train-subjects 1 --test-subject 10 --model lda_uniform --out artifacts/ninapro_holdout --replay-out apps/web/public/replay/ninapro
 python -m neurogrip.model_card --artifacts artifacts --out docs/model_card.md
 ```
 
