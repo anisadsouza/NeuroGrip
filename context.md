@@ -1,15 +1,17 @@
 # NeuroGrip: current state and next steps
 
-Updated 2026-10-28 after uniform-prior model experiments, full held-out
-quality-gate scoring, virtual-action output, and browser/regression checks. Read
+Updated 2026-10-30 after the S11 subject-held-out check, uniform-prior model
+experiments, held-out quality-gate scoring, virtual-action output, and
+browser/regression checks. Read
 `CLAUDE.md` for the project's engineering and safety rules.
 
 **Research prototype. Not a medical device. Not validated for clinical use.**
-The project now has a real-recording evaluation path, but its only recorded
-comparison uses two intact subjects (S1 and S10). S10 has informed candidate
-diagnostics, so S1-to-S10 scores are development results, not an untouched
-final test or population-level evidence. Simulator results and recorded
-results remain separate.
+The project now has a real-recording evaluation path with three locally
+available intact subjects (S1, S10, and S11). S10 informed candidate
+diagnostics. The S1-to-S10 score is a development result; the quick S1+S10-to-
+S11 check is only slightly above its majority baseline and has poor calibration.
+Neither establishes population-level performance. Simulator results and
+recorded results remain separate.
 
 ---
 
@@ -65,7 +67,7 @@ These are the ones an AI assistant is most likely to break. The full list is in
 | Phase | What | State |
 | --- | --- | --- |
 | 0–1b | Simulator, Python/TypeScript feature conformance, decoder, ONNX, browser Live/virtual hand | Done |
-| Recorded DB2 path | Six local S1/S10 sessions, loader and mapping, comparison, held-out export/replay, Results views | Implemented and tested; exploratory, two subjects |
+| Recorded DB2 path | Nine local S1/S10/S11 sessions, loader and mapping, two-subject held-out export/replay, Results views | Implemented; exploratory, three subjects; S11 quality audit and full model comparison remain |
 | 2 | Neuromotor Cartography (Pillar 1) | Partly done; see §6 |
 | 3 | Error-attribution router, anatomical coaching | Not started |
 | 4 | Robustness | Electrode-shift sweep complete: passes through 0.2 rad, fails at 0.3/0.4 rad; simulated only |
@@ -81,13 +83,14 @@ and deployment remain future work.
 
 ### Dataset ingestion and quality audit
 
-The local dataset has six A1 MATLAB recordings: S1 and S10, each with E1, E2,
-and E3. The audit was run against these actual files (not only synthetic test
-fixtures):
+The local dataset now has nine A1 MATLAB recordings: S1, S10, and S11, each
+with E1, E2, and E3. The detailed loader, unit, and rest-level audit below was
+run against the original six S1/S10 files; S11 was subsequently loaded for the
+held-out model check, but still needs that same per-file quality audit.
 
 | Check | Observed |
 | --- | --- |
-| Subjects / files | S1 and S10; 6 files total (E1-E3 per subject) |
+| Subjects / files | S1, S10, and S11; 9 files total (E1-E3 per subject); detailed checks below cover S1/S10 |
 | EMG dimensions | Samples × 12 channels, float32; the loader retains channels 1-8 |
 | Sample rate | 2 kHz, matching the feature pipeline and DB2 documentation |
 | Label arrays | E1 has 0-17, E2 has 0 and 18-40, E3 has 0 and 41-49; each exercise's expected IDs were present |
@@ -96,7 +99,7 @@ fixtures):
 | Unequal tails | S1 E3 has 1 extra EMG sample and S10 E3 has 2; the loader trims only these unmatched tails |
 | Unit multiplier | Loader heuristic selected 1.0 (no conversion) for all six files; values were treated as volts |
 | Rest level | Median per-channel rest RMS across all session/channel pairs is 8.09 µV; maximum is 66.44 µV (S10 E1 channel 1) |
-| Extracted corpus | 35,758 windows × 136 features, from two subjects; mapped windows are finite |
+| Extracted corpus | Original S1/S10 corpus: 35,758 windows × 136 features; current three-subject corpus: 56,714 windows × 136 features |
 
 Rest RMS is not uniform: some channel/session outliers exceed the project's
 nominal baseline. The unit scale is a loader heuristic supported by the
@@ -106,9 +109,13 @@ human-device safety. The loader uses `restimulus`, keeps only 200 ms windows
 whose label and repetition are constant, samples every eighth rest window,
 and marks fatigue unknown (zero) rather than inventing a fatigue label.
 
-The full DB2 release has 40 intact subjects; only S1 and S10 are present
-locally. This evaluation cannot establish generalization across that
-population.
+The full DB2 release has 40 intact subjects; only S1, S10, and S11 are present
+locally. A quick LDA-uniform model trained on S1+S10 and tested on S11 scored
+23.07% across 20,956 windows, versus a 22.26% majority-class baseline, with ECE
+0.3664. This is poor cross-subject performance. The comprehensive comparison
+across model families was stopped because its SVM evaluations were taking
+substantially longer; it remains to be run. This three-subject check cannot
+establish generalization across the full population.
 
 ### Movement mapping
 
@@ -270,10 +277,11 @@ quality-gate counts, zero-signal control, and Live virtual action.
 
 ## 6. Remaining work, in priority order
 
-1. **Broaden the recorded-data evaluation.** Obtain additional independently
-   licensed DB2 subjects, include them in the data-quality audit, rerun the
-   model comparison, and report uncertainty across a meaningful subject set.
-   The present S1-to-S10 split is a single exploratory holdout.
+1. **Broaden and complete the recorded-data evaluation.** Audit S11's
+   per-file signal quality, run the full multi-model comparison, and evaluate
+   more independently licensed DB2 subjects if available. Report uncertainty
+   across a meaningful subject set. Current S1-to-S10 and S1+S10-to-S11 results
+   are exploratory checks, not population-level evidence.
 2. **Review scientific validity before making claims.** Label 5 is finger
    abduction used as an `open_hand` proxy; rest RMS varies by channel/session;
    the candidate's ECE is 0.0293 on the current S10 development set but
