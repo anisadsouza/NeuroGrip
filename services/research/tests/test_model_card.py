@@ -213,3 +213,57 @@ def test_ttum_never_prints_a_missing_measurement_as_zero(comparison, decoder, tt
                          "p90Ms": None, "p95Ms": None, "maxMs": None}
     card = render(comparison, decoder, "2026-09-09", ttum)
     assert "| Any motion | 0 | 320 | — | — | — | — |" in card
+
+
+def test_recorded_candidate_is_reported_separately_from_simulator(comparison, decoder):
+    recorded = {
+        "model": "lda_uniform",
+        "training_subjects": [1],
+        "test_subject": 10,
+        "n_test": 17293,
+        "accuracy": 0.4685,
+        "baseline_accuracy": 0.3651,
+        "expected_calibration_error": 0.0293,
+    }
+    ordinary_lda = {
+        "accuracy": 0.4509,
+        "expected_calibration_error": 0.1644,
+    }
+    s11 = {
+        "model": "lda_uniform",
+        "training_subjects": [1, 10],
+        "test_subject": 11,
+        "n_test": 20956,
+        "accuracy": 0.2307,
+        "baseline_accuracy": 0.2226,
+        "expected_calibration_error": 0.3664,
+    }
+    card = render(
+        comparison,
+        decoder,
+        "2026-10-30",
+        recorded_evaluation=recorded,
+        recorded_baseline=ordinary_lda,
+        s11_evaluation=s11,
+    )
+
+    assert "Recorded NinaPro DB2 development evaluation" in card
+    assert "Trained on S1; tested on S10" in card
+    assert "46.9%" in card
+    assert "36.5%" in card
+    assert "45.1% accuracy; ECE 0.1644" in card
+    assert "S10 informed model diagnostics" in card
+    assert "no amputee stratum" in card
+    assert "abduction of all fingers" in card
+    assert "Additional S11 subject-held-out check" in card
+    assert "Trained on S1, S10; tested on S11" in card
+    assert "23.1%" in card
+    assert "22.3%" in card
+    assert "0.3664" in card
+    assert "Poor cross-subject result" in card
+
+
+def test_model_card_without_local_recorded_artifacts_remains_simulator_only(comparison, decoder):
+    card = render(comparison, decoder, "2026-10-30")
+    assert "Recorded NinaPro DB2 development evaluation" not in card
+    assert "simulator-trained model has not been evaluated" in card

@@ -34,6 +34,9 @@ def render(
     decoder: dict,
     generated_on: str,
     ttum: dict | None = None,
+    recorded_evaluation: dict | None = None,
+    recorded_baseline: dict | None = None,
+    s11_evaluation: dict | None = None,
 ) -> str:
     best = comparison["best_model"]
     models = comparison["models"]
@@ -61,8 +64,9 @@ def render(
     add("")
     add(
         "**Out of scope:** any use on a person, any clinical decision, and any "
-        "deployment connected to real actuation. The decoder has never been "
-        "evaluated on recorded human sEMG."
+        "deployment connected to real actuation. The simulator-trained model "
+        "has not been evaluated on recorded human sEMG; the separate "
+        "recorded-data development evaluation below is not clinical validation."
     )
     add("")
 
@@ -230,12 +234,82 @@ def render(
     )
     add("")
 
+    if recorded_evaluation is not None:
+        add("## Recorded NinaPro DB2 development evaluation")
+        add("")
+        add(
+            "This is a separate recorded-data model and must not be conflated "
+            "with the simulator model above."
+        )
+        add("")
+        add("| Property | Value |")
+        add("| --- | --- |")
+        add(f"| Model | `{recorded_evaluation['model']}` |")
+        add(
+            f"| Split | Trained on {', '.join(f'S{subject}' for subject in recorded_evaluation['training_subjects'])}; "
+            f"tested on S{recorded_evaluation['test_subject']} |"
+        )
+        add(f"| Held-out windows | {recorded_evaluation['n_test']:,} |")
+        add(f"| Accuracy | {_fmt_pct(recorded_evaluation['accuracy'])} |")
+        add(f"| Majority-class baseline | {_fmt_pct(recorded_evaluation['baseline_accuracy'])} |")
+        add(
+            f"| Expected calibration error | "
+            f"{recorded_evaluation['expected_calibration_error']:.4f} |"
+        )
+        if recorded_baseline is not None:
+            add(
+                f"| Ordinary LDA reference | {_fmt_pct(recorded_baseline['accuracy'])} "
+                f"accuracy; ECE {recorded_baseline['expected_calibration_error']:.4f} |"
+            )
+        add("")
+        add(
+            "**Exploratory only.** At the time this S1→S10 evaluation was generated, "
+            "only S1 and S10 were available; S10 informed model diagnostics, so "
+            "this is not an untouched final test. NinaPro DB2 subjects are intact "
+            "participants; no amputee stratum has been evaluated."
+        )
+        add("")
+        add(
+            "The DB2 label mapped to `open_hand` is label 5, **abduction of all "
+            "fingers**, used only as a qualified proxy rather than an exact "
+            "open-hand movement."
+        )
+        add("")
+
+    if s11_evaluation is not None:
+        add("## Additional S11 subject-held-out check")
+        add("")
+        add("This follow-up trains on S1 and S10 and evaluates only on S11.")
+        add("")
+        add("| Property | Value |")
+        add("| --- | --- |")
+        add(f"| Model | `{s11_evaluation['model']}` |")
+        add(
+            f"| Split | Trained on {', '.join(f'S{subject}' for subject in s11_evaluation['training_subjects'])}; "
+            f"tested on S{s11_evaluation['test_subject']} |"
+        )
+        add(f"| Held-out windows | {s11_evaluation['n_test']:,} |")
+        add(f"| Accuracy | {_fmt_pct(s11_evaluation['accuracy'])} |")
+        add(f"| Majority-class baseline | {_fmt_pct(s11_evaluation['baseline_accuracy'])} |")
+        add(
+            f"| Expected calibration error | "
+            f"{s11_evaluation['expected_calibration_error']:.4f} |"
+        )
+        add("")
+        add(
+            "**Poor cross-subject result.** Accuracy is only slightly above the "
+            "majority baseline, and calibration is poor. S10 has informed earlier "
+            "diagnostics, so this is a development check, not a fully untouched "
+            "final evaluation."
+        )
+        add("")
+
     add("## Limitations")
     add("")
     add(
-        "- **Trained on simulated data.** The simulator has no motion artefact, "
+        "- **Simulator-model limitation.** The simulator has no motion artefact, "
         "no skin-impedance drift, and no cross-session electrode replacement. "
-        "These figures are optimistic relative to recorded data such as NinaPro; "
+        "Its figures are optimistic relative to recorded data such as NinaPro; "
         "published NinaPro leave-one-subject-out results for a ten-gesture "
         "vocabulary typically fall well below what is reported here."
     )
@@ -249,8 +323,9 @@ def render(
         "the worst-subject figure matters more than the mean."
     )
     add(
-        "- **No electrode-shift robustness curve yet.** The corpus builder "
-        "supports a shift override; the sweep itself is not yet run."
+        "- **Electrode-shift robustness.** The recorded result is not a human "
+        "robustness study; the simulator sweep is reported separately in its "
+        "artifact and does not establish robustness on people."
     )
     add("")
 
@@ -268,6 +343,24 @@ def render(
     add("python -m neurogrip.model_card --artifacts artifacts --out docs/model_card.md")
     add("```")
     add("")
+    if recorded_evaluation is not None:
+        add(
+            "The recorded-data section requires a separately obtained NinaPro "
+            "DB2 copy; it is generated from the held-out evaluation artifact."
+        )
+        add("")
+        add("```bash")
+        add(
+            "python -m neurogrip.heldout --data-root data/ninapro/DB2 "
+            "--train-subjects "
+            + ",".join(str(subject) for subject in recorded_evaluation["training_subjects"])
+            + f" --test-subject {recorded_evaluation['test_subject']} "
+            "--model lda_uniform --out artifacts/ninapro_holdout "
+            "--replay-out apps/web/public/replay/ninapro"
+        )
+        add("python -m neurogrip.model_card --artifacts artifacts --out docs/model_card.md")
+        add("```")
+        add("")
 
     return "\n".join(lines) + "\n"
 
@@ -287,10 +380,37 @@ def main() -> None:
     # needs the Node toolchain and the card must not require it.
     ttum_path = args.artifacts / "ttum.json"
     ttum = json.loads(ttum_path.read_text(encoding="utf-8")) if ttum_path.exists() else None
+    recorded_path = args.artifacts / "ninapro_holdout" / "evaluation.json"
+    recorded = (
+        json.loads(recorded_path.read_text(encoding="utf-8"))
+        if recorded_path.exists()
+        else None
+    )
+    recorded_baseline_path = (
+        args.artifacts / "ninapro_lda_baseline" / "evaluation.json"
+    )
+    recorded_baseline = (
+        json.loads(recorded_baseline_path.read_text(encoding="utf-8"))
+        if recorded_baseline_path.exists()
+        else None
+    )
+    s11_path = args.artifacts / "ninapro_s11_holdout" / "evaluation.json"
+    s11_evaluation = (
+        json.loads(s11_path.read_text(encoding="utf-8")) if s11_path.exists() else None
+    )
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(
-        render(comparison, decoder, date.today().isoformat(), ttum), encoding="utf-8"
+        render(
+            comparison,
+            decoder,
+            date.today().isoformat(),
+            ttum,
+            recorded,
+            recorded_baseline,
+            s11_evaluation,
+        ),
+        encoding="utf-8",
     )
     print(f"wrote {args.out}")
 
