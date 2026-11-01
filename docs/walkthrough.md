@@ -252,10 +252,14 @@ browser figure covers feature extraction plus ONNX inference in the worker.
 Neither includes wearer reaction time or establishes medical-device safety.
 
 The current recorded model is uniform-prior LDA, a development candidate from
-only S1 and S10. Its S1→S10 score is 46.85% across 17,293 windows, but S10 has
-already informed model diagnostics and three gesture classes still have zero
-recall. This is not a final generalization estimate; the only additional
-subject in the local dataset is S1.
+only S1 and S10. Its S1→S10 score is 46.85% across 17,293 windows, compared with
+45.09% for the ordinary-LDA reference and a 36.51% majority-class baseline.
+S10 has already informed model diagnostics and three gesture classes still
+have zero recall. This is not a final generalization estimate; the only
+additional subject now evaluated is S11: training on S1+S10 and testing on S11
+scored 23.07% versus a 22.26% majority baseline, with ECE 0.3664. This is a
+poor development result, not an accuracy improvement or an untouched final
+test.
 
 ---
 
