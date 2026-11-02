@@ -1,7 +1,8 @@
 # NeuroGrip: current state and next steps
 
-Updated 2026-11-02 after the S11 subject-held-out and signal-quality audits,
-current browser latency measurement, and app command-readout verification. Read
+Updated 2026-11-02 after exploratory LDA/SVM generalization experiments, the
+S11 subject-held-out and signal-quality audits, current browser latency
+measurement, and app command-readout verification. Read
 `CLAUDE.md` for the project's engineering and safety rules.
 
 **Research prototype. Not a medical device. Not validated for clinical use.**
@@ -177,8 +178,8 @@ majority baseline. S10 informed diagnostics, so this is exploratory rather
 than an untouched final test. The additional uniform-prior check trained on
 S1+S10 and tested on S11 scored 23.07% on 20,956 windows, against a 22.26%
 majority baseline (ECE 0.3664). This is poor cross-subject performance. The
-full multi-model comparison was stopped because its SVM evaluations were
-taking substantially longer and remains open.
+full-corpus multi-model comparison was not completed; a bounded, subsampled
+SVM comparison is documented below.
 
 The S11 confusion matrix predicts `rest` for 19,125 / 20,956 windows. Recall
 is 99.08% for `rest`, 5.11% for `thumb_up`, 4.92% for `two_finger`, and 1.63%
@@ -186,6 +187,42 @@ for `spherical_grip`; `fist`, `open_hand`, `pinch`, `point`, `wrist_flexion`,
 and `wrist_extension` all have 0% recall. For every movement class, its most
 frequent error is prediction as rest. This failure pattern and the S11 signal
 audit are included in the model card.
+
+### Exploratory attempts to improve cross-subject accuracy
+
+These are development experiments on the three local subjects, not a new
+headline result. Nothing from these experiments replaced the recorded decoder.
+The same 56,714-window corpus was evaluated with subject-held-out folds.
+
+- Changing LDA from empirical to uniform class priors barely moved the
+  three-subject mean (36.15% vs 36.23%). With uniform priors, S11 remained at
+  23.06%, predicted rest for 91.25% of windows, and had 1.30% macro movement
+  recall.
+- Per-subject channel scaling from recorded rest RMS was tested as a
+  transductive calibration experiment. It used the held-out subject's rest
+  windows to estimate scale, so it is not an untouched-test result. It lowered
+  mean LOSO accuracy to 33.09%; S11 fell to 15.06%. Dropping channel 1 also
+  failed to help (35.98% mean LOSO; 22.65% on S11). The noisy S11 E2 channel is
+  therefore not, by itself, a demonstrated explanation for the failure.
+- Downsampling training rest to the median movement-class count raised S11 to
+  25.65%, with 17.33% macro movement recall and 26.37% predicted-rest windows,
+  but the three-subject mean fell to 16.44%. A nested choice of rest ratio from
+  training-subject validation selected 4× for the S11 fold and gave 27.58% on
+  S11, but only 7.72% macro movement recall; its three-subject mean was 25.47%.
+  These variants trade a rest-only prediction for poor performance elsewhere
+  and are not a general solution.
+- A bounded SVM comparison used at most 250 windows per class per training
+  subject (5,000 training windows per fold) and all available windows for each
+  held-out test subject. Linear SVM reached 29.54% on S11 and 32.48% mean LOSO;
+  RBF SVM reached 28.66% on S11 and 25.18% mean LOSO. Neither consistently
+  improved on the unbalanced LDA baseline. These subsampled results are
+  exploratory; their window-level calibration folds are not suitable for
+  reporting reliable ECE.
+
+The limited gain on S11 does not support an 80% claim. Rest balancing and
+rest-based normalization need a larger, independent subject set and a
+pre-specified evaluation before adoption. S11 has already been inspected and
+is development data, not an untouched final test subject.
 
 ### Recorded quality gate and correctness (validated against the local corpus)
 
@@ -264,7 +301,8 @@ quality-gate counts, zero-signal control, and Live virtual action.
 ## 6. Remaining work, in priority order
 
 1. **Broaden and complete the recorded-data evaluation.** Run the full
-   multi-model comparison, investigate S11 E2 channel 1's high rest RMS, and
+   multi-model comparison (only a bounded subsampled SVM comparison has been
+   completed), investigate S11 E2 channel 1's high rest RMS, and
    evaluate more independently licensed DB2 subjects if available. Report
    uncertainty across a meaningful subject set. Current S1-to-S10 and
    S1+S10-to-S11 results are exploratory checks, not population-level evidence.
@@ -276,7 +314,11 @@ quality-gate counts, zero-signal control, and Live virtual action.
 3. **Continue unfinished project phases** below: Cartography gate/assignment,
    error attribution, anatomical coaching, clinician mode, amputee evaluation,
    and deployment.
-4. **Do not optimize `build:assets` yet.** The app's production Vite build was
+4. **Verify NinaPro redistribution terms.** No registered-download agreement
+   was present alongside the local `.mat` recordings, so permission to
+   redistribute derived replay or model files remains unverified. Do not
+   publish those files until the agreement is reviewed.
+5. **Do not optimize `build:assets` yet.** The app's production Vite build was
    about 5 seconds and the full E2E suite about 33 seconds in this environment.
    `build:assets` is an explicit simulator asset regeneration pipeline, not
    part of routine E2E or normal app startup. Its own duration was not

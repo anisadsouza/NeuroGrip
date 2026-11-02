@@ -21,7 +21,7 @@ type Theme = 'light' | 'dark';
 const THEME_KEY = 'neurogrip.theme';
 
 /** Whose work this is. Order as on the project report. */
-const TEAM = ['Harsh Bavaskar', "Anisa D'Souza", 'Shruti Shanklesha'];
+const TEAM = ['Harsh Bavaskar', "Anisa D'souza", 'Shruti Shanklesha'];
 
 function readStoredTheme(): Theme | null {
   try {
