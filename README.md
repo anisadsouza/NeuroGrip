@@ -75,8 +75,8 @@ every number on it means.
 | Simulator decoder | RBF SVM, 95.63% LOSO accuracy, ECE 0.022 |
 | NinaPro held-out results | Ordinary-LDA S1→S10 reference: 45.09%; uniform-prior LDA S1+S10→S11: 23.07% (22.26% majority baseline; ECE 0.3664). Exploratory only |
 | Recorded quality gate | 16,691 / 17,293 labeled S10 windows accepted (96.52%); all 602 rejects are rest windows. Acceptance is not accuracy |
-| Browser replay latency | NinaPro worker P95: 0.71 ms (feature extraction + inference only; not total reaction time) |
-| Time to motion | 40 ms median before the hand starts moving, 260 ms to latch |
+| Browser replay latency | NinaPro worker P95: 1.93 ms (2026-11-02, MacBook Air / Apple M3; feature extraction + inference only, not total reaction time). P95 varies between runs; a prior run measured 2.70 ms |
+| Time to motion | Simulator-only TTUM: 40 ms median before the hand starts moving, 260 ms to latch |
 | Tests | 189 Python + 266 TypeScript tests; Playwright 24/24; typecheck passes |
 | Built | Simulator and decoder, DB2 loader and comparison, subject-held-out ONNX export/replay, Live source selector, Results comparison/confusion/timeline/latency views |
 | Follow-up | More independent subjects and broader validation; clinician mode, error attribution, amputee stratum, deployment |
@@ -86,6 +86,13 @@ channel's RMS in the held-out subject's recorded rest segment, capped at the
 shared 5 µV floor. This is a replay-specific calibration for demonstrating the
 recorded dataset; it is not validated for live electrodes or a safety claim.
 The simulator keeps the original fixed 5 µV gate.
+
+The quality gate rejects channels below their calibrated minimum RMS and has
+a broad 5 V absolute-amplitude sanity limit. It does **not** impose a useful
+per-channel RMS ceiling or detect excessive baseline noise. In particular,
+S11 E2 channel 1 has 136.70 µV rest RMS and would not be rejected for being
+noisy by this minimum-floor gate. This limitation and the channel audit are
+documented in [`docs/model_card.md`](docs/model_card.md).
 
 The quality-gate acceptance rate is not gesture accuracy. On the full S10
 evaluation, the gate rejects 602 low-RMS windows and all are labeled rest;
@@ -103,6 +110,16 @@ improved recognition. The full multi-model comparison remains to be run. On
 S11, the model predicted rest for 19,125 of 20,956 windows; six gesture classes
 had zero recall. The per-gesture recalls and audited signal levels are in
 [`docs/model_card.md`](docs/model_card.md).
+
+**Why the S11 score is low:** this is a cross-subject result, and the classifier
+predicted `rest` for about 91% of S11 windows even though rest accounts for
+about 22% of the evaluation windows. Subject-specific signal scale or electrode
+placement, the S11 E2 channel-1 rest-RMS outlier, and calibration/feature
+distribution shift are plausible contributors, but the current experiments do
+not isolate the cause. The full multi-model comparison has not been run. An
+80% cross-subject target is not guaranteed; it would need better signal
+alignment and evaluation on a new subject that was not used for tuning.
+
 The DB2 label mapped to `open_hand` is label 5, *abduction of all fingers*; it
 is a qualified proxy, not an exact general open-hand match. There is no
 amputee stratum yet. See [`docs/model_card.md`](docs/model_card.md) for separate
@@ -119,7 +136,10 @@ Virtual actuator: close_fist · latched
 ```
 
 The probability and latency change with each window. The virtual command is a
-displayed simulation output; it is not sent to a motor.
+displayed simulation output; it is not sent to a motor. Risk-weighted
+commitment was evaluated on simulator posteriors, not validated on NinaPro.
+The recorded S11 model has ECE 0.3664, so its probabilities are not reliable
+enough to claim that recorded-data commitment behaviour is validated.
 
 The simulated electrode-shift screen stays within its 8 percentage-point
 degradation bound through a 0.2 rad shift, but fails at 0.3 and 0.4 rad. This
@@ -133,8 +153,9 @@ not evidence that the system is robust on people.
 2. Keep the browser app usable as the main final demo: live signal, decoded
    gesture, confidence/evidence, latency, and virtual hand motion.
 3. Expand recorded evaluation to more subjects; then add the missing
-   report-grade studies: clinician mode, attribution/error explanation, and
-   amputee data evaluation if a suitable dataset is available.
+   report-grade studies: clinician mode, error attribution and coaching,
+   amputee data evaluation if a suitable dataset is available, and live
+   electrode input. These remain future work.
 4. Keep documentation updated after each meaningful change: README for project
    status, `docs/walkthrough.md` for demo usage, and `docs/model_card.md` for
    model limitations.

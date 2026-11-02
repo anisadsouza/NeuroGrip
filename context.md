@@ -66,7 +66,7 @@ These are the ones an AI assistant is most likely to break. The full list is in
 | Phase | What | State |
 | --- | --- | --- |
 | 0–1b | Simulator, Python/TypeScript feature conformance, decoder, ONNX, browser Live/virtual hand | Done |
-| Recorded DB2 path | Nine local S1/S10/S11 sessions, loader and mapping, two-subject held-out export/replay, Results views | Implemented; exploratory, three subjects; S11 quality audit and full model comparison remain |
+| Recorded DB2 path | Nine local S1/S10/S11 sessions, loader and mapping, subject-held-out export/replay, Results views, S11 quality audit | Implemented; exploratory, three subjects; full multi-model comparison remains |
 | 2 | Neuromotor Cartography (Pillar 1) | Partly done; see §6 |
 | 3 | Error-attribution router, anatomical coaching | Not started |
 | 4 | Robustness | Electrode-shift sweep complete: passes through 0.2 rad, fails at 0.3/0.4 rad; simulated only |
@@ -124,6 +124,16 @@ across model families was stopped because its SVM evaluations were taking
 substantially longer; it remains to be run. This three-subject check cannot
 establish generalization across the full population.
 
+The low S11 score is a cross-subject failure: despite rest being about 22% of
+the held-out windows, the model predicted rest for about 91%. Possible
+contributors include subject-specific signal scale/electrode placement,
+the S11 E2 channel-1 rest RMS outlier, calibration and feature-distribution
+shift, and the limited two-subject training set. The current evidence does not
+isolate a single cause. The open-hand label is also a finger-abduction proxy.
+Reaching 80% cannot be promised by changing a threshold or normalizing one
+channel; it needs experiments on training subjects and evaluation on a new,
+untouched subject.
+
 ### Movement mapping
 
 Keeping the app vocabulary means the virtual hand, commit costs and UI need no
@@ -177,17 +187,6 @@ and `wrist_extension` all have 0% recall. For every movement class, its most
 frequent error is prediction as rest. This failure pattern and the S11 signal
 audit are included in the model card.
 
-### Earlier latency-only browser run (superseded)
-
-The replay manifest calibrates each channel's minimum RMS to 25% of that
-recorded-rest RMS, capped at the existing 5 µV floor. An earlier latency-only
-run measured worker P95 1.325 ms; this is superseded by the current artifact
-value below. P95 covers worker feature extraction plus ONNX inference,
-excludes message/UI overhead, and pushes windows in lockstep rather than real
-time. It is not a physiological reaction-time measure. This calibration is
-for replay demonstration only; it has not been validated as a live-electrode
-safety gate. The simulator still uses the original fixed 5 µV threshold.
-
 ### Recorded quality gate and correctness (validated against the local corpus)
 
 The replay manifest calibrates each channel's minimum RMS to 25% of that
@@ -213,11 +212,19 @@ plus ONNX inference in the worker, excludes message/UI overhead, and pushes
 windows in lockstep rather than in real time. It is not a physiological
 reaction-time measure.
 
-The latest recorded S10 browser latency artifact reports worker P95 **0.71 ms**.
-It covers feature extraction plus ONNX inference, excludes message/UI overhead,
-and is not total user reaction time. The zero-signal control is rejected. The
-separate simulated bench has its own accuracy and latency results; do not mix
-them with recorded-data metrics.
+The latest recorded S10 browser latency artifact, measured 2026-11-02 on a
+MacBook Air with Apple M3, reports worker P95 **1.93 ms**. An earlier browser
+run reported P95 2.70 ms; timings vary between runs. They cover feature
+extraction plus ONNX inference, exclude message/UI overhead, and are not total
+user reaction time. The zero-signal control is rejected. The separate
+simulated bench has its own accuracy and latency results; do not mix them with
+recorded-data metrics.
+
+The quality gate is a minimum-RMS gate plus a broad 5 V absolute-amplitude
+sanity check. It has no useful per-channel RMS upper limit for detecting
+excessive baseline noise. S11 E2 channel 1's 136.70 µV rest RMS is therefore
+not rejected as noisy; high-RMS channel faults remain an unvalidated failure
+mode.
 
 ### Held-out replay and Live screen (implemented)
 
@@ -240,6 +247,10 @@ confusion matrix scrolls horizontally on mobile without causing page-level
 overflow. The virtual hand now uses the same class as the named output: it
 previews the leader while reversible, shows the latched class after commitment,
 and shows rest after timeout. Rest is not reported as actuator travel.
+This confirms software wiring only: risk-weighted commitment was evaluated on
+simulator posteriors and is not validated on recorded NinaPro data. S11's
+recorded-model ECE of 0.3664 makes its probabilities too poorly calibrated for
+a claim that the commitment behaviour works reliably on that recording.
 
 The browser latency test writes JSON after Playwright's production preview has
 already been built. Therefore, after a fresh `npm run test:e2e`, run
