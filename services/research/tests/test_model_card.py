@@ -285,6 +285,7 @@ def test_recorded_results_and_s11_audit_are_reported_separately(comparison, deco
     assert "| `rest` | 99.1% |" in card
     assert "| S11 | 26.61% | 35.45% | 25.98% |" in card
     assert "| E2 | 136.70 | 3.29 |" in card
+    assert "does not impose a useful per-channel RMS ceiling" in card
 
 
 def test_model_card_without_local_recorded_artifacts_remains_simulator_only(comparison, decoder):

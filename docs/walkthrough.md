@@ -71,7 +71,9 @@ channels can have lower recorded baseline levels than the simulator. It lets
 the app demonstrate the held-out recording while still rejecting near-zero
 channels. This replay-specific threshold has not been validated for live
 electrodes and must not be presented as a clinical/safety threshold. The
-simulated replay continues to use the unchanged fixed 5 µV minimum.
+simulated replay continues to use the unchanged fixed 5 µV minimum. The gate
+does not impose a useful per-channel RMS ceiling for excessive baseline noise:
+S11 E2 channel 1 has 136.70 µV rest RMS and is not rejected for being high.
 
 ---
 
@@ -258,6 +260,11 @@ S1+S10 and tested on S11 scored 23.07% versus a 22.26% majority baseline, with
 ECE 0.3664. This is poor cross-subject performance, not an improvement or an
 untouched final estimate. On S11, six gesture classes had zero recall and the
 model predicted rest for 19,125 of 20,956 windows.
+
+The recorded S11 model's ECE is 0.3664. Risk-weighted commitment is exercised
+with simulator posteriors, but has not been validated on this poorly calibrated
+recorded model; the virtual command display proves wiring, not safe or reliable
+recorded-data control.
 
 ---
 

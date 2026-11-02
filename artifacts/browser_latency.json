@@ -1,5 +1,5 @@
 {
-  "measuredAt": "2026-11-01",
+  "measuredAt": "2026-11-02",
   "budgetMs": 10,
   "meetsBudget": true,
   "windowsProcessed": 1000,
@@ -11,13 +11,13 @@
   "zeroSignalRejected": true,
   "threaded": true,
   "backend": "wasm",
-  "meanMs": 1.231394999742508,
-  "p50Ms": 0.9950000047683716,
-  "p95Ms": 1.809999942779541,
-  "p99Ms": 3.3249999284744263,
-  "maxMs": 64.86500000953674,
-  "featureP95Ms": 0.36500000953674316,
-  "inferenceP95Ms": 1.4399999380111694,
+  "meanMs": 2.2684400012493136,
+  "p50Ms": 1.8949999809265137,
+  "p95Ms": 4.200000047683716,
+  "p99Ms": 7.365000009536743,
+  "maxMs": 93.81499993801117,
+  "featureP95Ms": 0.8349999189376831,
+  "inferenceP95Ms": 3.165000081062317,
   "hopMs": 20,
   "note": "Simulated signal. Latency covers feature extraction plus ONNX inference in the worker, measured one window at a time. Windows are pushed in lockstep rather than in real time, so this measures the decode path and not the scheduler. Latency excludes the postMessage round trip and the UI thread: it is what the worker spent, which is the part under the ten-millisecond budget. Signal-quality rejects are counted and excluded from latency percentiles. Stable replay top-1 accuracy excludes the first 200 ms after each gesture switch; an all-zero control window must be rejected."
 }

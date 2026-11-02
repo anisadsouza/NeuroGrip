@@ -184,6 +184,8 @@ S11 rest RMS in µV for the first eight channels:
 
 The 136.70 µV rest RMS on S11 E2 channel 1 is a conspicuous channel/session outlier and should be investigated; these recordings do not contain independent artifact labels to determine its cause.
 
+The replay quality gate enforces a minimum channel RMS plus a broad 5 V absolute-amplitude sanity limit. It does not impose a useful per-channel RMS ceiling for excessive baseline noise, so this high RMS channel is not rejected as noisy.
+
 ## Limitations
 
 - **Simulator-model limitation.** The simulator has no motion artefact, no skin-impedance drift, and no cross-session electrode replacement. Its figures are optimistic relative to recorded data such as NinaPro; published NinaPro leave-one-subject-out results for a ten-gesture vocabulary typically fall well below what is reported here.

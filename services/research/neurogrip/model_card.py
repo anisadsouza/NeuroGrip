@@ -354,6 +354,13 @@ def render(
             "do not contain independent artifact labels to determine its cause."
         )
         add("")
+        add(
+            "The replay quality gate enforces a minimum channel RMS plus a broad "
+            "5 V absolute-amplitude sanity limit. It does not impose a useful "
+            "per-channel RMS ceiling for excessive baseline noise, so this high "
+            "RMS channel is not rejected as noisy."
+        )
+        add("")
 
     add("## Limitations")
     add("")
