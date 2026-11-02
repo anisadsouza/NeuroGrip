@@ -240,26 +240,24 @@ is still honest, just measured on a slower path.
 
 ## Results
 
-The Results section opens with the recorded S1→S10 summary: held-out accuracy,
-stable browser replay top-1, quality-gate acceptance, worker P95, calibration,
-and the most common wrong predictions. The confusion matrix, performed-versus-
-decoded timeline, quality-gate notes, model comparisons, and simulator results
-are available in collapsed sections. Simulated and recorded scores remain
-separate. Acceptance is not correctness: the app scores predictions separately
-against the dataset labels.
+The Results section opens with the recorded S1→S10 exploratory summary,
+quality-gate acceptance, worker P95, calibration, and the most common wrong
+predictions. The confusion matrix, performed-versus-decoded timeline,
+quality-gate notes, model comparisons, and simulator results are available in
+collapsed sections. Simulated and recorded scores remain separate. Acceptance
+is not correctness: the app scores predictions separately against dataset
+labels.
 The CPU figure covers ONNX inference on pre-extracted held-out windows; the
 browser figure covers feature extraction plus ONNX inference in the worker.
 Neither includes wearer reaction time or establishes medical-device safety.
 
-The current recorded model is uniform-prior LDA, a development candidate from
-only S1 and S10. Its S1→S10 score is 46.85% across 17,293 windows, compared with
-45.09% for the ordinary-LDA reference and a 36.51% majority-class baseline.
-S10 has already informed model diagnostics and three gesture classes still
-have zero recall. This is not a final generalization estimate; the only
-additional subject now evaluated is S11: training on S1+S10 and testing on S11
-scored 23.07% versus a 22.26% majority baseline, with ECE 0.3664. This is a
-poor development result, not an accuracy improvement or an untouched final
-test.
+The recorded S1→S10 ordinary-LDA reference scored 45.09% across 17,293
+windows; S10 has informed model diagnostics, so this is exploratory rather
+than an untouched final test. A quick uniform-prior LDA check trained on
+S1+S10 and tested on S11 scored 23.07% versus a 22.26% majority baseline, with
+ECE 0.3664. This is poor cross-subject performance, not an improvement or an
+untouched final estimate. On S11, six gesture classes had zero recall and the
+model predicted rest for 19,125 of 20,956 windows.
 
 ---
 

@@ -1,8 +1,7 @@
 # NeuroGrip: current state and next steps
 
-Updated 2026-10-30 after the S11 subject-held-out check, uniform-prior model
-experiments, held-out quality-gate scoring, virtual-action output, and
-browser/regression checks. Read
+Updated 2026-11-02 after the S11 subject-held-out and signal-quality audits,
+current browser latency measurement, and app command-readout verification. Read
 `CLAUDE.md` for the project's engineering and safety rules.
 
 **Research prototype. Not a medical device. Not validated for clinical use.**
@@ -83,31 +82,39 @@ and deployment remain future work.
 
 ### Dataset ingestion and quality audit
 
-The local dataset now has nine A1 MATLAB recordings: S1, S10, and S11, each
-with E1, E2, and E3. The detailed loader, unit, and rest-level audit below was
-run against the original six S1/S10 files; S11 was subsequently loaded for the
-held-out model check, but still needs that same per-file quality audit.
+The local dataset has nine A1 MATLAB recordings: S1, S10, and S11, each
+with E1, E2, and E3. The loader, exercise labels, rest proportions, and
+first-eight-channel rest RMS were checked for all nine files.
 
 | Check | Observed |
 | --- | --- |
-| Subjects / files | S1, S10, and S11; 9 files total (E1-E3 per subject); detailed checks below cover S1/S10 |
+| Subjects / files | S1, S10, and S11; 9 files total (E1-E3 per subject) |
 | EMG dimensions | Samples × 12 channels, float32; the loader retains channels 1-8 |
 | Sample rate | 2 kHz, matching the feature pipeline and DB2 documentation |
-| Label arrays | E1 has 0-17, E2 has 0 and 18-40, E3 has 0 and 41-49; each exercise's expected IDs were present |
-| Repetitions | 0-6 in all six sessions; 0 marks rest |
-| Finite values | Every raw EMG array and extracted feature vector is finite |
+| Label arrays | All three subjects have rest label 0 and every expected global movement ID: E1 1-17, E2 18-40, E3 41-49 |
+| Repetitions | 0-6 in all nine files; 0 marks rest |
+| Finite values | All nine files load; movement label ranges match across subjects |
 | Unequal tails | S1 E3 has 1 extra EMG sample and S10 E3 has 2; the loader trims only these unmatched tails |
-| Unit multiplier | Loader heuristic selected 1.0 (no conversion) for all six files; values were treated as volts |
-| Rest level | Median per-channel rest RMS across all session/channel pairs is 8.09 µV; maximum is 66.44 µV (S10 E1 channel 1) |
+| Unit multiplier | Loader heuristic selected 1.0 (no conversion) for all nine files; values were treated as volts |
+| Rest sample fraction | S1 E1/E2/E3: 58.87% / 56.59% / 37.83%; S10: 54.79% / 36.07% / 26.34%; S11: 26.61% / 35.45% / 25.98% |
+| Rest RMS | S11 E2 channel 1 is 136.70 µV, a conspicuous session/channel outlier; S10 E1 channel 1 is 66.44 µV |
 | Extracted corpus | Original S1/S10 corpus: 35,758 windows × 136 features; current three-subject corpus: 56,714 windows × 136 features |
 
-Rest RMS is not uniform: some channel/session outliers exceed the project's
-nominal baseline. The unit scale is a loader heuristic supported by the
-observed magnitudes, not a fresh independent instrument calibration. Treat
-this as a local dataset audit, not a guarantee of electrode quality or
-human-device safety. The loader uses `restimulus`, keeps only 200 ms windows
+Rest RMS is not uniform: S11 E2 channel 1 is especially high, while several
+other channels have low single-digit microvolt RMS. The cause of the outlier
+cannot be inferred from these files; there are no independent artifact labels.
+The unit scale is a loader heuristic, not a fresh independent instrument
+calibration. Treat this as a local dataset audit, not a guarantee of electrode
+quality or human-device safety. The loader uses `restimulus`, keeps only 200 ms windows
 whose label and repetition are constant, samples every eighth rest window,
 and marks fatigue unknown (zero) rather than inventing a fatigue label.
+
+Movement IDs match across S1, S10, and S11 with no subject-specific offset:
+E1 contains labels 1–17, E2 18–40, and E3 41–49, plus rest label 0. For S11,
+rest RMS in µV across channels 1–8 is E1 `[7.27, 3.62, 3.38, 4.42, 2.58,
+2.66, 4.94, 9.70]`, E2 `[136.70, 3.29, 3.17, 3.06, 2.69, 3.10, 5.93, 9.89]`,
+and E3 `[21.28, 10.74, 8.98, 4.10, 2.97, 3.43, 10.81, 19.17]`. The unusual
+S11 E2 channel-1 level needs investigation; the files do not identify its cause.
 
 The full DB2 release has 40 intact subjects; only S1, S10, and S11 are present
 locally. A quick LDA-uniform model trained on S1+S10 and tested on S11 scored
@@ -155,59 +162,31 @@ now passes it by keyword, so repetition metadata remains a tuple when the
 summary serializes it. The comparison also reports subject count/IDs from the
 actual corpus rather than simulator configuration.
 
-The DB2 comparison runs on the actual 35,758-window corpus. Two-subject LOSO
-results are in `artifacts/model_comparison_ninapro.json`:
+The ordinary-LDA S1→S10 reference is 45.09% on 17,293 windows, with a 36.51%
+majority baseline. S10 informed diagnostics, so this is exploratory rather
+than an untouched final test. The additional uniform-prior check trained on
+S1+S10 and tested on S11 scored 23.07% on 20,956 windows, against a 22.26%
+majority baseline (ECE 0.3664). This is poor cross-subject performance. The
+full multi-model comparison was stopped because its SVM evaluations were
+taking substantially longer and remains open.
 
-| Model | Accuracy (mean ± SD) | ECE |
-| --- | --- | --- |
-| Uniform-prior LDA | **50.02% ± 3.71 percentage points** | **0.0604** |
-| LDA | 49.17% ± 4.65 percentage points | 0.1720 |
-| Linear SVM | 45.59% ± 8.27 percentage points | 0.1593 |
-| RBF SVM | 38.57% ± 11.01 percentage points | 0.3775 |
-
-Uniform-prior LDA is the point-estimate winner in this small comparison. Its
-paired fold tests against ordinary LDA, linear SVM, and RBF SVM have p-values
-1.0, 1.0, and 0.5 respectively; with only two subject folds these tests cannot
-establish a reliable winner. The DB2 repetition-held-out split is also mixed:
-uniform-prior LDA scored 74.27% / ECE 0.1930, below ordinary LDA at 75.80% /
-0.1693 and RBF SVM at 78.27% / 0.1896. This is not a universal improvement.
-Keep the split and rest sampling explicit when reusing the artifact.
-
-The `neurogrip.heldout` workflow now exports the uniform-prior LDA candidate
-trained on S1 and evaluated on S10, and generates the matching held-out replay.
-The evaluation enforces disjoint training and test subjects, but S10 has since
-informed model diagnostics; the current result is a development score, not an
-untouched final test. Metrics in `artifacts/ninapro_holdout/evaluation.json`:
-
-- 18,465 training windows; 17,293 held-out windows.
-- Accuracy 46.85%, versus the stored ordinary-LDA baseline of 45.09%;
-  majority-class baseline 36.51%. ECE is 0.0293 versus 0.1644 for that baseline.
-- Uniform priors improved mean two-subject LOSO accuracy by 0.85 percentage
-  points and macro recall by 4.32 points, but did not improve the DB2
-  repetition-held-out score.
-- `fist`, `point`, and `wrist_extension` still have zero recall on S10.
-  Frequent residual errors include `thumb_up → rest` (948), `two_finger →
-  rest` (869), `pinch → rest` (771), and `point → rest` (688). Accuracy is only
-  10.34 points above the majority-class baseline.
-- Confusion matrix total equals all 17,293 test windows; the Results screen
-  renders all matrix cells and 54 performed-versus-decoded timeline events.
-- ONNX/sklearn probability parity passed on 2,000 held-out windows; maximum
-  absolute difference was `4.452e-7`.
-- CPU ONNX P95 is 0.036 ms for 1,000 individual pre-extracted feature rows.
-  It excludes feature extraction, browser worker messaging, and UI time.
+The S11 confusion matrix predicts `rest` for 19,125 / 20,956 windows. Recall
+is 99.08% for `rest`, 5.11% for `thumb_up`, 4.92% for `two_finger`, and 1.63%
+for `spherical_grip`; `fist`, `open_hand`, `pinch`, `point`, `wrist_flexion`,
+and `wrist_extension` all have 0% recall. For every movement class, its most
+frequent error is prediction as rest. This failure pattern and the S11 signal
+audit are included in the model card.
 
 ### Earlier latency-only browser run (superseded)
 
 The replay manifest calibrates each channel's minimum RMS to 25% of that
-recorded-rest RMS, capped at the existing 5 µV floor. With that replay-specific
-calibration, an earlier latency-only run processed 1,000 windows: all 1,000 passed the
-quality gate and were decoded, with threaded WASM enabled and P95 1.325 ms
-against the 10 ms budget. Exact latency varies between runs. P95 covers worker
-feature extraction plus ONNX inference, excludes message/UI overhead, and
-pushes windows in lockstep rather than real time. It is not a physiological
-reaction-time measure. This calibration is for replay demonstration only; it
-has not been validated as a live-electrode safety gate. The simulator still
-uses the original fixed 5 µV threshold.
+recorded-rest RMS, capped at the existing 5 µV floor. An earlier latency-only
+run measured worker P95 1.325 ms; this is superseded by the current artifact
+value below. P95 covers worker feature extraction plus ONNX inference,
+excludes message/UI overhead, and pushes windows in lockstep rather than real
+time. It is not a physiological reaction-time measure. This calibration is
+for replay demonstration only; it has not been validated as a live-electrode
+safety gate. The simulator still uses the original fixed 5 µV threshold.
 
 ### Recorded quality gate and correctness (validated against the local corpus)
 
@@ -215,10 +194,8 @@ The replay manifest calibrates each channel's minimum RMS to 25% of that
 subject's selected recorded-rest segment, capped at the shared 5 uV floor.
 Running the same gate over all 17,293 S10 held-out windows accepted 16,691
 (96.52%) and rejected 602 (3.48%). **All 602 rejected windows are labeled rest;
-no mapped movement window was rejected.** Top-1 accuracy over every window is
-46.85%, but only 44.95% over accepted windows because the gate removes some
-easy rest examples. A gate acceptance count is not prediction correctness;
-the prediction score and confusion matrix are computed separately.
+no mapped movement window was rejected.** Acceptance and rejection counts are
+quality-gate observations, not accuracy or correctness measurements.
 
 Controlled negative controls reject a zero signal, a detached channel, and a
 sample window attenuated to half amplitude. This shows the code responds to
@@ -236,12 +213,11 @@ plus ONNX inference in the worker, excludes message/UI overhead, and pushes
 windows in lockstep rather than in real time. It is not a physiological
 reaction-time measure.
 
-Latest browser measurements: recorded S10 replay P95 2.700 ms; 1,000 of 1,000
-latency windows passed the gate; stable snippet top-1 was 32.77% (254/775), and
-the all-zero control was rejected. The separate simulated bench scored 767/775
-(98.97%) stable top-1 and P95 3.720 ms. The S10 snippet result is substantially
-lower than the full-corpus 46.85%; Results shows both rather than implying the
-latency sample represents all held-out data.
+The latest recorded S10 browser latency artifact reports worker P95 **0.71 ms**.
+It covers feature extraction plus ONNX inference, excludes message/UI overhead,
+and is not total user reaction time. The zero-signal control is rejected. The
+separate simulated bench has its own accuracy and latency results; do not mix
+them with recorded-data metrics.
 
 ### Held-out replay and Live screen (implemented)
 
@@ -256,9 +232,8 @@ committed or redistributed without permission.
 ### Results screen and latest browser data (implemented and verified)
 
 Results has separate sections for simulated comparison, recorded NinaPro
-comparison, held-out accuracy/confusion/timeline, quality-gate acceptance and
-accepted-window accuracy, and simulator versus recorded browser latency and
-stable replay prediction scores. The Live Decoder panel now shows the
+comparison, held-out confusion/timeline, quality-gate acceptance, and simulator
+versus recorded browser latency. The Live Decoder panel now shows the
 current-window posterior, a named virtual action, its candidate/reversible/
 latched/fallback state, and latency. It sends no physical motor command. The
 confusion matrix scrolls horizontally on mobile without causing page-level
@@ -277,17 +252,16 @@ quality-gate counts, zero-signal control, and Live virtual action.
 
 ## 6. Remaining work, in priority order
 
-1. **Broaden and complete the recorded-data evaluation.** Audit S11's
-   per-file signal quality, run the full multi-model comparison, and evaluate
-   more independently licensed DB2 subjects if available. Report uncertainty
-   across a meaningful subject set. Current S1-to-S10 and S1+S10-to-S11 results
-   are exploratory checks, not population-level evidence.
+1. **Broaden and complete the recorded-data evaluation.** Run the full
+   multi-model comparison, investigate S11 E2 channel 1's high rest RMS, and
+   evaluate more independently licensed DB2 subjects if available. Report
+   uncertainty across a meaningful subject set. Current S1-to-S10 and
+   S1+S10-to-S11 results are exploratory checks, not population-level evidence.
 2. **Review scientific validity before making claims.** Label 5 is finger
    abduction used as an `open_hand` proxy; rest RMS varies by channel/session;
-   the candidate's ECE is 0.0293 on the current S10 development set but
-   calibration does not generalize from two subjects. Three S10 classes still
-   have zero recall. Keep these limitations visible and assess mapping, signal
-   quality, calibration, and class balance with additional subjects.
+   the S11 model is poorly calibrated and misses six gesture classes. Keep
+   these limitations visible and assess mapping, signal quality, calibration,
+   and class balance with additional subjects.
 3. **Continue unfinished project phases** below: Cartography gate/assignment,
    error attribution, anatomical coaching, clinician mode, amputee evaluation,
    and deployment.

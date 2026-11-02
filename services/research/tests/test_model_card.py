@@ -215,18 +215,14 @@ def test_ttum_never_prints_a_missing_measurement_as_zero(comparison, decoder, tt
     assert "| Any motion | 0 | 320 | — | — | — | — |" in card
 
 
-def test_recorded_candidate_is_reported_separately_from_simulator(comparison, decoder):
-    recorded = {
-        "model": "lda_uniform",
+def test_recorded_results_and_s11_audit_are_reported_separately(comparison, decoder):
+    s10_reference = {
+        "model": "lda",
         "training_subjects": [1],
         "test_subject": 10,
         "n_test": 17293,
-        "accuracy": 0.4685,
-        "baseline_accuracy": 0.3651,
-        "expected_calibration_error": 0.0293,
-    }
-    ordinary_lda = {
         "accuracy": 0.4509,
+        "baseline_accuracy": 0.3651,
         "expected_calibration_error": 0.1644,
     }
     s11 = {
@@ -237,33 +233,61 @@ def test_recorded_candidate_is_reported_separately_from_simulator(comparison, de
         "accuracy": 0.2307,
         "baseline_accuracy": 0.2226,
         "expected_calibration_error": 0.3664,
+        "per_gesture_recall": {
+            "rest": 0.9908,
+            "fist": 0.0,
+            "open_hand": 0.0,
+            "pinch": 0.0,
+            "point": 0.0,
+            "wrist_flexion": 0.0,
+            "wrist_extension": 0.0,
+            "thumb_up": 0.0511,
+            "two_finger": 0.0492,
+            "spherical_grip": 0.0163,
+        },
+        "confusion_matrix": [
+            [4621, 0, 0, 1, 2, 1, 0, 36, 1, 2],
+            [1544, 0, 0, 49, 0, 0, 0, 121, 13, 150],
+            [1721, 0, 0, 169, 0, 0, 0, 0, 0, 4],
+            [1508, 2, 0, 0, 1, 10, 0, 55, 14, 0],
+            [1891, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [1815, 0, 4, 14, 35, 0, 0, 21, 0, 0],
+            [1567, 0, 0, 234, 0, 0, 0, 0, 1, 89],
+            [1802, 0, 0, 0, 1, 0, 0, 97, 0, 0],
+            [1614, 0, 0, 137, 27, 0, 0, 1, 93, 18],
+            [1042, 0, 0, 0, 2, 0, 0, 373, 29, 24],
+        ],
     }
     card = render(
         comparison,
         decoder,
         "2026-10-30",
-        recorded_evaluation=recorded,
-        recorded_baseline=ordinary_lda,
+        recorded_baseline=s10_reference,
         s11_evaluation=s11,
     )
 
-    assert "Recorded NinaPro DB2 development evaluation" in card
+    assert "Recorded NinaPro DB2 exploratory checks" in card
     assert "Trained on S1; tested on S10" in card
-    assert "46.9%" in card
-    assert "36.5%" in card
-    assert "45.1% accuracy; ECE 0.1644" in card
+    assert "45.09%" in card
+    assert "36.51%" in card
+    assert "46.6%" not in card
     assert "S10 informed model diagnostics" in card
     assert "no amputee stratum" in card
     assert "abduction of all fingers" in card
     assert "Additional S11 subject-held-out check" in card
     assert "Trained on S1, S10; tested on S11" in card
-    assert "23.1%" in card
-    assert "22.3%" in card
+    assert "23.07%" in card
+    assert "22.26%" in card
     assert "0.3664" in card
     assert "Poor cross-subject result" in card
+    assert "19,125 of 20,956 windows" in card
+    assert "| `fist` | 0.0% |" in card
+    assert "| `rest` | 99.1% |" in card
+    assert "| S11 | 26.61% | 35.45% | 25.98% |" in card
+    assert "| E2 | 136.70 | 3.29 |" in card
 
 
 def test_model_card_without_local_recorded_artifacts_remains_simulator_only(comparison, decoder):
     card = render(comparison, decoder, "2026-10-30")
-    assert "Recorded NinaPro DB2 development evaluation" not in card
+    assert "Recorded NinaPro DB2 exploratory checks" not in card
     assert "simulator-trained model has not been evaluated" in card

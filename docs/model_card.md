@@ -2,7 +2,7 @@
 
 **Research prototype. Not a medical device. Not validated for clinical use.**
 
-Generated 2026-10-30 from recorded experiment artifacts.
+Generated 2026-11-02 from recorded experiment artifacts.
 
 ## Intended use
 
@@ -71,9 +71,9 @@ Measured one window at a time on CPU, never batched: the deployed system decodes
 
 | Stage | Mean | P50 | P95 | P99 | Max |
 | --- | --- | --- | --- | --- | --- |
-| Feature extraction | 0.89 ms | 0.86 ms | 1.21 ms | 1.40 ms | 1.99 ms |
-| ONNX inference | 0.53 ms | 0.51 ms | 0.62 ms | 0.81 ms | 1.11 ms |
-| **End to end** | 1.42 ms | 1.37 ms | 1.79 ms | 2.04 ms | 3.07 ms |
+| Feature extraction | 0.85 ms | 0.84 ms | 0.87 ms | 1.06 ms | 2.03 ms |
+| ONNX inference | 0.51 ms | 0.51 ms | 0.52 ms | 0.60 ms | 0.90 ms |
+| **End to end** | 1.36 ms | 1.35 ms | 1.40 ms | 1.67 ms | 2.92 ms |
 
 Budget 10 ms at P95 over 1,000 windows — **PASS**.
 
@@ -115,21 +115,20 @@ Each trial is 41 hops, and the urgency timeout fires at 75, so within a trial th
 
 Maximum absolute probability difference between scikit-learn and ONNX Runtime across 2,000 windows: **5.12e-07** (tolerance rtol=0.0001, atol=1e-05). Within tolerance.
 
-## Recorded NinaPro DB2 development evaluation
+## Recorded NinaPro DB2 exploratory checks
 
-This is a separate recorded-data model and must not be conflated with the simulator model above.
+These subject-held-out checks use recorded data and are separate from the simulator results above.
 
 | Property | Value |
 | --- | --- |
-| Model | `lda_uniform` |
+| S1→S10 reference model | `lda` (ordinary LDA) |
 | Split | Trained on S1; tested on S10 |
 | Held-out windows | 17,293 |
-| Accuracy | 46.9% |
-| Majority-class baseline | 36.5% |
-| Expected calibration error | 0.0293 |
-| Ordinary LDA reference | 45.1% accuracy; ECE 0.1644 |
+| Accuracy | 45.09% |
+| Majority-class baseline | 36.51% |
+| Expected calibration error | 0.1644 |
 
-**Exploratory only.** At the time this S1→S10 evaluation was generated, only S1 and S10 were available; S10 informed model diagnostics, so this is not an untouched final test. NinaPro DB2 subjects are intact participants; no amputee stratum has been evaluated.
+**Exploratory only.** S10 informed model diagnostics, so this is not an untouched final test. This reference result is not clinical validation. NinaPro DB2 subjects are intact participants; no amputee stratum has been evaluated.
 
 The DB2 label mapped to `open_hand` is label 5, **abduction of all fingers**, used only as a qualified proxy rather than an exact open-hand movement.
 
@@ -142,11 +141,48 @@ This follow-up trains on S1 and S10 and evaluates only on S11.
 | Model | `lda_uniform` |
 | Split | Trained on S1, S10; tested on S11 |
 | Held-out windows | 20,956 |
-| Accuracy | 23.1% |
-| Majority-class baseline | 22.3% |
+| Accuracy | 23.07% |
+| Majority-class baseline | 22.26% |
 | Expected calibration error | 0.3664 |
 
 **Poor cross-subject result.** Accuracy is only slightly above the majority baseline, and calibration is poor. S10 has informed earlier diagnostics, so this is a development check, not a fully untouched final evaluation.
+
+The model predicted `rest` for 19,125 of 20,956 windows. Six movement classes have zero recall:
+
+| Gesture | Recall |
+| --- | --- |
+| `rest` | 99.1% |
+| `fist` | 0.0% |
+| `open_hand` | 0.0% |
+| `pinch` | 0.0% |
+| `point` | 0.0% |
+| `wrist_flexion` | 0.0% |
+| `wrist_extension` | 0.0% |
+| `thumb_up` | 5.1% |
+| `two_finger` | 4.9% |
+| `spherical_grip` | 1.6% |
+
+### S11 signal and label audit
+
+Rest-labelled sample fraction by exercise:
+
+| Subject | E1 | E2 | E3 |
+| --- | ---: | ---: | ---: |
+| S1 | 58.87% | 56.59% | 37.83% |
+| S10 | 54.79% | 36.07% | 26.34% |
+| S11 | 26.61% | 35.45% | 25.98% |
+
+S11 uses the same exercise-wide labels as S1 and S10: E1 labels 1–17, E2 labels 18–40, and E3 labels 41–49. Every expected movement label was present; no S11-specific offset is needed.
+
+S11 rest RMS in µV for the first eight channels:
+
+| Exercise | Ch 1 | Ch 2 | Ch 3 | Ch 4 | Ch 5 | Ch 6 | Ch 7 | Ch 8 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| E1 | 7.27 | 3.62 | 3.38 | 4.42 | 2.58 | 2.66 | 4.94 | 9.70 |
+| E2 | 136.70 | 3.29 | 3.17 | 3.06 | 2.69 | 3.10 | 5.93 | 9.89 |
+| E3 | 21.28 | 10.74 | 8.98 | 4.10 | 2.97 | 3.43 | 10.81 | 19.17 |
+
+The 136.70 µV rest RMS on S11 E2 channel 1 is a conspicuous channel/session outlier and should be investigated; these recordings do not contain independent artifact labels to determine its cause.
 
 ## Limitations
 
@@ -164,10 +200,11 @@ python -m neurogrip.experiments export  --out artifacts/ --model rbf_svm
 python -m neurogrip.model_card --artifacts artifacts --out docs/model_card.md
 ```
 
-The recorded-data section requires a separately obtained NinaPro DB2 copy; it is generated from the held-out evaluation artifact.
+The recorded-data section requires a separately obtained NinaPro DB2 copy; each listed subject-held-out check has its own output directory.
 
 ```bash
-python -m neurogrip.heldout --data-root data/ninapro/DB2 --train-subjects 1 --test-subject 10 --model lda_uniform --out artifacts/ninapro_holdout --replay-out apps/web/public/replay/ninapro
+python -m neurogrip.heldout --data-root data/ninapro/DB2 --train-subjects 1 --test-subject 10 --model lda --out artifacts/ninapro_lda_baseline --replay-out apps/web/public/replay/ninapro_lda_baseline
+python -m neurogrip.heldout --data-root data/ninapro/DB2 --train-subjects 1,10 --test-subject 11 --model lda_uniform --out artifacts/ninapro_s11_holdout --replay-out apps/web/public/replay/ninapro_s11
 python -m neurogrip.model_card --artifacts artifacts --out docs/model_card.md
 ```
 

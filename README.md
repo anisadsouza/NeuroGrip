@@ -73,9 +73,9 @@ every number on it means.
 | | |
 | --- | --- |
 | Simulator decoder | RBF SVM, 95.63% LOSO accuracy, ECE 0.022 |
-| NinaPro held-out results | S1→S10 uniform-prior LDA: 46.85% / ECE 0.0293; S1+S10→S11: 23.07% / ECE 0.3664 (22.26% majority baseline). S11 result is a poor development check, not an improvement |
-| Recorded quality gate | 16,691 / 17,293 labeled S10 windows accepted (96.52%); all 602 rejects are rest windows; accepted-window top-1 is 44.95% |
-| Browser replay bench | NinaPro stable top-1: 32.8% (254/775); P95 2.700 ms; 1,000/1,000 windows accepted and the all-zero control rejected |
+| NinaPro held-out results | Ordinary-LDA S1→S10 reference: 45.09%; uniform-prior LDA S1+S10→S11: 23.07% (22.26% majority baseline; ECE 0.3664). Exploratory only |
+| Recorded quality gate | 16,691 / 17,293 labeled S10 windows accepted (96.52%); all 602 rejects are rest windows. Acceptance is not accuracy |
+| Browser replay latency | NinaPro worker P95: 0.71 ms (feature extraction + inference only; not total reaction time) |
 | Time to motion | 40 ms median before the hand starts moving, 260 ms to latch |
 | Tests | 189 Python + 266 TypeScript tests; Playwright 24/24; typecheck passes |
 | Built | Simulator and decoder, DB2 loader and comparison, subject-held-out ONNX export/replay, Live source selector, Results comparison/confusion/timeline/latency views |
@@ -94,21 +94,32 @@ confusion matrix are scored separately against the dataset labels. A controlled
 zero-signal worker check must also be rejected, but that does not validate the
 gate on real electrode faults or motion artifacts.
 
-The uniform-prior LDA is a candidate evaluated on three available subjects.
-In two-subject LOSO its mean accuracy was 50.02% versus 49.17% for ordinary
-LDA, but the paired test is uninformative with two folds (p = 1.0); the
-within-subject repetition split was also lower (74.27% versus 75.80%). S10 has
-informed model diagnostics, so its 46.85% score is a development result, not an
-unbiased final holdout. A quick check trained on S1+S10 and tested on S11 scored
+The ordinary-LDA S1→S10 reference scored 45.09%. S10 informed model
+diagnostics, so this is exploratory rather than an untouched final test. A
+quick uniform-prior LDA check trained on S1+S10 and tested on S11 scored
 23.07%, only slightly above the 22.26% majority baseline, with ECE 0.3664.
 This is poor cross-subject generalization, not evidence that adding S11 has
-improved recognition. The full multi-model comparison remains to be run.
-Three S10 gestures still have zero recall.
+improved recognition. The full multi-model comparison remains to be run. On
+S11, the model predicted rest for 19,125 of 20,956 windows; six gesture classes
+had zero recall. The per-gesture recalls and audited signal levels are in
+[`docs/model_card.md`](docs/model_card.md).
 The DB2 label mapped to `open_hand` is label 5, *abduction of all fingers*; it
 is a qualified proxy, not an exact general open-hand match. There is no
 amputee stratum yet. See [`docs/model_card.md`](docs/model_card.md) for separate
-simulator and recorded-candidate model results, and [`context.md`](context.md)
+simulator and recorded exploratory checks, and [`context.md`](context.md)
 for the audit, model comparison, quality-gate checks, and detailed limitations.
+
+The Live readout was checked with the simulated replay. One observed output was:
+
+```text
+Decoded: Close fist
+Model probability: (latest window)
+Latency, this window: (measured milliseconds)
+Virtual actuator: close_fist · latched
+```
+
+The probability and latency change with each window. The virtual command is a
+displayed simulation output; it is not sent to a motor.
 
 The simulated electrode-shift screen stays within its 8 percentage-point
 degradation bound through a 0.2 rad shift, but fails at 0.3 and 0.4 rad. This
@@ -224,12 +235,22 @@ recurring bottleneck currently justifies optimizing it.
 
 ### NinaPro citation
 
-Recorded results use NinaPro DB2. Cite the dataset description: Atzori et al.,
-"Electromyography data for non-invasive naturally-controlled robotic hand
-prostheses," *Scientific Data* 1, 140053 (2014),
-[doi:10.1038/sdata.2014.53](https://doi.org/10.1038/sdata.2014.53). Obtain data
-through NinaPro and follow its current registration, licence, and
-redistribution terms. Do not commit raw recordings or generated replay samples.
+Recorded results use NinaPro DB2. Cite the dataset and benchmark papers:
+
+- Atzori et al., "Electromyography data for non-invasive naturally-controlled
+  robotic hand prostheses," *Scientific Data* 1, 140053 (2014),
+  [doi:10.1038/sdata.2014.53](https://doi.org/10.1038/sdata.2014.53).
+- Atzori et al., "Characterization of a Benchmark Database for Myoelectric
+  Movement Classification," *IEEE Transactions on Neural Systems and
+  Rehabilitation Engineering* 23(1), 73–83 (2015),
+  [doi:10.1109/TNSRE.2014.2328495](https://doi.org/10.1109/TNSRE.2014.2328495).
+
+The NinaPro site says the databases are publicly available and asks users to
+cite the corresponding paper. The site pages reviewed do not state a separate
+license granting redistribution of recordings or derived replay/model files.
+Obtain data through NinaPro and follow the terms supplied with the registered
+download. Do not commit or publish raw recordings or derived assets unless
+those terms explicitly allow it.
 
 The feature-conformance gate matters: Python trains the model and TypeScript
 feeds it at inference, so if the two feature implementations diverge, accuracy

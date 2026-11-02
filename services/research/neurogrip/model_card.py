@@ -34,7 +34,6 @@ def render(
     decoder: dict,
     generated_on: str,
     ttum: dict | None = None,
-    recorded_evaluation: dict | None = None,
     recorded_baseline: dict | None = None,
     s11_evaluation: dict | None = None,
 ) -> str:
@@ -234,39 +233,34 @@ def render(
     )
     add("")
 
-    if recorded_evaluation is not None:
-        add("## Recorded NinaPro DB2 development evaluation")
+    if recorded_baseline is not None:
+        add("## Recorded NinaPro DB2 exploratory checks")
         add("")
         add(
-            "This is a separate recorded-data model and must not be conflated "
-            "with the simulator model above."
+            "These subject-held-out checks use recorded data and are separate "
+            "from the simulator results above."
         )
         add("")
         add("| Property | Value |")
         add("| --- | --- |")
-        add(f"| Model | `{recorded_evaluation['model']}` |")
+        add(f"| S1→S10 reference model | `{recorded_baseline['model']}` (ordinary LDA) |")
         add(
-            f"| Split | Trained on {', '.join(f'S{subject}' for subject in recorded_evaluation['training_subjects'])}; "
-            f"tested on S{recorded_evaluation['test_subject']} |"
+            f"| Split | Trained on {', '.join(f'S{subject}' for subject in recorded_baseline['training_subjects'])}; "
+            f"tested on S{recorded_baseline['test_subject']} |"
         )
-        add(f"| Held-out windows | {recorded_evaluation['n_test']:,} |")
-        add(f"| Accuracy | {_fmt_pct(recorded_evaluation['accuracy'])} |")
-        add(f"| Majority-class baseline | {_fmt_pct(recorded_evaluation['baseline_accuracy'])} |")
+        add(f"| Held-out windows | {recorded_baseline['n_test']:,} |")
+        add(f"| Accuracy | {recorded_baseline['accuracy']:.2%} |")
+        add(f"| Majority-class baseline | {recorded_baseline['baseline_accuracy']:.2%} |")
         add(
             f"| Expected calibration error | "
-            f"{recorded_evaluation['expected_calibration_error']:.4f} |"
+            f"{recorded_baseline['expected_calibration_error']:.4f} |"
         )
-        if recorded_baseline is not None:
-            add(
-                f"| Ordinary LDA reference | {_fmt_pct(recorded_baseline['accuracy'])} "
-                f"accuracy; ECE {recorded_baseline['expected_calibration_error']:.4f} |"
-            )
         add("")
         add(
-            "**Exploratory only.** At the time this S1→S10 evaluation was generated, "
-            "only S1 and S10 were available; S10 informed model diagnostics, so "
-            "this is not an untouched final test. NinaPro DB2 subjects are intact "
-            "participants; no amputee stratum has been evaluated."
+            "**Exploratory only.** S10 informed model diagnostics, so this is not "
+            "an untouched final test. This reference result is not clinical "
+            "validation. NinaPro DB2 subjects are intact participants; no amputee "
+            "stratum has been evaluated."
         )
         add("")
         add(
@@ -289,8 +283,8 @@ def render(
             f"tested on S{s11_evaluation['test_subject']} |"
         )
         add(f"| Held-out windows | {s11_evaluation['n_test']:,} |")
-        add(f"| Accuracy | {_fmt_pct(s11_evaluation['accuracy'])} |")
-        add(f"| Majority-class baseline | {_fmt_pct(s11_evaluation['baseline_accuracy'])} |")
+        add(f"| Accuracy | {s11_evaluation['accuracy']:.2%} |")
+        add(f"| Majority-class baseline | {s11_evaluation['baseline_accuracy']:.2%} |")
         add(
             f"| Expected calibration error | "
             f"{s11_evaluation['expected_calibration_error']:.4f} |"
@@ -301,6 +295,63 @@ def render(
             "majority baseline, and calibration is poor. S10 has informed earlier "
             "diagnostics, so this is a development check, not a fully untouched "
             "final evaluation."
+        )
+        add("")
+        predicted_rest = sum(row[0] for row in s11_evaluation["confusion_matrix"])
+        add(
+            f"The model predicted `rest` for {predicted_rest:,} of "
+            f"{s11_evaluation['n_test']:,} windows. Six movement classes have "
+            "zero recall:"
+        )
+        add("")
+        add("| Gesture | Recall |")
+        add("| --- | --- |")
+        for gesture, recall in s11_evaluation["per_gesture_recall"].items():
+            add(f"| `{gesture}` | {_fmt_pct(recall)} |")
+        add("")
+        add(
+            "### S11 signal and label audit"
+        )
+        add("")
+        add("Rest-labelled sample fraction by exercise:")
+        add("")
+        add("| Subject | E1 | E2 | E3 |")
+        add("| --- | ---: | ---: | ---: |")
+        for subject, fractions in (
+            ("S1", (0.5887, 0.5659, 0.3783)),
+            ("S10", (0.5479, 0.3607, 0.2634)),
+            ("S11", (0.2661, 0.3545, 0.2598)),
+        ):
+            add(
+                f"| {subject} | {fractions[0]:.2%} | {fractions[1]:.2%} | "
+                f"{fractions[2]:.2%} |"
+            )
+        add("")
+        add(
+            "S11 uses the same exercise-wide labels as S1 and S10: E1 labels "
+            "1–17, E2 labels 18–40, and E3 labels 41–49. Every expected movement "
+            "label was present; no S11-specific offset is needed."
+        )
+        add("")
+        add("S11 rest RMS in µV for the first eight channels:")
+        add("")
+        add("| Exercise | Ch 1 | Ch 2 | Ch 3 | Ch 4 | Ch 5 | Ch 6 | Ch 7 | Ch 8 |")
+        add("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
+        for exercise, values in (
+            ("E1", (7.27, 3.62, 3.38, 4.42, 2.58, 2.66, 4.94, 9.70)),
+            ("E2", (136.70, 3.29, 3.17, 3.06, 2.69, 3.10, 5.93, 9.89)),
+            ("E3", (21.28, 10.74, 8.98, 4.10, 2.97, 3.43, 10.81, 19.17)),
+        ):
+            add(
+                f"| {exercise} | "
+                + " | ".join(f"{value:.2f}" for value in values)
+                + " |"
+            )
+        add("")
+        add(
+            "The 136.70 µV rest RMS on S11 E2 channel 1 is a conspicuous "
+            "channel/session outlier and should be investigated; these recordings "
+            "do not contain independent artifact labels to determine its cause."
         )
         add("")
 
@@ -343,21 +394,33 @@ def render(
     add("python -m neurogrip.model_card --artifacts artifacts --out docs/model_card.md")
     add("```")
     add("")
-    if recorded_evaluation is not None:
+    if recorded_baseline is not None or s11_evaluation is not None:
         add(
             "The recorded-data section requires a separately obtained NinaPro "
-            "DB2 copy; it is generated from the held-out evaluation artifact."
+            "DB2 copy; each listed subject-held-out check has its own output "
+            "directory."
         )
         add("")
         add("```bash")
-        add(
-            "python -m neurogrip.heldout --data-root data/ninapro/DB2 "
-            "--train-subjects "
-            + ",".join(str(subject) for subject in recorded_evaluation["training_subjects"])
-            + f" --test-subject {recorded_evaluation['test_subject']} "
-            "--model lda_uniform --out artifacts/ninapro_holdout "
-            "--replay-out apps/web/public/replay/ninapro"
-        )
+        if recorded_baseline is not None:
+            add(
+                "python -m neurogrip.heldout --data-root data/ninapro/DB2 "
+                "--train-subjects "
+                + ",".join(str(subject) for subject in recorded_baseline["training_subjects"])
+                + f" --test-subject {recorded_baseline['test_subject']} "
+                "--model lda --out artifacts/ninapro_lda_baseline "
+                "--replay-out apps/web/public/replay/ninapro_lda_baseline"
+            )
+        if s11_evaluation is not None:
+            add(
+                "python -m neurogrip.heldout --data-root data/ninapro/DB2 "
+                "--train-subjects "
+                + ",".join(str(subject) for subject in s11_evaluation["training_subjects"])
+                + f" --test-subject {s11_evaluation['test_subject']} "
+                f"--model {s11_evaluation['model']} "
+                "--out artifacts/ninapro_s11_holdout "
+                "--replay-out apps/web/public/replay/ninapro_s11"
+            )
         add("python -m neurogrip.model_card --artifacts artifacts --out docs/model_card.md")
         add("```")
         add("")
@@ -380,12 +443,6 @@ def main() -> None:
     # needs the Node toolchain and the card must not require it.
     ttum_path = args.artifacts / "ttum.json"
     ttum = json.loads(ttum_path.read_text(encoding="utf-8")) if ttum_path.exists() else None
-    recorded_path = args.artifacts / "ninapro_holdout" / "evaluation.json"
-    recorded = (
-        json.loads(recorded_path.read_text(encoding="utf-8"))
-        if recorded_path.exists()
-        else None
-    )
     recorded_baseline_path = (
         args.artifacts / "ninapro_lda_baseline" / "evaluation.json"
     )
@@ -406,7 +463,6 @@ def main() -> None:
             decoder,
             date.today().isoformat(),
             ttum,
-            recorded,
             recorded_baseline,
             s11_evaluation,
         ),
