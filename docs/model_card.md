@@ -219,6 +219,23 @@ The 136.70 µV rest RMS on S11 E2 channel 1 is a conspicuous channel/session out
 
 The replay quality gate enforces a minimum channel RMS plus a broad 5 V absolute-amplitude sanity limit. It does not impose a useful per-channel RMS ceiling for excessive baseline noise, so this high RMS channel is not rejected as noisy.
 
+## Three-subject NinaPro recognition experiments
+
+Fixed strategies were compared in leave-one-subject-out folds over S1, S10, S11. Calibration is grouped by subject and repetition within each training fold; sampled SVMs use a fixed per-class/per-subject cap.
+
+| Strategy | Accuracy (mean ± SD) | Majority baseline | Macro movement recall | Predicted rest | ECE | Per held-out subject |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| `lda_empirical_raw` | 37.5% ± 9.1% | 35.0% | 18.0% | 54.0% | 0.4807 | S1 48.1%; S10 38.3%; S11 25.9% |
+| `lda_empirical_sigmoid` | 37.4% ± 10.0% | 35.0% | 14.6% | 61.4% | 0.2168 | S1 47.9%; S10 40.4%; S11 23.9% |
+| `lda_uniform_raw` | 35.1% ± 4.8% | 35.0% | 20.6% | 44.2% | 0.4654 | S1 40.8%; S10 35.4%; S11 29.0% |
+| `lda_uniform_sigmoid` | 37.3% ± 9.7% | 35.0% | 15.8% | 58.6% | 0.1676 | S1 47.5%; S10 40.2%; S11 24.2% |
+| `lda_rest_downsampled_sigmoid` | 29.7% ± 4.5% | 35.0% | 23.0% | 26.8% | 0.1421 | S1 25.6%; S10 36.0%; S11 27.6% |
+| `linear_svm_sampled_sigmoid` | 29.2% ± 1.5% | 35.0% | 18.9% | 35.3% | 0.1708 | S1 31.4%; S10 28.2%; S11 28.1% |
+| `linear_svm_weighted_sigmoid` | 29.2% ± 1.6% | 35.0% | 18.9% | 35.3% | 0.1713 | S1 31.4%; S10 28.2%; S11 28.1% |
+| `rbf_svm_weighted_sigmoid` | 28.0% ± 5.4% | 35.0% | 19.9% | 36.3% | 0.2667 | S1 21.0%; S10 34.1%; S11 28.8% |
+
+**Development comparison only.** All three local subjects have already informed development, so these folds do not provide an untouched final estimate. Rest downsampling reduced the rest-only prediction tendency and raised macro movement recall, but lowered mean accuracy; no candidate was adopted as the application decoder.
+
 ## Limitations
 
 - **Simulator-model limitation.** The simulator has no motion artefact, no skin-impedance drift, and no cross-session electrode replacement. Its figures are optimistic relative to recorded data such as NinaPro; published NinaPro leave-one-subject-out results for a ten-gesture vocabulary typically fall well below what is reported here.
@@ -240,6 +257,7 @@ The recorded-data section requires a separately obtained NinaPro DB2 copy; each 
 ```bash
 python -m neurogrip.heldout --data-root data/ninapro/DB2 --train-subjects 1 --test-subject 10 --model lda --out artifacts/ninapro_lda_baseline --replay-out apps/web/public/replay/ninapro_lda_baseline
 python -m neurogrip.heldout --data-root data/ninapro/DB2 --train-subjects 1,10 --test-subject 11 --model lda_uniform --out artifacts/ninapro_s11_holdout --replay-out apps/web/public/replay/ninapro_s11
+python -m neurogrip.ninapro_recognition --data-root data/ninapro/DB2 --out artifacts/ninapro_recognition_experiment.json
 python -m neurogrip.model_card --artifacts artifacts --out docs/model_card.md
 ```
 

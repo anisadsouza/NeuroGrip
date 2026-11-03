@@ -122,7 +122,9 @@ locally. A quick LDA-uniform model trained on S1+S10 and tested on S11 scored
 23.07% across 20,956 windows, versus a 22.26% majority-class baseline, with ECE
 0.3664. This is poor cross-subject performance. The comprehensive comparison
 across model families was stopped because its SVM evaluations were taking
-substantially longer; it remains to be run. This three-subject check cannot
+substantially longer. A separate bounded comparison across all three local
+subjects has now tested LDA variants, rest balancing, calibration, and sampled
+SVMs. A full-size SVM comparison remains unrun. These three subjects cannot
 establish generalization across the full population.
 
 The low S11 score is a cross-subject failure: despite rest being about 22% of
@@ -183,7 +185,8 @@ exploratory rather than untouched final tests. The additional uniform-prior
 check trained on S1+S10 and tested on S11 scored 23.07% on 20,956 windows,
 against a 22.26% majority baseline (ECE 0.3664). This is poor cross-subject
 performance. The full-corpus multi-model comparison was not completed; a
-bounded, subsampled SVM comparison is documented below.
+bounded, three-subject comparison is documented below; the full-size SVM sweep
+remains unrun.
 
 The S11 confusion matrix predicts `rest` for 19,125 / 20,956 windows. Recall
 is 99.08% for `rest`, 5.11% for `thumb_up`, 4.92% for `two_finger`, and 1.63%
@@ -196,9 +199,42 @@ audit are included in the model card.
 
 These are development experiments on the three local subjects, not a new
 headline result. Nothing from these experiments replaced the recorded decoder.
-The same 56,714-window corpus was evaluated with subject-held-out folds.
-These comparisons were ad hoc inline runs; unlike the quality-fault probe
-below, they do not yet have a checked-in runner.
+The checked-in runner
+`python -m neurogrip.ninapro_recognition --data-root data/ninapro/DB2
+--out artifacts/ninapro_recognition_experiment.json` evaluates the same
+56,714-window corpus with leave-one-subject-out folds. Its sigmoid calibrators
+use grouped internal folds by subject and repetition, keeping overlapping
+windows from the same repetition together. SVMs are capped at 250 examples per
+class per training subject to bound runtime. The resulting local artifact is
+gitignored with other NinaPro-derived experiment outputs.
+
+| Strategy | Mean LOSO accuracy | Mean majority baseline | Mean macro movement recall | Mean predicted-rest fraction | OOF ECE |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| LDA empirical, raw | 37.46% | 34.95% | 18.05% | 53.98% | 0.4807 |
+| LDA empirical, sigmoid | 37.41% | 34.95% | 14.64% | 61.38% | 0.2168 |
+| LDA uniform, raw | 35.08% | 34.95% | 20.60% | 44.21% | 0.4654 |
+| LDA uniform, sigmoid | 37.27% | 34.95% | 15.84% | 58.60% | 0.1676 |
+| LDA uniform, rest downsampled + sigmoid | 29.70% | 34.95% | 23.04% | 26.81% | 0.1421 |
+| Linear SVM, sampled + sigmoid | 29.23% | 34.95% | 18.91% | 35.30% | 0.1708 |
+| Linear SVM, sampled + class-weighted + sigmoid | 29.22% | 34.95% | 18.91% | 35.31% | 0.1713 |
+| RBF SVM, sampled + class-weighted + sigmoid | 27.96% | 34.95% | 19.86% | 36.32% | 0.2667 |
+
+These are equal-weight means over the held-out S1, S10, and S11 folds;
+calibration error is calculated over all out-of-fold predictions. The
+leave-one-subject-out analysis includes subjects already inspected during
+development, so it is exploratory, not an untouched final test. Rest
+downsampling reduced the rest-prediction tendency and raised average movement
+recall, but lowered mean accuracy below the average majority baseline.
+Calibration reduced ECE for the LDA variants but did not solve cross-subject
+recognition. The weighted and unweighted sampled linear SVM results were
+effectively identical. No tested candidate was adopted.
+
+The grouped-calibration uniform-LDA S11 fold scored 24.17% with ECE 0.4126,
+compared with 23.07% / 0.3664 in the existing staged S11 artifact. Both use
+the same 20,956 held-out windows, but the prior artifact uses the existing
+stratified calibration path while this runner groups internal calibration
+folds by subject/repetition. Keep the staged artifact as the app's reported
+result; these are distinct calibration runs and must not be conflated.
 
 - Changing LDA from empirical to uniform class priors barely moved the
   three-subject mean (36.15% vs 36.23%). With uniform priors, S11 remained at
@@ -217,13 +253,10 @@ below, they do not yet have a checked-in runner.
   S11, but only 7.72% macro movement recall; its three-subject mean was 25.47%.
   These variants trade a rest-only prediction for poor performance elsewhere
   and are not a general solution.
-- A bounded SVM comparison used at most 250 windows per class per training
-  subject (5,000 training windows per fold) and all available windows for each
-  held-out test subject. Linear SVM reached 29.54% on S11 and 32.48% mean LOSO;
-  RBF SVM reached 28.66% on S11 and 25.18% mean LOSO. Neither consistently
-  improved on the unbalanced LDA baseline. These subsampled results are
-  exploratory; their window-level calibration folds are not suitable for
-  reporting reliable ECE.
+- Earlier inline SVM probes used a different calibration procedure and are
+  retained as development notes, not as the canonical repeatable comparison.
+  The checked-in grouped-calibration runner above is the reproducible
+  comparison for class balancing and calibration.
 
 The limited gain on S11 does not support an 80% claim. Rest balancing and
 rest-based normalization need a larger, independent subject set and a

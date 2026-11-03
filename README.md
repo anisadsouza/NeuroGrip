@@ -111,8 +111,10 @@ untouched final test. A quick uniform-prior LDA check trained on S1+S10 and
 tested on S11 scored 23.07%, only slightly above the 22.26% majority baseline,
 with ECE 0.3664.
 This is poor cross-subject generalization, not evidence that adding S11 has
-improved recognition. The full-corpus multi-model comparison remains to be run;
-only a bounded, subsampled SVM comparison was completed. On S11, the model
+improved recognition. A bounded three-subject leave-one-subject-out comparison
+now tests class-prior changes, rest downsampling, sigmoid calibration, and
+sampled weighted SVMs; none justified replacing the current decoder. The
+full-size multi-model comparison remains unrun. On S11, the model
 predicted rest for 19,125 of 20,956 windows; six gesture classes had zero
 recall. The per-gesture recalls and audited signal levels are in
 [`docs/model_card.md`](docs/model_card.md).

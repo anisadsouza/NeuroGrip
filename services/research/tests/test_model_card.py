@@ -311,3 +311,40 @@ def test_model_card_without_local_recorded_artifacts_remains_simulator_only(comp
     card = render(comparison, decoder, "2026-10-30")
     assert "Recorded NinaPro DB2 exploratory checks" not in card
     assert "simulator-trained model has not been evaluated" in card
+
+
+def test_card_reports_three_subject_recognition_experiment(comparison, decoder):
+    experiment = {
+        "subjects": [1, 10, 11],
+        "models": {
+            "lda_rest_downsampled_sigmoid": {
+                "mean_accuracy": 0.2970,
+                "std_accuracy": 0.075,
+                "mean_majority_baseline": 0.3495,
+                "mean_macro_movement_recall": 0.2304,
+                "mean_predicted_rest_fraction": 0.2681,
+                "expected_calibration_error": 0.1421,
+                "folds": [
+                    {"subject": 1, "accuracy": 0.2561},
+                    {"subject": 10, "accuracy": 0.3595},
+                    {"subject": 11, "accuracy": 0.2756},
+                ],
+            }
+        },
+    }
+
+    card = render(
+        comparison,
+        decoder,
+        "2026-11-04",
+        ninapro_recognition=experiment,
+    )
+
+    assert "Three-subject NinaPro recognition experiments" in card
+    assert "S1, S10, S11" in card
+    assert "lda_rest_downsampled_sigmoid" in card
+    assert "29.7%" in card
+    assert "34.9%" in card
+    assert "26.8%" in card
+    assert "S11 27.6%" in card
+    assert "no candidate was adopted" in card

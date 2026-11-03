@@ -38,6 +38,7 @@ def render(
     s11_evaluation: dict | None = None,
     recorded_holdout: dict | None = None,
     recorded_uniform_trial: dict | None = None,
+    ninapro_recognition: dict | None = None,
 ) -> str:
     best = comparison["best_model"]
     models = comparison["models"]
@@ -424,6 +425,44 @@ def render(
         )
         add("")
 
+    if ninapro_recognition is not None:
+        add("## Three-subject NinaPro recognition experiments")
+        add("")
+        add(
+            "Fixed strategies were compared in leave-one-subject-out folds over "
+            + ", ".join(f"S{subject}" for subject in ninapro_recognition["subjects"])
+            + ". Calibration is grouped by subject and repetition within each "
+            "training fold; sampled SVMs use a fixed per-class/per-subject cap."
+        )
+        add("")
+        add(
+            "| Strategy | Accuracy (mean ± SD) | Majority baseline | "
+            "Macro movement recall | Predicted rest | ECE | Per held-out subject |"
+        )
+        add("| --- | ---: | ---: | ---: | ---: | ---: | --- |")
+        for name, result in ninapro_recognition["models"].items():
+            per_subject = "; ".join(
+                f"S{fold['subject']} {_fmt_pct(fold['accuracy'])}"
+                for fold in result["folds"]
+            )
+            add(
+                f"| `{name}` | {_fmt_pct(result['mean_accuracy'])} ± "
+                f"{result['std_accuracy']:.1%} | "
+                f"{_fmt_pct(result['mean_majority_baseline'])} | "
+                f"{_fmt_pct(result['mean_macro_movement_recall'])} | "
+                f"{_fmt_pct(result['mean_predicted_rest_fraction'])} | "
+                f"{result['expected_calibration_error']:.4f} | {per_subject} |"
+            )
+        add("")
+        add(
+            "**Development comparison only.** All three local subjects have "
+            "already informed development, so these folds do not provide an "
+            "untouched final estimate. Rest downsampling reduced the rest-only "
+            "prediction tendency and raised macro movement recall, but lowered "
+            "mean accuracy; no candidate was adopted as the application decoder."
+        )
+        add("")
+
     add("## Limitations")
     add("")
     add(
@@ -490,6 +529,12 @@ def render(
                 "--out artifacts/ninapro_s11_holdout "
                 "--replay-out apps/web/public/replay/ninapro_s11"
             )
+        if ninapro_recognition is not None:
+            add(
+                "python -m neurogrip.ninapro_recognition "
+                "--data-root data/ninapro/DB2 "
+                "--out artifacts/ninapro_recognition_experiment.json"
+            )
         add("python -m neurogrip.model_card --artifacts artifacts --out docs/model_card.md")
         add("```")
         add("")
@@ -538,6 +583,14 @@ def main() -> None:
         if recorded_uniform_trial_path.exists()
         else None
     )
+    ninapro_recognition_path = (
+        args.artifacts / "ninapro_recognition_experiment.json"
+    )
+    ninapro_recognition = (
+        json.loads(ninapro_recognition_path.read_text(encoding="utf-8"))
+        if ninapro_recognition_path.exists()
+        else None
+    )
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(
@@ -550,6 +603,7 @@ def main() -> None:
             s11_evaluation,
             recorded_holdout,
             recorded_uniform_trial,
+            ninapro_recognition,
         ),
         encoding="utf-8",
     )
