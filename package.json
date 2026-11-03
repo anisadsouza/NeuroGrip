@@ -17,6 +17,7 @@
     "dev:web": "npm run dev --workspace @neurogrip/web",
     "test:e2e": "playwright test",
     "stage:model": "node scripts/stage-model.mjs",
+    "stage:cartography": "node scripts/stage-cartography.mjs",
     "ttum": "vite-node scripts/ttum.ts"
   },
   "devDependencies": {

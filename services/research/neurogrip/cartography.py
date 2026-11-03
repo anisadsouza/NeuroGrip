@@ -37,9 +37,9 @@ catalogue selection weighted by effort and fatigue. It is a trade, not a free
 win -- the gate artifact records what it gives up in worst-pair separability
 and what it saves in effort and fatigue, per subject.
 
-Not yet here: the effort field's time-to-reach and median-frequency-drop terms,
-which need sustained holds rather than babble poses. Effort is amplitude only.
-Teach-back and risk-weighted assignment (spec steps 5 and 6) are not built.
+Not yet here: the effort field's time-to-reach term, which needs sustained
+holds rather than babble poses. Effort is amplitude only. The risk-weighted
+assignment is illustrative; teach-back and wearer validation are not built.
 
 Everything is seeded. Nothing here may touch global RNG state.
 """
@@ -52,8 +52,11 @@ from dataclasses import dataclass, field
 import numpy as np
 from sklearn.decomposition import NMF
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.model_selection import GroupKFold, cross_val_score
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import GroupKFold
+from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
+from scipy.optimize import linear_sum_assignment
 
 from neurogrip.features import FeatureConfig, extract_features, feature_vector
 from neurogrip.simulator import (
@@ -701,32 +704,92 @@ def _vocabulary_report(
                 labels.append(label)
                 groups.append(rep)
 
-    x = StandardScaler().fit_transform(np.asarray(rows))
+    x = np.asarray(rows)
     y = np.asarray(labels)
     names = list(classes)
 
-    worst = (np.inf, "", "")
-    for a in range(len(names)):
-        for b in range(a + 1, len(names)):
-            xa, xb = x[y == a], x[y == b]
-            spread = np.sqrt((xa.var(axis=0).sum() + xb.var(axis=0).sum()) / 2.0)
-            gap = float(np.linalg.norm(xa.mean(axis=0) - xb.mean(axis=0)) / spread)
-            if gap < worst[0]:
-                worst = (gap, names[a], names[b])
-
-    model = LinearDiscriminantAnalysis(solver="lsqr", shrinkage="auto")
     folds = GroupKFold(n_splits=min(reps, 3))
-    accuracy = cross_val_score(model, x, y, groups=groups, cv=folds).mean()
+    matrix = np.zeros((len(names), len(names)), dtype=np.int64)
+    pair_separations = np.zeros((len(names), len(names)), dtype=np.float64)
+    n_folds = 0
+    for train, validation in folds.split(x, y, groups=np.asarray(groups)):
+        model = make_pipeline(
+            StandardScaler(),
+            LinearDiscriminantAnalysis(solver="lsqr", shrinkage="auto"),
+        )
+        model.fit(x[train], y[train])
+        predicted = model.predict(x[validation]).astype(np.int64)
+        matrix += confusion_matrix(
+            y[validation], predicted, labels=np.arange(len(names))
+        )
+
+        validation_x = model.named_steps["standardscaler"].transform(x[validation])
+        validation_y = y[validation]
+        for first in range(len(names)):
+            first_x = validation_x[validation_y == first]
+            for second in range(first + 1, len(names)):
+                second_x = validation_x[validation_y == second]
+                spread = np.sqrt(
+                    (first_x.var(axis=0).sum() + second_x.var(axis=0).sum()) / 2.0
+                )
+                gap = float(
+                    np.linalg.norm(first_x.mean(axis=0) - second_x.mean(axis=0))
+                    / max(spread, 1e-12)
+                )
+                pair_separations[first, second] += gap
+                pair_separations[second, first] += gap
+        n_folds += 1
+
+    pair_separations /= max(n_folds, 1)
+    np.fill_diagonal(pair_separations, np.inf)
+    recalls = np.divide(
+        matrix.diagonal(),
+        matrix.sum(axis=1),
+        out=np.zeros(len(names), dtype=np.float64),
+        where=matrix.sum(axis=1) > 0,
+    )
+    nearest = np.argmin(pair_separations, axis=1)
+    per_class = {
+        name: {
+            "recall": round(float(recalls[index]), 4),
+            "nearest_rival": names[int(nearest[index])],
+            "nearest_rival_separation": round(
+                float(pair_separations[index, nearest[index]]), 4
+            ),
+        }
+        for index, name in enumerate(names)
+    }
+    worst_flat = int(np.argmin(pair_separations))
+    worst = (
+        float(pair_separations.flat[worst_flat]),
+        names[worst_flat // len(names)],
+        names[worst_flat % len(names)],
+    )
 
     return {
         "classes": names,
         "min_pairwise_separation": round(worst[0], 4),
         "worst_pair": [worst[1], worst[2]],
-        "cv_accuracy": round(float(accuracy), 4),
+        "cv_accuracy": round(float(matrix.trace() / matrix.sum()), 4),
+        "confusion_matrix": matrix.tolist(),
+        "per_class": per_class,
         "mean_excitation": round(
             float(np.mean([classes[name].mean() for name in names if name != "rest"])), 4
         ),
     }
+
+
+def _match_synthesized_to_catalogue(
+    prototypes: np.ndarray,
+    catalogue: np.ndarray,
+    catalogue_names: list[str],
+) -> list[tuple[int, str]]:
+    """Match each synthesized muscle pattern to a distinct catalogue function."""
+    distances = _pattern_distance(
+        np.asarray(prototypes)[:, None, :], np.asarray(catalogue)[None, :, :]
+    )
+    rows, columns = linear_sum_assignment(distances)
+    return [(int(row), catalogue_names[int(column)]) for row, column in zip(rows, columns)]
 
 
 def compare_vocabularies(
@@ -820,16 +883,62 @@ def compare_vocabularies(
             )
         return result
 
+    synthesized_report = report(synthesized)
+    catalogue_report = report(catalogue)
+    comparisons = []
+    prototype_targets = np.asarray(
+        [synthesized[f"proto_{index + 1}"] for index in range(k)]
+    )
+    selected_catalogue_names = list(catalogue)[1:]
+    selected_catalogue_targets = np.asarray(
+        [catalogue[name] for name in selected_catalogue_names]
+    )
+    matched_catalogue = _match_synthesized_to_catalogue(
+        prototype_targets, selected_catalogue_targets, selected_catalogue_names
+    )
+    for prototype_index, function in matched_catalogue:
+        prototype_name = f"proto_{prototype_index + 1}"
+        prototype_metrics = synthesized_report["per_class"][prototype_name]
+        catalogue_metrics = catalogue_report["per_class"][function]
+        learnable = prototype_metrics["recall"] >= 0.80
+        beats_catalogue = (
+            prototype_metrics["nearest_rival_separation"]
+            > catalogue_metrics["nearest_rival_separation"]
+        )
+        comparisons.append(
+            {
+                "prototype": prototype_name,
+                "matched_catalogue_function": function,
+                "recall": prototype_metrics["recall"],
+                "recall_threshold": 0.80,
+                "nearest_rival": prototype_metrics["nearest_rival"],
+                "separation": prototype_metrics["nearest_rival_separation"],
+                "catalogue_nearest_rival": catalogue_metrics["nearest_rival"],
+                "catalogue_separation": catalogue_metrics[
+                    "nearest_rival_separation"
+                ],
+                "learnable": learnable,
+                "beats_catalogue_separation": beats_catalogue,
+                "passes": learnable and beats_catalogue,
+            }
+        )
+
     return {
         "k": k,
         "probe": None if probe is None else dataclasses.asdict(probe),
         "selection_weights": dataclasses.asdict(selection),
+        "map_points": [
+            [round(float(value), 4) for value in point]
+            for point in cartograph.coords
+        ],
+        "pose_effort": [round(float(value), 4) for value in cartograph.effort],
         "prototypes_map": [
             [round(float(v), 4) for v in p]
             for p in cartograph.to_map(cartograph.activations[poses])
         ],
+        "prototype_comparisons": comparisons,
         "selection_costs": costs,
-        "synthesized": report(synthesized),
+        "synthesized": synthesized_report,
         "catalogue": report(catalogue),
         "weighted_catalogue": report(weighted),
     }
@@ -850,12 +959,11 @@ def cartography_gate(
 ) -> dict[str, object]:
     """Run the Phase 2 gate over intact and impaired simulated cohorts.
 
-    Two findings per subject. The gate proper -- a synthesised vocabulary
-    beats catalogue selection on worst-pair separability -- is reported with a
-    win count, not a mean, because one subject for whom synthesis fails is the
-    finding. The fallback -- effort- and fatigue-weighted catalogue selection
-    against max-min selection -- is reported as what it costs in separability
-    and what it saves in effort and fatigue, as cohort medians.
+    A synthesized prototype passes only when its held-out repetition recall
+    reaches 80% and its one-to-one matched catalogue gesture has lower
+    nearest-rival Fisher separation. Cohort wins count subjects with at least
+    one passing prototype. The weighted catalogue fallback is reported against
+    max-min selection as cohort medians.
     """
     cohorts: dict[str, object] = {}
     for cohort, reach in (("intact", None), ("finger_atrophy", FINGER_ATROPHY)):
@@ -871,9 +979,13 @@ def cartography_gate(
             result = compare_vocabularies(cartograph, subject, sim, k=k, reps=reps, seed=index)
             result["subject"] = subject.subject_id
             result["explained_variance"] = round(cartograph.explained_variance, 4)
-            result["synthesis_wins"] = bool(
-                result["synthesized"]["min_pairwise_separation"]
-                > result["catalogue"]["min_pairwise_separation"]
+            result["synthesis_wins"] = any(
+                comparison["passes"]
+                for comparison in result["prototype_comparisons"]
+            )
+            result["per_gesture_passes"] = sum(
+                comparison["passes"]
+                for comparison in result["prototype_comparisons"]
             )
             plain, weighted = result["catalogue"], result["weighted_catalogue"]
             result["weighted_vs_maxmin"] = {
@@ -910,6 +1022,14 @@ def cartography_gate(
 
     return {
         "k": k,
+        "criterion": {
+            "learnable_recall": 0.80,
+            "description": (
+                "A synthesized gesture passes only when held-out repetition "
+                "recall is at least 80% and nearest-rival Fisher separation "
+                "exceeds its one-to-one matched catalogue gesture."
+            ),
+        },
         "reps": reps,
         "level_jitter": LEVEL_JITTER,
         "muscle_jitter": MUSCLE_JITTER,

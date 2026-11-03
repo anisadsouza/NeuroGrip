@@ -12,6 +12,7 @@ from neurogrip.cartography import (
     fit_cartograph,
     record_babble,
     synthesize,
+    _match_synthesized_to_catalogue,
 )
 from neurogrip.simulator import SimulatorConfig, make_subject
 
@@ -217,3 +218,40 @@ def test_comparison_reports_both_vocabularies(cartograph, subject):
         assert len(result[side]["classes"]) == 5  # k prototypes + rest
         assert result[side]["min_pairwise_separation"] > 0.0
         assert 0.0 <= result[side]["cv_accuracy"] <= 1.0
+        assert len(result[side]["confusion_matrix"]) == 5
+        assert set(result[side]["per_class"]) == set(result[side]["classes"])
+    assert len(result["prototype_comparisons"]) == 4
+    for comparison in result["prototype_comparisons"]:
+        assert comparison["learnable"] == (comparison["recall"] >= 0.8)
+        assert comparison["beats_catalogue_separation"] == (
+            comparison["separation"] > comparison["catalogue_separation"]
+        )
+        assert comparison["passes"] == (
+            comparison["learnable"] and comparison["beats_catalogue_separation"]
+        )
+
+
+def test_synthesized_to_catalogue_matching_is_one_to_one():
+    prototypes = np.array([[0.9, 0.1], [0.1, 0.9]])
+    catalogue = np.array([[0.1, 0.9], [0.9, 0.1], [0.5, 0.5]])
+
+    matches = _match_synthesized_to_catalogue(
+        prototypes, catalogue, ["flex", "extend", "pinch"]
+    )
+
+    assert matches == [(0, "extend"), (1, "flex")]
+
+
+def test_cartography_gate_uses_per_gesture_pass_criterion():
+    from neurogrip.cartography import cartography_gate
+
+    report = cartography_gate(n_subjects=1, reps=2, babble=BabbleConfig(n_poses=40))
+
+    assert report["criterion"]["learnable_recall"] == 0.8
+    for cohort in report["cohorts"].values():
+        for result in cohort["subjects"]:
+            assert len(result["prototype_comparisons"]) == 5
+            assert result["synthesis_wins"] == any(
+                item["passes"] for item in result["prototype_comparisons"]
+            )
+            assert len(result["map_points"]) == 40

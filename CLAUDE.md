@@ -17,10 +17,11 @@ holds the full design and the prior-art analysis behind each claim.
 1. **Neuromotor Cartography** — map a user's reachable muscle-activation
    manifold, synthesise gesture prototypes optimised for separability,
    repeatability and effort, and teach them back. *In progress (Phase 2):*
-   `services/research/neurogrip/cartography.py`. Synthesis does **not** beat
-   catalogue selection in the simulator (0/5 in both cohorts), so the
-   cartograph serves the spec's fallback: catalogue selection weighted by
-   effort and fatigue. Teach-back and assignment are not built.
+   `services/research/neurogrip/cartography.py` implements the simulated map,
+   per-prototype gate, and illustrative risk-weighted assignment. The gate
+   passes for at least one prototype in 2/8 intact and 5/8 finger-atrophy
+   simulated subjects; it does not establish human learnability. Teach-back
+   and wearer validation are not built.
 2. **Risk-weighted evidence accumulation** — the hand begins moving reversibly
    as evidence accrues and latches only at full commitment; high-cost gestures
    must clear a higher evidence bar than cheap ones. **Built**, and visible:
@@ -44,15 +45,15 @@ holds the full design and the prior-art analysis behind each claim.
 | 0 | Simulator, feature pipeline in both languages, conformance gate, CI | Complete |
 | 1a | Corpus, LOSO evaluation, model comparison, calibration, ONNX export, latency | Complete |
 | 1b | Evidence accumulator, design system, browser app, Live screen, virtual hand, verification layer, TTUM | Complete |
-| 2 | Neuromotor Cartography | In progress — synthesis gate fails 0/5; weighted-selection fallback built (`artifacts/cartography_gate.json`) |
+| 2 | Neuromotor Cartography | In progress — simulation map, per-prototype gate and illustrative assignment built; gate passes in 2/8 intact and 5/8 finger-atrophy simulated subjects |
 | 3 | Error-attribution router, anatomical coaching | Not started |
 | 4 | Clinician mode, amputee stratum, robustness | Not started |
 | 5 | Azure deployment, patent disclosures | Not started |
 
-**479 tests** — 189 Python, 266 TypeScript, 24 browser.
+**507 tests** — 207 Python, 275 TypeScript, 25 browser.
 
-Not yet built: Cartography, the attribution router, clinician mode, and
-deployment.
+Not yet built: Cartography teach-back, the attribution router, clinician mode,
+and deployment.
 
 ---
 

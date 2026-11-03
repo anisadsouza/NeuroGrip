@@ -68,7 +68,7 @@ These are the ones an AI assistant is most likely to break. The full list is in
 | --- | --- | --- |
 | 0–1b | Simulator, Python/TypeScript feature conformance, decoder, ONNX, browser Live/virtual hand | Done |
 | Recorded DB2 path | Nine local S1/S10/S11 sessions, loader and mapping, subject-held-out export/replay, Results views, S11 quality audit | Implemented; exploratory, three subjects; full-corpus multi-model comparison remains |
-| 2 | Neuromotor Cartography (Pillar 1) | Partly done; see §6 |
+| 2 | Neuromotor Cartography (Pillar 1) | Simulated map, corrected per-prototype gate, illustrative assignment and screen implemented; human validation remains |
 | 3 | Error-attribution router, anatomical coaching | Not started |
 | 4 | Robustness | Electrode-shift sweep complete: passes through 0.2 rad, fails at 0.3/0.4 rad; simulated only |
 | 5 | Azure deploy, patent disclosures | Not started |
@@ -416,7 +416,10 @@ quality-gate counts, zero-signal control, and Live virtual action.
 
 ## 7. Phase 2 (Cartography): status and an honest note
 
-Built in `services/research/neurogrip/cartography.py`, with 19 tests:
+The simulator pipeline and browser demonstration are implemented. The Python
+Cartography tests cover the map, synthesis, evaluation and matching; the
+assignment helper has focused TypeScript tests, and the screen has a browser
+test.
 
 - **Babble:** a simulated exploratory walk over muscle synergies.
 - **Synergy map:** NMF synergy extraction, with a 2-D map for display.
@@ -427,30 +430,28 @@ Built in `services/research/neurogrip/cartography.py`, with 19 tests:
 - **Weighted catalogue selection:** picks catalogue gestures, weighing
   separability against effort and fatigue.
 
-Run it with `python -m neurogrip.experiments cartography`, which writes
-`artifacts/cartography_gate.json`.
+Run `python -m neurogrip.experiments cartography --out
+artifacts/cartography_gate.json`, then `npm run stage:cartography` to produce
+the browser's simulator-only demo report. The evaluation fits scaling inside
+each repetition-held-out fold and compares synthesized targets one by one to
+distinct matched catalogue functions. The agreed pass criterion is at least
+80% held-out repetition recall and better nearest-rival Fisher separation.
 
-**Result:** synthesised gestures did **not** beat catalogue selection in the
-simulator (0 of 5 subjects in both groups). Effort- and fatigue-weighted
-catalogue selection traded 11–21% of worst-pair separability for 7–15% less
-effort.
+**Result:** in the regenerated eight-subject cohorts, at least one prototype
+passes for 2/8 intact subjects and 5/8 finger-atrophy simulated subjects.
+Across the cohorts, 3/40 and 6/40 prototypes pass respectively. Weighted
+catalogue selection retains 97.22% of max-min separation while reducing
+excitation by 2.27 percentage points and fatigue by 1.33 points for intact
+subjects; for finger atrophy it retains 90.77% while reducing excitation by
+4.61 points and fatigue by 2.65 points. In this simulator, fatigue is largely
+proportional to excitation, so those savings are not independent.
 
-**Caveat:** that test was stricter than the spec's actual gate. It compared
-whole vocabularies against the best possible catalogue choice, while the spec
-asks whether *a* synthesised gesture is learnable and beats *a* catalogue
-gesture. Several choices also departed from the design spec
-(`docs/superpowers/specs/2026-09-04-neurogrip-design.md`, Pillar 1); the module
-docstring lists them. Before more Phase 2 work:
-
-1. Write a short Phase 2 plan in `docs/superpowers/plans/` that records these
-   decisions and gets the team to agree on the gate definition.
-2. Re-run the comparison under the spec's per-gesture gate.
-3. Then build gesture-to-function assignment (the Hungarian algorithm,
-   weighted by `apps/web/src/decode/commitCost.ts`) and the Cartography screen.
-
-Cartography remains unfinished. Before extending it, expand the recorded
-evaluation first; babble on real EMG would require a separately designed
-recording session and safety review.
+The Cartography screen displays the first intact simulated subject's map,
+prototype gate, illustrative Hungarian function assignment, and cohort counts.
+This completes the software demonstration milestone, not the research claim:
+there is no recorded human babble, teach-back, or wearer validation, and the
+function assignment is not a clinical recommendation. Real-user mapping and
+teach-back remain future work.
 
 ## 8. Later phases (summary only)
 

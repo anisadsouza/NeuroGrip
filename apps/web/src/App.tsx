@@ -13,6 +13,7 @@
 import { useEffect, useState } from 'react';
 import { Icon } from './components/Icon.js';
 import { Wordmark } from './components/Wordmark.js';
+import { Cartography } from './screens/Cartography.js';
 import { Live } from './screens/Live.js';
 import { Results } from './screens/Results.js';
 
@@ -36,7 +37,7 @@ function readStoredTheme(): Theme | null {
 
 export function App() {
   const [theme, setTheme] = useState<Theme | null>(readStoredTheme);
-  const [screen, setScreen] = useState<'live' | 'results'>('live');
+  const [screen, setScreen] = useState<'live' | 'results' | 'cartography'>('live');
 
   useEffect(() => {
     const root = document.documentElement;
@@ -68,6 +69,7 @@ export function App() {
         <nav className="screen-nav" aria-label="Application sections">
           <button type="button" aria-current={screen === 'live' ? 'page' : undefined} onClick={() => setScreen('live')}>Live</button>
           <button type="button" aria-current={screen === 'results' ? 'page' : undefined} onClick={() => setScreen('results')}>Results</button>
+          <button type="button" aria-current={screen === 'cartography' ? 'page' : undefined} onClick={() => setScreen('cartography')}>Cartography</button>
         </nav>
         <button
           type="button"
@@ -80,7 +82,7 @@ export function App() {
       </header>
 
       <main>
-        {screen === 'live' ? <Live /> : <Results />}
+        {screen === 'live' ? <Live /> : screen === 'results' ? <Results /> : <Cartography />}
       </main>
 
       <footer className="colophon">

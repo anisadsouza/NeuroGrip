@@ -77,9 +77,10 @@ every number on it means.
 | Recorded quality gate | 16,572 / 17,293 labeled S10 windows accepted (95.83%); 721 rejected across rest and movement labels. Acceptance is not accuracy |
 | Browser replay latency | NinaPro worker P95: 1.93 ms (2026-11-02, MacBook Air / Apple M3; feature extraction + inference only, not total reaction time). P95 varies between runs; a prior run measured 2.70 ms |
 | Time to motion | Simulator-only TTUM: 40 ms median before the hand starts moving, 260 ms to latch |
-| Tests | 189 Python + 266 TypeScript tests; Playwright 24/24; typecheck passes |
-| Built | Simulator and decoder, DB2 loader and comparison, subject-held-out ONNX export/replay, Live source selector, Results comparison/confusion/timeline/latency views |
-| Follow-up | More independent subjects and broader validation; clinician mode, error attribution, amputee stratum, deployment |
+| Neuromotor Cartography | Simulator-only per-prototype gate: at least one prototype passes for 2/8 intact and 5/8 finger-atrophy subjects; no human learnability result |
+| Tests | 207 Python + 275 TypeScript tests; Playwright 25 tests; typecheck passes |
+| Built | Simulator and decoder, DB2 loader and comparison, subject-held-out ONNX export/replay, Live source selector, Results comparison/confusion/timeline/latency views, simulator-only Cartography map/gate/illustrative assignment |
+| Follow-up | Human babble and teach-back validation; more independent recorded subjects; clinician mode, error attribution, amputee stratum, deployment |
 
 The NinaPro replay uses per-channel quality floors calibrated at 25% of each
 channel's RMS in the held-out subject's recorded rest segment, capped at the
@@ -102,6 +103,22 @@ channels. The specific S11 E2 recording has 136.70 µV rest RMS. This check is
 based on only three development subjects, does not identify the cause, and is
 not validated fault detection.
 See [`docs/model_card.md`](docs/model_card.md) for limitations.
+
+The Cartography screen shows one simulated subject's babble map and prototype
+comparisons, plus the eight-subject intact and finger-atrophy cohort gate. To
+regenerate the report and stage it for the browser:
+
+```bash
+python -m neurogrip.experiments cartography --out artifacts/cartography_gate.json
+npm run stage:cartography
+```
+
+The gate requires at least 80% held-out repetition recall and better
+nearest-rival separation than the one-to-one matched catalogue gesture.
+In this simulator, 3/40 intact and 6/40 finger-atrophy prototypes pass. This is
+not evidence of human learnability: babble, users, and trials are simulated,
+and there is no teach-back or wearer study. The displayed function assignment
+is illustrative only.
 
 The quality-gate acceptance rate is not gesture accuracy. On the full S10
 evaluation, the revised gate rejects 721 of 17,293 windows across rest and

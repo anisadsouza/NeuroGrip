@@ -100,6 +100,30 @@ All of this happens inside your browser. Nothing is uploaded.
 
 ---
 
+## Cartography
+
+The Cartography screen is a simulator-only demonstration of Neuromotor
+Cartography. It plots one simulated subject's babble poses in a two-dimensional
+display projection, marks the synthesized targets, and reports each target's
+held-out repetition recall and nearest-rival separation against its matched
+catalogue gesture. A target passes only at ≥80% recall and when its separation
+is better than the matched catalogue gesture. The screen also shows an
+illustrative, risk-weighted assignment of targets to gesture functions and the
+cohort-level simulation counts.
+
+Generate and stage the report before opening this screen:
+
+```bash
+python -m neurogrip.experiments cartography --out artifacts/cartography_gate.json
+npm run stage:cartography
+```
+
+The report uses simulated users and babble. It does not show your own muscle
+map, run a teaching session, or establish that a real wearer can repeat a
+synthesized gesture. The assignment is not a clinical recommendation.
+
+---
+
 ## The Live screen
 
 The **Replay source** selector chooses either simulated sEMG with the

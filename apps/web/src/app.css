@@ -605,6 +605,102 @@ main {
   font-size: var(--ng-text-base);
 }
 
+.cartography-screen {
+  display: grid;
+  gap: var(--ng-space-4);
+  max-width: 1180px;
+  margin: 0 auto;
+}
+.cartography-header h2 {
+  margin: 0;
+  font-size: var(--ng-text-xl);
+}
+.cartography-header p { margin: var(--ng-space-2) 0 0; }
+.cartography-screen .panel { min-width: 0; }
+.cartography-screen .panel h3 {
+  margin: 0 0 var(--ng-space-3);
+  font-size: var(--ng-text-lg);
+}
+.cartography-gate {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--ng-space-4);
+}
+.cartography-screen .cartography-gate h3 { margin-bottom: var(--ng-space-1); }
+.cartography-gate p { margin: 0; max-width: var(--ng-measure); }
+.cartography-readout {
+  color: var(--ng-ink);
+  font-family: var(--ng-font-numeric);
+  font-size: var(--ng-text-readout);
+  line-height: 1;
+  text-align: end;
+  white-space: nowrap;
+}
+.cartography-readout span {
+  display: block;
+  margin-top: var(--ng-space-2);
+  color: var(--ng-ink-muted);
+  font-family: var(--ng-font-text);
+  font-size: var(--ng-text-xs);
+}
+.cartography-map { margin: 0; }
+.cartography-map svg {
+  display: block;
+  width: 100%;
+}
+.cartography-plot { fill: var(--ng-paper-sunk); stroke: var(--ng-rule-strong); }
+.cartography-grid line {
+  stroke: var(--ng-graticule-decade);
+  stroke-width: var(--ng-hairline);
+}
+.cartography-grid text {
+  fill: var(--ng-ink-muted);
+  font-family: var(--ng-font-numeric);
+  font-size: var(--ng-text-xs);
+}
+.cartography-axis {
+  fill: var(--ng-ink-muted);
+  font-family: var(--ng-font-text);
+  font-size: var(--ng-text-sm);
+}
+.cartography-pose { fill: var(--ng-ink-muted); opacity: 0.38; }
+.cartography-prototype circle {
+  fill: var(--ng-paper-raised);
+  stroke: var(--ng-ink);
+  stroke-width: 1.5;
+}
+.cartography-prototype text {
+  fill: var(--ng-ink);
+  font-family: var(--ng-font-numeric);
+  font-size: var(--ng-text-xs);
+  font-weight: 700;
+}
+.cartography-map figcaption { margin-top: var(--ng-space-2); }
+.cartography-table-wrap { overflow-x: auto; }
+.cartography-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--ng-text-sm);
+  text-align: start;
+}
+.cartography-table caption {
+  padding: 0 0 var(--ng-space-2);
+  color: var(--ng-ink-muted);
+  text-align: start;
+}
+.cartography-table th,
+.cartography-table td {
+  padding: var(--ng-space-2);
+  border-bottom: var(--ng-hairline) solid var(--ng-rule);
+  vertical-align: top;
+}
+.cartography-table thead th { color: var(--ng-ink-muted); font-weight: 600; }
+.cartography-table tbody th { font-weight: 600; white-space: nowrap; }
+.cartography-table .muted { display: block; font-size: var(--ng-text-xs); }
+.cartography-cohorts { overflow-x: auto; }
+.cartography-caveat { margin: 0; }
+
 .visually-hidden {
   position: absolute;
   width: 1px;
