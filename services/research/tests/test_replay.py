@@ -130,8 +130,39 @@ def test_ninapro_bundle_marks_the_recording_and_omits_simulated_anatomy(tmp_path
     assert "muscleGroups" not in manifest
     assert len(manifest["signalQuality"]["minChannelRmsByChannel"]) == 8
     assert all(value > 0 for value in manifest["signalQuality"]["minChannelRmsByChannel"])
+    assert manifest["signalQuality"]["restCalibration"]["passed"]
+    assert manifest["signalQuality"]["restCalibration"]["flaggedChannels"] == []
     assert "rest segment" in manifest["signalQuality"]["method"]
     assert samples.shape == (len(GESTURES), 8, 10)
+
+
+def test_ninapro_bundle_reports_rest_calibration_outliers(tmp_path, monkeypatch):
+    from neurogrip import replay
+
+    (tmp_path / "S12_E1_A1.mat").touch()
+    mapping = {
+        gesture: index + 1
+        for index, gesture in enumerate(GESTURES)
+        if gesture != "rest"
+    }
+    labels = np.concatenate([
+        np.full(10, 0 if gesture == "rest" else mapping[gesture], dtype=np.int16)
+        for gesture in GESTURES
+    ])
+    emg = np.full((8, labels.size), 20e-6, dtype=np.float32)
+    emg[0, labels == 0] = 136.7e-6
+    monkeypatch.setattr(
+        replay, "load_session", lambda _: (emg, labels, np.ones(labels.size, dtype=np.int16))
+    )
+
+    manifest, _ = replay.build_ninapro_bundle(
+        tmp_path, subject=12, duration_s=0.005, mapping=mapping
+    )
+
+    calibration = manifest["signalQuality"]["restCalibration"]
+    assert not calibration["passed"]
+    assert calibration["flaggedChannels"] == [1]
+    assert calibration["channelRms"][0] == pytest.approx(136.7e-6)
 
 
 def test_ninapro_replay_refuses_a_training_subject(tmp_path):

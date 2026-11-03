@@ -94,8 +94,13 @@ rejected 96.6% of a controlled ±50 µV clipping injection, 100% of a 1 mV
 alternating burst and 10× half-window gain jump, and 1.7% of clean windows
 (1.4% failed the pre-existing RMS floors). These are artificial probes, not
 validated detector sensitivity or specificity. The gate still does **not**
-impose a useful per-channel RMS ceiling or identify high baseline noise:
-S11 E2 channel 1 has 136.70 µV rest RMS and is not rejected for that reason.
+apply a baseline ceiling to active windows. A separate rest-calibration screen
+computes RMS across all rest-labeled samples and raises a non-blocking warning
+above an exploratory 50 µV threshold. It flags channel 1 for S10 (56.82 µV
+across its available recordings) and S11 (102.74 µV); S1 has no flagged
+channels. The specific S11 E2 recording has 136.70 µV rest RMS. This check is
+based on only three development subjects, does not identify the cause, and is
+not validated fault detection.
 See [`docs/model_card.md`](docs/model_card.md) for limitations.
 
 The quality-gate acceptance rate is not gesture accuracy. On the full S10
@@ -105,8 +110,8 @@ separately against the dataset labels. A seeded probe of 1,000 selected
 recorded windows rejects 96.6% of controlled clipping, 100% of a 1 mV
 alternating burst, and 100% of a 10× half-window gain jump, with a 1.7% clean
 sample rejection rate (including the existing low-RMS rejects). These probes
-are not real-fault validation. The gate still does not identify high baseline
-noise, including S11 E2 channel 1.
+are not real-fault validation. The separate rest-calibration warning is not
+validated against real electrode faults and does not stop replay.
 
 The current Results export is a uniform-prior LDA trained on S1 and tested on
 S10; it scored 46.61%, with ECE 0.026. The separately evaluated ordinary-LDA

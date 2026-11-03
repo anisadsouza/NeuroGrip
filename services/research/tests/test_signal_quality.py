@@ -1,6 +1,53 @@
 import numpy as np
+import pytest
 
-from neurogrip.signal_quality import SignalQualityConfig, check_signal_quality
+from neurogrip.signal_quality import (
+    MAX_REST_CALIBRATION_RMS,
+    SignalQualityConfig,
+    check_rest_calibration,
+    check_signal_quality,
+)
+
+
+def test_rest_calibration_flags_high_baseline_rms_by_channel():
+    channels = np.stack(
+        [
+            np.full(2000, 136.7e-6, dtype=np.float32),
+            np.full(2000, 15e-6, dtype=np.float32),
+        ]
+    )
+
+    result = check_rest_calibration(channels)
+
+    assert not result.ok
+    assert result.reason == "rest RMS exceeds calibrated maximum"
+    assert result.flagged_channels == (0,)
+    assert result.channel_rms[0] == pytest.approx(136.7e-6)
+    assert result.max_channel_rms == MAX_REST_CALIBRATION_RMS
+
+
+def test_rest_calibration_accepts_expected_baseline_and_exact_ceiling():
+    channels = np.stack(
+        [
+            np.full(2000, 15e-6, dtype=np.float32),
+            np.full(2000, MAX_REST_CALIBRATION_RMS, dtype=np.float32),
+        ]
+    )
+
+    result = check_rest_calibration(channels)
+
+    assert result.ok
+    assert result.flagged_channels == ()
+
+
+def test_rest_calibration_rejects_non_finite_samples():
+    channels = np.full((2, 20), 15e-6, dtype=np.float32)
+    channels[1, 0] = np.nan
+
+    result = check_rest_calibration(channels)
+
+    assert not result.ok
+    assert result.reason == "rest calibration contains non-finite samples"
 
 
 def test_quality_rejects_flat_channel():

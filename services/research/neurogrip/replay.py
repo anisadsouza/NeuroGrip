@@ -33,6 +33,10 @@ import numpy as np
 from neurogrip import FEATURE_SPEC_VERSION
 from neurogrip.anatomy import muscle_group_weights
 from neurogrip.ninapro import DATASET_MOVEMENTS, DEFAULT_MAPPING, load_session
+from neurogrip.signal_quality import (
+    MAX_REST_CALIBRATION_RMS,
+    assess_rest_calibration_rms,
+)
 from neurogrip.simulator import (
     GESTURES,
     SimulatorConfig,
@@ -133,8 +137,14 @@ def build_ninapro_bundle(
     n_samples = int(round(duration_s * 2000))
     raw_labels = {"rest": 0, **mapping}
     segments: dict[str, np.ndarray] = {}
+    rest_sum_squares = np.zeros(8, dtype=np.float64)
+    rest_sample_count = 0
     for path in paths:
         emg, labels, _ = load_session(path)
+        rest_samples = emg[:, labels == 0].astype(np.float64)
+        if rest_samples.shape[1] > 0:
+            rest_sum_squares += np.sum(np.square(rest_samples), axis=1)
+            rest_sample_count += rest_samples.shape[1]
         for gesture, raw_label in raw_labels.items():
             if gesture in segments:
                 continue
@@ -149,6 +159,8 @@ def build_ninapro_bundle(
         raise ValueError(
             f"subject S{subject} has no {duration_s:g}s continuous segment for: {missing}"
         )
+    if rest_sample_count < 1:
+        raise ValueError(f"subject S{subject} has no rest-labelled samples")
 
     stacked = np.stack([segments[gesture] for gesture in GESTURES])
     counts = np.round(stacked / VOLTS_PER_COUNT)
@@ -159,6 +171,8 @@ def build_ninapro_bundle(
     if not np.all(np.isfinite(rest_rms)) or np.any(rest_rms <= 0):
         raise ValueError("NinaPro rest segment must provide a finite baseline on every channel")
     min_channel_rms = np.minimum(5e-6, rest_rms * 0.25)
+    full_rest_rms = np.sqrt(rest_sum_squares / rest_sample_count)
+    rest_calibration = assess_rest_calibration_rms(full_rest_rms)
     manifest = {
         "formatVersion": 1,
         "featureSpecVersion": FEATURE_SPEC_VERSION,
@@ -172,6 +186,24 @@ def build_ninapro_bundle(
         "gestureLabels": {"rest": "Rest", **DATASET_MOVEMENTS},
         "signalQuality": {
             "minChannelRmsByChannel": min_channel_rms.tolist(),
+            "restCalibration": {
+                "passed": rest_calibration.ok,
+                "channelRms": list(rest_calibration.channel_rms),
+                "maxChannelRms": rest_calibration.max_channel_rms,
+                "flaggedChannels": [
+                    index + 1 for index in rest_calibration.flagged_channels
+                ],
+                "reason": rest_calibration.reason,
+                "method": (
+                    "Per-channel RMS across all samples labeled rest in the "
+                    "subject's available E1-E3 recordings."
+                ),
+                "caveat": (
+                    f"Exploratory {MAX_REST_CALIBRATION_RMS * 1e6:g} uV "
+                    "screening threshold; warning only, not a validated "
+                    "electrode-fault or clinical limit."
+                ),
+            },
             "method": (
                 "Per-channel minimum is 25% of RMS measured in this subject's "
                 "recorded rest segment, capped at the shared 5 uV minimum. "

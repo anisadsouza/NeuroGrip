@@ -1,8 +1,9 @@
 /**
- * Window-level signal checks. A port of
+ * Signal checks. Window-level checks are a port of
  * services/research/neurogrip/signal_quality.py: same thresholds, same order of
  * checks, same reason strings. Waveform checks are heuristics for obvious
- * faults, not a validated artifact classifier.
+ * faults, not a validated artifact classifier. Rest calibration is separate
+ * and reports elevated baseline RMS without classifying the cause.
  */
 
 export interface SignalQualityConfig {
@@ -31,6 +32,108 @@ export interface SignalQualityResult {
   ok: boolean;
   reason?: string;
   failedChannel?: number;
+}
+
+// Exploratory screen only: about 3.3x the project's nominal 15 uV rest level.
+export const MAX_REST_CALIBRATION_RMS = 50e-6;
+
+export interface RestCalibrationResult {
+  ok: boolean;
+  channelRms: readonly number[];
+  flaggedChannels: readonly number[];
+  maxChannelRms: number;
+  reason?: string;
+}
+
+export function assessRestCalibrationRms(
+  channelRms: readonly number[],
+  maxChannelRms = MAX_REST_CALIBRATION_RMS,
+): RestCalibrationResult {
+  if (channelRms.length < 1) {
+    return {
+      ok: false,
+      channelRms: [],
+      flaggedChannels: [],
+      maxChannelRms,
+      reason: 'rest calibration must contain channel RMS values',
+    };
+  }
+  if (!Number.isFinite(maxChannelRms) || maxChannelRms <= 0) {
+    return {
+      ok: false,
+      channelRms,
+      flaggedChannels: [],
+      maxChannelRms,
+      reason: 'invalid maximum rest RMS calibration',
+    };
+  }
+  if (channelRms.some((value) => !Number.isFinite(value) || value < 0)) {
+    return {
+      ok: false,
+      channelRms,
+      flaggedChannels: [],
+      maxChannelRms,
+      reason: 'rest calibration contains invalid channel RMS values',
+    };
+  }
+  const thresholdMargin = maxChannelRms * 1e-6;
+  const flaggedChannels = channelRms.flatMap(
+    (value, index) => value > maxChannelRms + thresholdMargin ? [index] : [],
+  );
+  return {
+    ok: flaggedChannels.length === 0,
+    channelRms,
+    flaggedChannels,
+    maxChannelRms,
+    ...(flaggedChannels.length > 0
+      ? { reason: 'rest RMS exceeds calibrated maximum' }
+      : {}),
+  };
+}
+
+export function checkRestCalibration(
+  channels: readonly ArrayLike<number>[],
+  maxChannelRms = MAX_REST_CALIBRATION_RMS,
+): RestCalibrationResult {
+  if (channels.length < 1 || channels.some((channel) => channel.length < 1)) {
+    return {
+      ok: false,
+      channelRms: [],
+      flaggedChannels: [],
+      maxChannelRms,
+      reason: 'rest calibration must be a non-empty 2D channel matrix',
+    };
+  }
+  const sampleCount = channels[0]!.length;
+  if (channels.some((channel) => channel.length !== sampleCount)) {
+    return {
+      ok: false,
+      channelRms: [],
+      flaggedChannels: [],
+      maxChannelRms,
+      reason: 'rest calibration channels must have equal sample counts',
+    };
+  }
+
+  const channelRms = channels.map((channel) => {
+    let sumSquares = 0;
+    for (let index = 0; index < channel.length; index++) {
+      const sample = channel[index]!;
+      if (!Number.isFinite(sample)) return Number.NaN;
+      sumSquares += sample * sample;
+    }
+    return Math.sqrt(sumSquares / channel.length);
+  });
+  if (channelRms.some((value) => !Number.isFinite(value))) {
+    return {
+      ok: false,
+      channelRms,
+      flaggedChannels: [],
+      maxChannelRms,
+      reason: 'rest calibration contains non-finite samples',
+    };
+  }
+  return assessRestCalibrationRms(channelRms, maxChannelRms);
 }
 
 export function checkSignalQuality(

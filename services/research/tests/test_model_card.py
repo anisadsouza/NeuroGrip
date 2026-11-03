@@ -304,7 +304,7 @@ def test_recorded_results_and_s11_audit_are_reported_separately(comparison, deco
     assert "| `rest` | 99.1% |" in card
     assert "| S11 | 26.61% | 35.45% | 25.98% |" in card
     assert "| E2 | 136.70 | 3.29 |" in card
-    assert "no useful per-channel RMS ceiling" in card
+    assert "separate exploratory calibration warning" in card
 
 
 def test_model_card_without_local_recorded_artifacts_remains_simulator_only(comparison, decoder):
@@ -391,6 +391,39 @@ def test_card_reports_quality_gate_and_controlled_fault_probe(comparison, decode
         },
         "caveat": "Controlled artificial fault probes only; not validated.",
     }
+    rest_calibration = {
+        "thresholdVolts": 50e-6,
+        "method": "RMS across all samples labeled rest.",
+        "thresholdCaveat": "Exploratory screen only; not validated.",
+        "subjects": [
+            {
+                "subject": "S10",
+                "restSamples": 1000,
+                "channelRms": [20e-6],
+                "flaggedChannels": [1],
+                "passed": False,
+            },
+            {
+                "subject": "S11",
+                "restSamples": 1000,
+                "channelRms": [20e-6],
+                "flaggedChannels": [1],
+                "passed": False,
+            },
+        ],
+        "recordings": [
+            {
+                "file": "S11_E2_A1.mat",
+                "restWindowRmsPercentiles": {
+                    "nWindows": 2121,
+                    "p50Microvolts": [6.31],
+                    "p95Microvolts": [76.87],
+                    "p99Microvolts": [496.28],
+                    "maxMicrovolts": [3879.4],
+                },
+            }
+        ],
+    }
 
     card = render(
         comparison,
@@ -398,10 +431,15 @@ def test_card_reports_quality_gate_and_controlled_fault_probe(comparison, decode
         "2026-11-04",
         recorded_holdout=heldout,
         quality_probe=probe,
+        rest_calibration=rest_calibration,
     )
 
     assert "90 of 100 held-out S10 windows (90.0%)" in card
     assert "Rejections by performed class: `rest` 8, `fist` 2" in card
     assert "Controlled signal-quality fault probes" in card
     assert "`clipping_50uV` | 966/1,000 | 96.6%" in card
-    assert "not rejected for that reason" in card
+    assert "Exploratory rest-baseline calibration" in card
+    assert "| S10 | 1,000 | ch 1 (20.00 µV) | flagged |" in card
+    assert "| S11 | 1,000 | ch 1 (20.00 µV) | flagged |" in card
+    assert "nor do they identify real-world motion" in card
+    assert "median 6.31 µV, P95 76.87 µV, P99 496.28 µV" in card

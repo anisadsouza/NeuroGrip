@@ -75,8 +75,13 @@ simulated replay continues to use the unchanged fixed 5 µV minimum. Waveform
 heuristics reject repeated clipping plateaus, repeated large transients and
 abrupt half-window RMS changes, but these have only been tested with controlled
 fault injection. The gate does not impose a useful per-channel RMS ceiling for
-excessive baseline noise: S11 E2 channel 1 has 136.70 µV rest RMS and is not
-rejected for being high.
+active windows. A separate rest-calibration screen measures RMS across all
+rest-labeled samples in the available recordings and gives a non-blocking
+warning above an exploratory 50 µV threshold. It flags channel 1 for S10
+(56.82 µV across its available recordings) and S11 (102.74 µV); S1 has no
+flagged channel. S11 E2 channel 1's exercise-specific rest RMS is 136.70 µV.
+The screen does not identify the cause, and these three development subjects
+do not establish a validated threshold or real-world fault-detection rate.
 
 ---
 

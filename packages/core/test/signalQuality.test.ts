@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_SIGNAL_QUALITY_CONFIG, checkSignalQuality } from '../src/signalQuality.js';
+import {
+  DEFAULT_SIGNAL_QUALITY_CONFIG,
+  MAX_REST_CALIBRATION_RMS,
+  checkRestCalibration,
+  checkSignalQuality,
+} from '../src/signalQuality.js';
 
 const good = () => [new Float64Array(400).fill(0.01), new Float64Array(400).fill(0.02)];
 
@@ -139,5 +144,43 @@ describe('checkSignalQuality', () => {
 
   it('rejects an empty channel list', () => {
     expect(checkSignalQuality([], DEFAULT_SIGNAL_QUALITY_CONFIG).ok).toBe(false);
+  });
+});
+
+describe('checkRestCalibration', () => {
+  it('flags a high-baseline channel while accepting an expected baseline', () => {
+    const result = checkRestCalibration([
+      new Float64Array(2000).fill(136.7e-6),
+      new Float64Array(2000).fill(15e-6),
+    ]);
+
+    expect(result).toMatchObject({
+      ok: false,
+      reason: 'rest RMS exceeds calibrated maximum',
+      flaggedChannels: [0],
+      maxChannelRms: MAX_REST_CALIBRATION_RMS,
+    });
+    expect(result.channelRms[0]).toBeCloseTo(136.7e-6, 12);
+  });
+
+  it('accepts a baseline at the exploratory ceiling', () => {
+    const result = checkRestCalibration([
+      new Float64Array(2000).fill(15e-6),
+      new Float64Array(2000).fill(MAX_REST_CALIBRATION_RMS),
+    ]);
+
+    expect(result).toMatchObject({ ok: true, flaggedChannels: [] });
+  });
+
+  it('rejects invalid calibration samples', () => {
+    const result = checkRestCalibration([
+      new Float64Array(20).fill(15e-6),
+      Float64Array.from({ length: 20 }, (_, index) => index === 0 ? Number.NaN : 15e-6),
+    ]);
+
+    expect(result).toMatchObject({
+      ok: false,
+      reason: 'rest calibration contains non-finite samples',
+    });
   });
 });

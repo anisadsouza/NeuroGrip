@@ -3,7 +3,7 @@
 Renders a markdown model card from recorded experiment artifacts rather than
 from prose, so the numbers in the card cannot drift away from the numbers the
 experiments actually produced. Every figure it prints is traceable to a JSON
-file written by `neurogrip.experiments`.
+file written by a NeuroGrip experiment or audit command.
 
     python -m neurogrip.model_card --artifacts artifacts --out docs/model_card.md
 """
@@ -40,6 +40,7 @@ def render(
     recorded_uniform_trial: dict | None = None,
     ninapro_recognition: dict | None = None,
     quality_probe: dict | None = None,
+    rest_calibration: dict | None = None,
 ) -> str:
     best = comparison["best_model"]
     models = comparison["models"]
@@ -441,10 +442,59 @@ def render(
             "5 V absolute-amplitude sanity limit, repeated extreme-value plateau "
             "checks, repeated >1 mV sample-step checks, and an 8× half-window RMS "
             "change check. These waveform rules are conservative heuristics, not "
-            "a validated artifact classifier. There is no useful per-channel RMS "
-            "ceiling or independent high-baseline-noise detector, so this high "
-            "RMS channel is not rejected as noisy."
+            "a validated artifact classifier. Rest-baseline screening is a "
+            "separate exploratory calibration warning; it does not classify the "
+            "cause of an outlier or gate active windows."
         )
+        add("")
+
+    if rest_calibration is not None:
+        add("## Exploratory rest-baseline calibration")
+        add("")
+        add(
+            "This diagnostic calculates each channel's RMS over all samples "
+            "labeled rest in that subject's available recordings. It flags a "
+            "channel above "
+            f"{rest_calibration['thresholdVolts'] * 1e6:.0f} µV; the warning does "
+            "not block replay."
+        )
+        add("")
+        add("| Subject | Rest samples | Flagged channel RMS | Screen |")
+        add("| --- | ---: | --- | --- |")
+        for subject in rest_calibration["subjects"]:
+            flagged = ", ".join(
+                f"ch {channel} ({subject['channelRms'][channel - 1] * 1e6:.2f} µV)"
+                for channel in subject["flaggedChannels"]
+            ) or "none"
+            add(
+                f"| {subject['subject']} | {subject['restSamples']:,} | "
+                f"{flagged} | {'flagged' if not subject['passed'] else 'clear'} |"
+            )
+        add("")
+        add(f"**Method and limitation.** {rest_calibration['method']} "
+            f"{rest_calibration['thresholdCaveat']} The available recordings "
+            "have no independent artifact labels, so this screen is not "
+            "validated fault detection or threshold validation across subjects.")
+        s11_e2 = next(
+            (
+                recording
+                for recording in rest_calibration.get("recordings", [])
+                if recording["file"] == "S11_E2_A1.mat"
+            ),
+            None,
+        )
+        if s11_e2 is not None and s11_e2["restWindowRmsPercentiles"] is not None:
+            stats = s11_e2["restWindowRmsPercentiles"]
+            add(
+                f"S11 E2 channel 1 across {stats['nWindows']:,} non-overlapping "
+                f"200 ms rest-labeled windows: median "
+                f"{stats['p50Microvolts'][0]:.2f} µV, P95 "
+                f"{stats['p95Microvolts'][0]:.2f} µV, P99 "
+                f"{stats['p99Microvolts'][0]:.2f} µV, maximum "
+                f"{stats['maxMicrovolts'][0]:.2f} µV. This shows a highly "
+                "skewed rest-window distribution, but does not identify its cause."
+            )
+            add("")
         add("")
 
     if ninapro_recognition is not None:
@@ -509,9 +559,9 @@ def render(
         add("")
         add(f"**Caveat.** {quality_probe['caveat']}")
         add(
-            "The gate still has no per-channel RMS ceiling or independent "
-            "high-baseline-noise detector; S11 E2 channel 1's 136.70 µV rest "
-            "RMS is not rejected for that reason."
+            "These window-level probes do not validate the separate exploratory "
+            "rest-baseline screen above, nor do they identify real-world motion "
+            "artifacts or electrode-contact faults."
         )
         add("")
 
@@ -587,6 +637,12 @@ def render(
                 "--data-root data/ninapro/DB2 "
                 "--out artifacts/ninapro_recognition_experiment.json"
             )
+        if rest_calibration is not None:
+            add(
+                "python -m neurogrip.ninapro_rest_calibration "
+                "--data-root data/ninapro/DB2 "
+                "--out artifacts/ninapro_rest_calibration.json"
+            )
         add("python -m neurogrip.model_card --artifacts artifacts --out docs/model_card.md")
         add("```")
         add("")
@@ -649,6 +705,12 @@ def main() -> None:
         if quality_probe_path.exists()
         else None
     )
+    rest_calibration_path = args.artifacts / "ninapro_rest_calibration.json"
+    rest_calibration = (
+        json.loads(rest_calibration_path.read_text(encoding="utf-8"))
+        if rest_calibration_path.exists()
+        else None
+    )
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(
@@ -663,6 +725,7 @@ def main() -> None:
             recorded_uniform_trial,
             ninapro_recognition,
             quality_probe,
+            rest_calibration,
         ),
         encoding="utf-8",
     )

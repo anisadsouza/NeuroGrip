@@ -81,6 +81,7 @@ export function Live() {
   const [latency, setLatency] = useState<number[]>([]);
 
   const risks = useMemo(() => risksFor(gestures), [gestures]);
+  const restCalibration = bundle?.manifest.signalQuality?.restCalibration;
   // The worker's class list is authoritative once it has loaded -- it is the
   // order the decoder actually emits. Until then the manifest's list stands in,
   // so the wearer can pick a gesture while the model is still loading. The
@@ -289,6 +290,17 @@ export function Live() {
             <p className="small muted">
               Recorded-data channel checks use per-channel rest calibration. A
               rejected window still produces no gesture.
+            </p>
+          ) : null}
+          {replayMode === 'ninapro' && restCalibration?.flaggedChannels.length ? (
+            <p className="notice" role="status">
+              Recorded rest RMS screen flagged channel
+              {restCalibration.flaggedChannels.length === 1
+                ? ''
+                : 's'}{' '}
+              {restCalibration.flaggedChannels.join(', ')} above the exploratory{' '}
+              {(restCalibration.maxChannelRms * 1e6).toFixed(0)} µV RMS screen.
+              Replay continues; this warning is not a validated fault diagnosis.
             </p>
           ) : null}
         </div>

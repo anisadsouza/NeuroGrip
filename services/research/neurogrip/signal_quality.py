@@ -1,8 +1,9 @@
-"""Window-level signal checks shared with the browser TypeScript port.
+"""Window-level checks and a separate rest-baseline calibration screen.
 
 The waveform checks are conservative heuristics for obvious clipping plateaus,
 large repeated transients, and abrupt half-window gain changes. They are not a
-validated artifact classifier and do not detect high baseline noise by itself.
+validated artifact classifier. The rest-calibration screen flags elevated
+baseline RMS separately and does not classify the cause.
 """
 
 from __future__ import annotations
@@ -10,6 +11,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
+
+# Exploratory screen only: about 3.3x the project's nominal 15 uV rest level.
+MAX_REST_CALIBRATION_RMS = 50e-6
 
 
 @dataclass(frozen=True)
@@ -31,6 +35,69 @@ class SignalQualityResult:
     ok: bool
     reason: str | None = None
     failed_channel: int | None = None
+
+
+@dataclass(frozen=True)
+class RestCalibrationResult:
+    ok: bool
+    channel_rms: tuple[float, ...]
+    flagged_channels: tuple[int, ...]
+    max_channel_rms: float
+    reason: str | None = None
+
+
+def assess_rest_calibration_rms(
+    channel_rms: np.ndarray,
+    max_channel_rms: float = MAX_REST_CALIBRATION_RMS,
+) -> RestCalibrationResult:
+    rms = np.asarray(channel_rms, dtype=np.float64)
+    if rms.ndim != 1 or rms.size < 1:
+        return RestCalibrationResult(
+            False, (), (), max_channel_rms, "rest calibration must contain channel RMS values"
+        )
+    if not np.isfinite(max_channel_rms) or max_channel_rms <= 0:
+        return RestCalibrationResult(
+            False, tuple(float(value) for value in rms), (), max_channel_rms,
+            "invalid maximum rest RMS calibration",
+        )
+    if np.any(~np.isfinite(rms)) or np.any(rms < 0):
+        return RestCalibrationResult(
+            False, tuple(float(value) for value in rms), (), max_channel_rms,
+            "rest calibration contains invalid channel RMS values",
+        )
+
+    # Float32 recordings can represent an exact threshold a few ulps above it.
+    margin = max_channel_rms * 1e-6
+    flagged = tuple(
+        int(index)
+        for index in np.flatnonzero(rms > max_channel_rms + margin)
+    )
+    return RestCalibrationResult(
+        not flagged,
+        tuple(float(value) for value in rms),
+        flagged,
+        float(max_channel_rms),
+        "rest RMS exceeds calibrated maximum" if flagged else None,
+    )
+
+
+def check_rest_calibration(
+    channels: np.ndarray,
+    max_channel_rms: float = MAX_REST_CALIBRATION_RMS,
+) -> RestCalibrationResult:
+    signal = np.asarray(channels, dtype=np.float64)
+    if signal.ndim != 2 or signal.shape[0] < 1 or signal.shape[1] < 1:
+        return RestCalibrationResult(
+            False, (), (), max_channel_rms,
+            "rest calibration must be a non-empty 2D channel matrix",
+        )
+    if np.any(~np.isfinite(signal)):
+        return RestCalibrationResult(
+            False, (), (), max_channel_rms,
+            "rest calibration contains non-finite samples",
+        )
+    rms = np.sqrt(np.mean(np.square(signal), axis=1))
+    return assess_rest_calibration_rms(rms, max_channel_rms)
 
 
 def check_signal_quality(

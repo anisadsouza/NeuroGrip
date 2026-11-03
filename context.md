@@ -265,6 +265,9 @@ is development data, not an untouched final test subject.
 
 ### Recorded quality gate and fault probes (local development audit)
 
+Step 3 is implementation-complete; its scientific validation remains
+incomplete.
+
 The replay manifest calibrates each channel's minimum RMS to 25% of that
 subject's selected recorded-rest segment, capped at the shared 5 uV floor.
 After the waveform heuristics were added, the gate was rerun on all 17,293 S10
@@ -297,10 +300,29 @@ user reaction time. The zero-signal control is rejected. The separate
 simulated bench has its own accuracy and latency results; do not mix them with
 recorded-data metrics.
 
-The quality gate additionally checks for repeated clipping plateaus, repeated
-large sample steps, and abrupt half-window RMS changes. It still has no useful
-per-channel RMS upper limit or independent high-baseline-noise detector.
-S11 E2 channel 1's 136.70 µV rest RMS is therefore not rejected as noisy.
+The window-level gate additionally checks for repeated clipping plateaus,
+repeated large sample steps, and abrupt half-window RMS changes. A separate
+rest-calibration diagnostic now computes per-channel RMS across all
+rest-labeled samples in a subject's available recordings. Its exploratory
+50 µV threshold raises a warning but does not stop replay or apply a ceiling to
+active windows:
+
+| Subject | Rest samples | Channel-1 RMS | Screen |
+| --- | ---: | ---: | --- |
+| S1 | 2,841,213 | 14.14 µV | Clear |
+| S10 | 2,138,968 | 56.82 µV | Flag channel 1 |
+| S11 | 1,609,557 | 102.74 µV | Flag channel 1 |
+
+The exercise-specific S11 E2 rest RMS remains 136.70 µV. The screen identifies
+an unusual baseline level, not its cause. Its cutoff was selected on these
+development subjects, and the recordings have no independent artifact labels;
+this is not threshold validation or real-world fault validation.
+
+The reproducible audit also summarizes non-overlapping 200 ms rest-labeled
+windows. For S11 E2 channel 1, 2,121 windows have median RMS 6.31 µV, P95
+76.87 µV, P99 496.28 µV, and maximum 3,879.40 µV. This strongly skewed
+distribution is consistent with intermittent high-amplitude windows rather
+than a uniformly elevated baseline; the dataset does not identify their cause.
 
 A repeatable fault probe samples 100 stable 200 ms S10 windows from each of
 the ten mapped classes (1,000 total, seed 20261103) and applies one fault at a
@@ -311,9 +333,18 @@ heuristic. A flat channel in channel 1 rejected 1,000/1,000 (100%). Clipping
 all channels at ±50 µV rejected 966/1,000 (96.6%). A 1 mV alternating noise
 burst lasting 20 samples and a 10× amplitude jump halfway through the window
 each rejected 1,000/1,000. These are controlled signal manipulations, not
-measured fault detector sensitivity or clinical validation. The gate still
-does not identify high baseline noise, including S11 E2 channel 1's 136.70 µV
-rest RMS. Reproduce with:
+measured fault detector sensitivity or clinical validation. Reproduce the
+rest-baseline screen with:
+
+```bash
+python -m neurogrip.ninapro_rest_calibration \
+  --data-root data/ninapro/DB2 \
+  --out artifacts/ninapro_rest_calibration.json
+```
+
+The separate screen warns about S10 and S11 channel 1 but does not identify
+motion artifacts or electrode-contact faults. Reproduce the window-level
+injection probe with:
 
 ```bash
 python services/research/scripts/ninapro_quality_fault_probe.py

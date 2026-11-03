@@ -221,7 +221,21 @@ S11 rest RMS in µV for the first eight channels:
 
 The 136.70 µV rest RMS on S11 E2 channel 1 is a conspicuous channel/session outlier and should be investigated; these recordings do not contain independent artifact labels to determine its cause.
 
-The replay quality gate enforces a per-channel minimum RMS, a broad 5 V absolute-amplitude sanity limit, repeated extreme-value plateau checks, repeated >1 mV sample-step checks, and an 8× half-window RMS change check. These waveform rules are conservative heuristics, not a validated artifact classifier. There is no useful per-channel RMS ceiling or independent high-baseline-noise detector, so this high RMS channel is not rejected as noisy.
+The replay quality gate enforces a per-channel minimum RMS, a broad 5 V absolute-amplitude sanity limit, repeated extreme-value plateau checks, repeated >1 mV sample-step checks, and an 8× half-window RMS change check. These waveform rules are conservative heuristics, not a validated artifact classifier. Rest-baseline screening is a separate exploratory calibration warning; it does not classify the cause of an outlier or gate active windows.
+
+## Exploratory rest-baseline calibration
+
+This diagnostic calculates each channel's RMS over all samples labeled rest in that subject's available recordings. It flags a channel above 50 µV; the warning does not block replay.
+
+| Subject | Rest samples | Flagged channel RMS | Screen |
+| --- | ---: | --- | --- |
+| S1 | 2,841,213 | none | clear |
+| S10 | 2,138,968 | ch 1 (56.82 µV) | flagged |
+| S11 | 1,609,557 | ch 1 (102.74 µV) | flagged |
+
+**Method and limitation.** RMS across all samples labeled rest in each subject's available files. Exploratory 50 uV screen selected on the current development subjects; not a validated electrode-fault or clinical limit. The available recordings have no independent artifact labels, so this screen is not validated fault detection or threshold validation across subjects.
+S11 E2 channel 1 across 2,121 non-overlapping 200 ms rest-labeled windows: median 6.31 µV, P95 76.87 µV, P99 496.28 µV, maximum 3879.40 µV. This shows a highly skewed rest-window distribution, but does not identify its cause.
+
 
 ## Three-subject NinaPro recognition experiments
 
@@ -253,7 +267,7 @@ Seeded probe of 1,000 selected S10 200 ms windows (100 per mapped class; seed 20
 | `jump_10x` | 1,000/1,000 | 100.0% | abrupt half-window RMS change suggests gain shift: 973, repeated large sample steps suggest transient noise: 27 |
 
 **Caveat.** Controlled artificial faults on selected recorded windows; these rates are not validated sensitivity/specificity and are not clinical or live-electrode validation.
-The gate still has no per-channel RMS ceiling or independent high-baseline-noise detector; S11 E2 channel 1's 136.70 µV rest RMS is not rejected for that reason.
+These window-level probes do not validate the separate exploratory rest-baseline screen above, nor do they identify real-world motion artifacts or electrode-contact faults.
 
 ## Limitations
 
@@ -277,6 +291,7 @@ The recorded-data section requires a separately obtained NinaPro DB2 copy; each 
 python -m neurogrip.heldout --data-root data/ninapro/DB2 --train-subjects 1 --test-subject 10 --model lda --out artifacts/ninapro_lda_baseline --replay-out apps/web/public/replay/ninapro_lda_baseline
 python -m neurogrip.heldout --data-root data/ninapro/DB2 --train-subjects 1,10 --test-subject 11 --model lda_uniform --out artifacts/ninapro_s11_holdout --replay-out apps/web/public/replay/ninapro_s11
 python -m neurogrip.ninapro_recognition --data-root data/ninapro/DB2 --out artifacts/ninapro_recognition_experiment.json
+python -m neurogrip.ninapro_rest_calibration --data-root data/ninapro/DB2 --out artifacts/ninapro_rest_calibration.json
 python -m neurogrip.model_card --artifacts artifacts --out docs/model_card.md
 ```
 

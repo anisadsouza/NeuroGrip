@@ -26,6 +26,16 @@ export interface ReplayManifest {
   readonly signalQuality?: {
     readonly minChannelRmsByChannel: readonly number[];
     readonly method: string;
+    readonly restCalibration?: {
+      readonly passed: boolean;
+      readonly channelRms: readonly number[];
+      readonly maxChannelRms: number;
+      /** One-based channel numbers for display. */
+      readonly flaggedChannels: readonly number[];
+      readonly reason: string | null;
+      readonly method: string;
+      readonly caveat: string;
+    };
   };
   /**
    * Per-electrode weighting for each functional muscle group, computed from
