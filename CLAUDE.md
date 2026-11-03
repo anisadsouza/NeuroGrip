@@ -27,12 +27,14 @@ holds the full design and the prior-art analysis behind each claim.
    must clear a higher evidence bar than cheap ones. **Built**, and visible:
    the commitment bar shows the evidence, the virtual hand shows what it is
    doing to the prosthesis.
-3. **Error-attribution router** — decompose each error into physiological,
-   behavioural, model-capacity and drift components and route each to a
-   different remedy. *Not built yet (Phase 3).*
-4. **Anatomical attribution** — back-project feature attributions onto forearm
-   anatomy and convert them into plain-language coaching. *Not built yet
-   (Phase 3).*
+3. **Error-attribution router** — a simulator-only pilot scores physiological,
+   behavioural, model-capacity and drift evidence, then routes four controlled
+   injections to their intended actions (4/4). This is a logic check, not
+   attribution accuracy on recorded or human errors.
+4. **Anatomical attribution** — a pilot localizes standardized deviations to
+   electrode-ring positions and supplies bounded practice language. It does
+   not yet back-project model feature importance or identify a muscle/finger;
+   real-data validation remains open (Phase 3).
 
 **How to use the application: `docs/walkthrough.md`.**
 
@@ -46,14 +48,14 @@ holds the full design and the prior-art analysis behind each claim.
 | 1a | Corpus, LOSO evaluation, model comparison, calibration, ONNX export, latency | Complete |
 | 1b | Evidence accumulator, design system, browser app, Live screen, virtual hand, verification layer, TTUM | Complete |
 | 2 | Neuromotor Cartography | In progress — simulation map, per-prototype gate and illustrative assignment built; gate passes in 2/8 intact and 5/8 finger-atrophy simulated subjects |
-| 3 | Error-attribution router, anatomical coaching | Not started |
+| 3 | Error-attribution router, anatomical coaching | Simulator-only pilot and screen built; controlled injections route 4/4; model-feature attribution and recorded/human validation remain |
 | 4 | Clinician mode, amputee stratum, robustness | Not started |
 | 5 | Azure deployment, patent disclosures | Not started |
 
-**507 tests** — 207 Python, 275 TypeScript, 25 browser.
+**520 tests** — 219 Python, 275 TypeScript, 26 browser.
 
-Not yet built: Cartography teach-back, the attribution router, clinician mode,
-and deployment.
+Not yet built: Cartography teach-back, validated recorded-data error
+attribution and model-feature explanation, clinician mode, and deployment.
 
 ---
 
@@ -281,9 +283,9 @@ Three properties of the number, all of which change what it means:
   contraction, not reaction time from the moment of intent. It is a lower
   bound, and the figure must not travel without that sentence.
 
-CWER is deliberately not computed yet. It needs the Phase 3 attribution work to
-mean anything, and a half-defined safety metric quoted once becomes the number
-people remember.
+CWER is deliberately not computed yet. The Phase 3 router is a controlled
+injection demonstrator, not a validated attribution system, and a half-defined
+safety metric quoted once becomes the number people remember.
 
 ---
 

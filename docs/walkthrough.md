@@ -124,6 +124,33 @@ synthesized gesture. The assignment is not a clinical recommendation.
 
 ---
 
+## Error Attribution
+
+The Attribution screen demonstrates four candidate causes for a decoding
+error: overlap between clean class repeats, deviation from the intended class's
+own repeats, a correct stronger-reference prediction when the deployed model
+is wrong, and sequential/spectral drift evidence. Each route suggests a
+different review action. The behavioral example also marks the electrode-ring
+channels with the largest feature deviations and displays cautious practice
+language.
+
+Generate and stage the controlled-injection report before opening this screen:
+
+```bash
+python -m neurogrip.experiments attribution --out artifacts/attribution_demo.json
+npm run stage:attribution
+```
+
+The four examples are deliberately injected synthetic cases; the displayed
+4/4 checks that the routing logic matches those known cases. It is not an
+estimate of attribution accuracy. Channel locations do not identify a
+specific muscle or finger, and the current prototype does not compute
+model-specific feature importance. The thresholds and coaching have not been
+validated on NinaPro errors or human users; do not treat them as diagnosis or
+clinical instruction.
+
+---
+
 ## The Live screen
 
 The **Replay source** selector chooses either simulated sEMG with the

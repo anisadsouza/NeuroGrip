@@ -1,8 +1,7 @@
 # NeuroGrip: current state and next steps
 
-Updated 2026-11-02 after exploratory LDA/SVM generalization experiments, the
-S11 subject-held-out and signal-quality audits, current browser latency
-measurement, and app command-readout verification. Read
+Updated 2026-11-03 after the Cartography gate/screen and the simulator-only
+error-attribution/coaching pilot. Read
 `CLAUDE.md` for the project's engineering and safety rules.
 
 **Research prototype. Not a medical device. Not validated for clinical use.**
@@ -24,8 +23,8 @@ The browser (`apps/web/`) runs features and inference in a worker every 20 ms.
 Live can replay either simulated signal or a locally generated held-out DB2
 recording, with source/model provenance. Results keeps simulated comparisons,
 recorded comparisons, held-out confusion/timeline, quality-gate and accuracy
-metrics, and browser/CPU latency separate. No live electrode input is
-implemented.
+metrics, and browser/CPU latency separate. Cartography and Attribution are
+simulator-only research demonstrations. No live electrode input is implemented.
 
 ## 2. Setup
 
@@ -69,13 +68,13 @@ These are the ones an AI assistant is most likely to break. The full list is in
 | 0–1b | Simulator, Python/TypeScript feature conformance, decoder, ONNX, browser Live/virtual hand | Done |
 | Recorded DB2 path | Nine local S1/S10/S11 sessions, loader and mapping, subject-held-out export/replay, Results views, S11 quality audit | Implemented; exploratory, three subjects; full-corpus multi-model comparison remains |
 | 2 | Neuromotor Cartography (Pillar 1) | Simulated map, corrected per-prototype gate, illustrative assignment and screen implemented; human validation remains |
-| 3 | Error-attribution router, anatomical coaching | Not started |
+| 3 | Error-attribution router, anatomical coaching | P/B/M/D simulator pilot and channel-localized coaching screen implemented; 4 controlled injections route as expected; real-data validation and model-feature explanations remain |
 | 4 | Robustness | Electrode-shift sweep complete: passes through 0.2 rad, fails at 0.3/0.4 rad; simulated only |
 | 5 | Azure deploy, patent disclosures | Not started |
 
-The app has Live and Results screens. Additional independent recorded subjects,
-clinician mode, error attribution, anatomical coaching, amputee evaluation,
-and deployment remain future work.
+The app has Live, Results, Cartography and Attribution screens. Additional
+independent recorded subjects, validated error attribution/coaching, clinician
+mode, amputee evaluation, and deployment remain future work.
 
 ---
 
@@ -398,9 +397,9 @@ quality-gate counts, zero-signal control, and Live virtual action.
    the S11 model is poorly calibrated and misses six gesture classes. Keep
    these limitations visible and assess mapping, signal quality, calibration,
    and class balance with additional subjects.
-3. **Continue unfinished project phases** below: Cartography gate/assignment,
-   error attribution, anatomical coaching, clinician mode, amputee evaluation,
-   and deployment.
+3. **Continue unfinished project phases** below: Cartography teach-back;
+   validation and model-specific feature attribution for the new error-routing
+   pilot; clinician mode, amputee evaluation, and deployment.
 4. **Verify NinaPro redistribution terms.** No registered-download agreement
    was present alongside the local `.mat` recordings, so permission to
    redistribute derived replay or model files remains unverified. Do not
@@ -453,11 +452,44 @@ there is no recorded human babble, teach-back, or wearer validation, and the
 function assignment is not a clinical recommendation. Real-user mapping and
 teach-back remain future work.
 
-## 8. Later phases (summary only)
+## 8. Phase 3 (error attribution and coaching): simulator pilot
 
-- **Phase 3:** attribute each error to physiology, user behaviour, model
-  capacity or drift. Validate with injected synthetic faults of each type.
-  Then add forearm-anatomy coaching.
+`services/research/neurogrip/attribution.py` implements four evidence channels:
+
+- **P:** diagonal-Gaussian Bhattacharyya overlap of the two cleanest 80% class
+  repeat clusters.
+- **B:** maximum channel-wise standardized deviation from the intended class's
+  repeat cluster, relative to the historical 95th-percentile spread.
+- **M:** whether a stronger reference prediction is correct while the deployed
+  prediction is wrong.
+- **D:** centroid CUSUM and median-frequency shift, each relative to an
+  exploratory threshold.
+
+The scores are normalized, but the router requires minimum raw evidence and a
+lead margin; weak or conflicting evidence is reported as inconclusive. The
+generated demo has one designed injection per cause and routes 4/4 to the
+expected action. This is a logic check on known synthetic cases, not a measured
+attribution accuracy. In the demo, the reference-model result is supplied as
+evidence; it is not a newly trained k-NN result.
+
+The Attribution screen visualizes channel-level residuals on the electrode
+ring and provides bounded practice text for the behavioral case. This is not
+SHAP/integrated-gradients model attribution and does not identify a specific
+muscle or finger. Thresholds, routes, and coaching are not validated on
+recorded errors or human users. No clinical or safety claim is supported.
+
+Reproduce and stage the demonstration:
+
+```bash
+python -m neurogrip.experiments attribution --out artifacts/attribution_demo.json
+npm run stage:attribution
+```
+
+### Remaining phases
+
+- **Phase 3 validation:** evaluate on held-out recorded errors, fit a real
+  reference model, implement model-specific feature attributions, and validate
+  the coaching before presenting it as user guidance.
 - **Phase 4:** clinician screens (Evaluate, Robustness, Latency, Records). The
   amputee stratum needs NinaPro DB3 (amputees, 2 kHz, also registration) and
   must be reported separately with sample-size caveats.

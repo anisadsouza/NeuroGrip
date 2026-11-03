@@ -1,0 +1,189 @@
+{
+  "source": "synthetic_fault_injections",
+  "seed": 17,
+  "feature_count": 136,
+  "channels": 8,
+  "feature_order": "channel-major",
+  "method": "P: diagonal-Gaussian Bhattacharyya overlap of each class's tightest 80% repeat cluster; B: channel-wise standardized deviation from intended-class repeats; M: stronger reference prediction is correct while deployed prediction is wrong; D: centroid CUSUM and median-frequency shift. Scores are normalized, but require minimum raw evidence and a lead margin to route.",
+  "injected_causes_routed": 4,
+  "n_injections": 4,
+  "cases": [
+    {
+      "name": "physiological_overlap",
+      "intended": "fist",
+      "decoded": "spherical_grip",
+      "cause": "physiological",
+      "cause_label": "Physiological overlap",
+      "scores": {
+        "physiological": 1,
+        "behavioral": 0,
+        "model_capacity": 0,
+        "drift": 0
+      },
+      "evidence": {
+        "class_overlap": 1,
+        "behavioral_deviation_ratio": 0.5985,
+        "reference_correct_when_deployed_wrong": false,
+        "centroid_cusum_ratio": 0,
+        "median_frequency_shift_ratio": 0
+      },
+      "routed_action": "Review this gesture pair and consider selecting or synthesizing a more separable target.",
+      "coaching": null,
+      "channel_attribution": [
+        {
+          "channel": 6,
+          "ring_location": "lower-left",
+          "deviation": 1,
+          "direction": "below"
+        },
+        {
+          "channel": 7,
+          "ring_location": "left",
+          "deviation": 0.923,
+          "direction": "below"
+        },
+        {
+          "channel": 1,
+          "ring_location": "top",
+          "deviation": 0.913,
+          "direction": "below"
+        }
+      ],
+      "injected_cause": "physiological",
+      "route_matches_injection": true
+    },
+    {
+      "name": "behavioral_deviation",
+      "intended": "point",
+      "decoded": "open_hand",
+      "cause": "behavioral",
+      "cause_label": "Behavioral deviation",
+      "scores": {
+        "physiological": 0,
+        "behavioral": 1,
+        "model_capacity": 0,
+        "drift": 0
+      },
+      "evidence": {
+        "class_overlap": 0,
+        "behavioral_deviation_ratio": 8.5137,
+        "reference_correct_when_deployed_wrong": false,
+        "centroid_cusum_ratio": 0,
+        "median_frequency_shift_ratio": 0
+      },
+      "routed_action": "Use a low-pressure repeat drill for the intended gesture, comparing the attempt with the user's own stable repetitions.",
+      "coaching": "For point practice, compare your repeat with channel 4 near the lower-right of the electrode ring. This is channel-level feedback; it does not identify a specific muscle or finger.",
+      "channel_attribution": [
+        {
+          "channel": 4,
+          "ring_location": "lower-right",
+          "deviation": 1,
+          "direction": "above"
+        },
+        {
+          "channel": 8,
+          "ring_location": "upper-left",
+          "deviation": 0.027,
+          "direction": "below"
+        },
+        {
+          "channel": 6,
+          "ring_location": "lower-left",
+          "deviation": 0.02,
+          "direction": "below"
+        }
+      ],
+      "injected_cause": "behavioral",
+      "route_matches_injection": true
+    },
+    {
+      "name": "model_capacity",
+      "intended": "pinch",
+      "decoded": "point",
+      "cause": "model_capacity",
+      "cause_label": "Model-capacity limitation",
+      "scores": {
+        "physiological": 0,
+        "behavioral": 0,
+        "model_capacity": 1,
+        "drift": 0
+      },
+      "evidence": {
+        "class_overlap": 0,
+        "behavioral_deviation_ratio": 0.5843,
+        "reference_correct_when_deployed_wrong": true,
+        "centroid_cusum_ratio": 0,
+        "median_frequency_shift_ratio": 0
+      },
+      "routed_action": "Compare the deployed decoder with a stronger reference model before considering model adaptation.",
+      "coaching": null,
+      "channel_attribution": [
+        {
+          "channel": 7,
+          "ring_location": "left",
+          "deviation": 1,
+          "direction": "above"
+        },
+        {
+          "channel": 6,
+          "ring_location": "lower-left",
+          "deviation": 0.798,
+          "direction": "above"
+        },
+        {
+          "channel": 5,
+          "ring_location": "bottom",
+          "deviation": 0.762,
+          "direction": "above"
+        }
+      ],
+      "injected_cause": "model_capacity",
+      "route_matches_injection": true
+    },
+    {
+      "name": "signal_drift",
+      "intended": "wrist_flexion",
+      "decoded": "wrist_extension",
+      "cause": "drift",
+      "cause_label": "Signal drift",
+      "scores": {
+        "physiological": 0,
+        "behavioral": 0.2807,
+        "model_capacity": 0,
+        "drift": 0.7193
+      },
+      "evidence": {
+        "class_overlap": 0,
+        "behavioral_deviation_ratio": 2.28,
+        "reference_correct_when_deployed_wrong": false,
+        "centroid_cusum_ratio": 1,
+        "median_frequency_shift_ratio": 1
+      },
+      "routed_action": "Pause for recalibration and inspect fatigue or electrode placement before adapting the decoder.",
+      "coaching": null,
+      "channel_attribution": [
+        {
+          "channel": 2,
+          "ring_location": "upper-right",
+          "deviation": 1,
+          "direction": "above"
+        },
+        {
+          "channel": 1,
+          "ring_location": "top",
+          "deviation": 0.104,
+          "direction": "below"
+        },
+        {
+          "channel": 3,
+          "ring_location": "right",
+          "deviation": 0.094,
+          "direction": "below"
+        }
+      ],
+      "injected_cause": "drift",
+      "route_matches_injection": true
+    }
+  ],
+  "caveat": "All four causes are controlled synthetic injections. This checks routing logic only; it is not attribution accuracy on human or NinaPro errors. The channel ring localizes deviations to an electrode position, not a specific muscle or finger. Thresholds are exploratory, not validated for clinical or live-device use."
+}

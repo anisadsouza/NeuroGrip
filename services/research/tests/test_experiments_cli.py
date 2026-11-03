@@ -9,6 +9,7 @@ experiment, by stubbing the functions the CLI calls.
 
 from __future__ import annotations
 
+import json
 import pathlib
 import sys
 from types import SimpleNamespace
@@ -17,6 +18,7 @@ import numpy as np
 import pytest
 
 from neurogrip import experiments
+from neurogrip.attribution import attribution_demo
 from neurogrip.datasets import Corpus, CorpusConfig
 
 
@@ -47,6 +49,7 @@ def spy(monkeypatch):
 
     monkeypatch.setattr(experiments, "robustness_curve", fake_robustness)
     monkeypatch.setattr(experiments, "cartography_gate", fake_cartography)
+    monkeypatch.setattr(experiments, "attribution_demo", attribution_demo)
     return calls
 
 
@@ -86,6 +89,21 @@ def test_cartography_dispatches_to_cartography_only(monkeypatch, spy, tmp_path):
 def test_cartography_rejects_a_directory_target(monkeypatch, spy, tmp_path):
     with pytest.raises(SystemExit):
         _run(monkeypatch, "cartography", "--out", str(tmp_path / "adir"))
+
+
+def test_attribution_dispatches_to_injected_error_demo(monkeypatch, spy, tmp_path):
+    target = tmp_path / "attribution.json"
+    _run(monkeypatch, "attribution", "--out", str(target))
+    payload = json.loads(target.read_text(encoding="utf-8"))
+
+    assert payload["source"] == "synthetic_fault_injections"
+    assert payload["injected_causes_routed"] == 4
+    assert "compare" not in spy and "export" not in spy and "cartography" not in spy
+
+
+def test_attribution_rejects_a_non_json_target(monkeypatch, spy, tmp_path):
+    with pytest.raises(SystemExit):
+        _run(monkeypatch, "attribution", "--out", str(tmp_path / "report.csv"))
 
 
 def test_export_passes_the_requested_model(monkeypatch, spy, tmp_path):

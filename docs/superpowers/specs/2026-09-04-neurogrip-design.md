@@ -223,7 +223,7 @@ Persistent **safety banner**: *"Research prototype — not a medical device"* (E
 | **0 — Foundations** | Monorepo, design tokens, icon sheet, biophysical sEMG simulator (MUAP summation, fatigue, electrode shift, crosstalk), **golden-vector conformance harness** | TS features match Python at rtol 1e-5 |
 | **1 — Vertical slice** | simulator → features → trained SVM → ONNX → browser inference → **Live** screen with Commitment Bar | **First demoable artifact.** P95 < 10 ms measured on-device |
 | **2 — Cartography** | Pillar 1 end to end: babble, manifold, synthesis, teach-back, assignment | A synthesized gesture has ≥80% held-out repetition recall and beats its one-to-one matched catalogue gesture on nearest-rival Fisher separation |
-| **3 — Router & coaching** | Pillars 3 + 4: attribution simplex, forearm ring, prescription grammar, drills | Router routes correctly on injected synthetic faults of each type |
+| **3 — Router & coaching** | Pillars 3 + 4: four-cause evidence display, forearm ring, prescription grammar, drills | Router routes controlled injected faults to intended remedies; independently validate attribution and coaching on held-out recorded data before making user-facing claims |
 | **4 — Clinician mode** | Screens 6–10, LOSO, amputee stratum, SHAP, robustness, records | Report-grade numbers reproducible from one command |
 | **5 — Ship** | Azure deploy, `CLAUDE.md`, walkthrough, patent-disclosure drafts | Stranger can operate the app from docs alone |
 

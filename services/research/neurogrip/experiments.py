@@ -6,6 +6,7 @@ model card quote a recorded run rather than a remembered number.
 
     python -m neurogrip.experiments compare --out artifacts/model_comparison.json
     python -m neurogrip.experiments cartography --out artifacts/cartography_gate.json
+    python -m neurogrip.experiments attribution --out artifacts/attribution_demo.json
 """
 
 from __future__ import annotations
@@ -18,6 +19,7 @@ import time
 import numpy as np
 
 from neurogrip import FEATURE_SPEC_VERSION
+from neurogrip.attribution import attribution_demo
 from neurogrip.cartography import cartography_gate
 from neurogrip.datasets import Corpus, CorpusConfig, build_corpus
 from neurogrip.evaluation import paired_fold_test
@@ -284,7 +286,10 @@ def export_best(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="NeuroGrip experiments")
-    parser.add_argument("experiment", choices=["compare", "export", "robustness", "cartography"])
+    parser.add_argument(
+        "experiment",
+        choices=["compare", "export", "robustness", "cartography", "attribution"],
+    )
     parser.add_argument(
         "--out",
         type=pathlib.Path,
@@ -360,6 +365,20 @@ def main() -> None:
         out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         for name, cohort in payload["cohorts"].items():
             print(f"{name}: synthesis wins {cohort['wins']}/{cohort['n_subjects']}")
+        print(f"written to {out}")
+        return
+
+    if args.experiment == "attribution":
+        out = args.out or pathlib.Path("artifacts/attribution_demo.json")
+        if out.suffix != ".json":
+            parser.error(f"attribution --out must be a .json path, got {out}")
+        payload = attribution_demo()
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        print(
+            "injected causes routed: "
+            f"{payload['injected_causes_routed']}/{payload['n_injections']}"
+        )
         print(f"written to {out}")
         return
 

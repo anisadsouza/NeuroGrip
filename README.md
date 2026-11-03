@@ -78,9 +78,10 @@ every number on it means.
 | Browser replay latency | NinaPro worker P95: 1.93 ms (2026-11-02, MacBook Air / Apple M3; feature extraction + inference only, not total reaction time). P95 varies between runs; a prior run measured 2.70 ms |
 | Time to motion | Simulator-only TTUM: 40 ms median before the hand starts moving, 260 ms to latch |
 | Neuromotor Cartography | Simulator-only per-prototype gate: at least one prototype passes for 2/8 intact and 5/8 finger-atrophy subjects; no human learnability result |
-| Tests | 207 Python + 275 TypeScript tests; Playwright 25 tests; typecheck passes |
-| Built | Simulator and decoder, DB2 loader and comparison, subject-held-out ONNX export/replay, Live source selector, Results comparison/confusion/timeline/latency views, simulator-only Cartography map/gate/illustrative assignment |
-| Follow-up | Human babble and teach-back validation; more independent recorded subjects; clinician mode, error attribution, amputee stratum, deployment |
+| Error attribution | Four controlled synthetic injections routed to their intended P/B/M/D action (4/4); logic check only, not attribution accuracy |
+| Tests | 219 Python + 275 TypeScript tests; 26 browser tests; typecheck passes |
+| Built | Simulator and decoder, DB2 loader and comparison, subject-held-out ONNX export/replay, Live and Results, simulator-only Cartography, synthetic Error Attribution and channel-localized coaching demo |
+| Follow-up | Validate attribution on held-out recorded data; compute model feature attributions and validate coaching; human babble and teach-back; more independent subjects; clinician mode, amputee stratum, deployment |
 
 The NinaPro replay uses per-channel quality floors calibrated at 25% of each
 channel's RMS in the held-out subject's recorded rest segment, capped at the
@@ -119,6 +120,20 @@ In this simulator, 3/40 intact and 6/40 finger-atrophy prototypes pass. This is
 not evidence of human learnability: babble, users, and trials are simulated,
 and there is no teach-back or wearer study. The displayed function assignment
 is illustrative only.
+
+The Attribution screen demonstrates physiological-overlap, behavioral,
+model-capacity, and drift routes on four controlled synthetic injections. To
+regenerate and stage its report:
+
+```bash
+python -m neurogrip.experiments attribution --out artifacts/attribution_demo.json
+npm run stage:attribution
+```
+
+The 4/4 result verifies only those designed cases. It is not measured
+attribution accuracy. Its ring marks channel-level deviations, not specific
+muscles or fingers; no model-specific feature attribution or human coaching
+validation has been completed.
 
 The quality-gate acceptance rate is not gesture accuracy. On the full S10
 evaluation, the revised gate rejects 721 of 17,293 windows across rest and
@@ -189,10 +204,11 @@ not evidence that the system is robust on people.
    evaluation, ONNX export, latency, and model card.
 2. Keep the browser app usable as the main final demo: live signal, decoded
    gesture, confidence/evidence, latency, and virtual hand motion.
-3. Expand recorded evaluation to more subjects; then add the missing
-   report-grade studies: clinician mode, error attribution and coaching,
-   amputee data evaluation if a suitable dataset is available, and live
-   electrode input. These remain future work.
+3. Validate the simulator-only error-attribution/coaching pilot against
+   held-out recorded errors, implement model-specific feature attribution,
+   and expand evaluation to more independent subjects. Clinician mode,
+   amputee evaluation (if suitable data is available), and live electrode
+   input remain future work.
 4. Keep documentation updated after each meaningful change: README for project
    status, `docs/walkthrough.md` for demo usage, and `docs/model_card.md` for
    model limitations.
