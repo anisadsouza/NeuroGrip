@@ -71,6 +71,12 @@ committed to this repository) for a real-recording evaluation.
 
 [**docs/walkthrough.md**](docs/walkthrough.md) explains the interface and what
 every number on it means.
+The [technical reference](docs/technical_reference.md) consolidates the
+implementation, experiments, limitations, and reproducible commands.
+The [data/release review](docs/data_and_release_review.md) records the current
+NinaPro permission status, and
+[patent-disclosure working drafts](docs/patent_disclosure_drafts.md) are
+internal-only material for team and counsel review.
 
 ## Where it stands
 
@@ -82,8 +88,8 @@ every number on it means.
 | Browser replay latency | NinaPro worker P95: 1.18 ms (2026-11-03, MacBook Air / Apple M3; feature extraction + inference only, not total reaction time). P95 varies between runs; a prior run measured 2.70 ms |
 | Time to motion | Simulator-only TTUM: 40 ms median before the hand starts moving, 260 ms to latch |
 | Neuromotor Cartography | Simulator-only per-prototype gate: at least one prototype passes for 2/8 intact and 5/8 finger-atrophy subjects; no human learnability result |
-| Error attribution | Synthetic router checks: 4/4; offline LDA score-margin attribution plus RBF-SVM comparison on three development subjects; not causal or human-validated |
-| Tests | 222 Python + 275 TypeScript tests; 28 browser tests; typecheck passes |
+| Error attribution | Synthetic router checks: 4/4; offline LDA score-margin attribution compared with linear SVM, RBF-SVM, and random forest on three development subjects; not causal or human-validated |
+| Tests | 223 Python + 275 TypeScript tests; 28 browser tests; typecheck passes |
 | Built | Simulator and decoder, DB2 loader and comparison, subject-held-out ONNX export/replay, Live and Results, simulator-only Cartography and Error Attribution, clinician-oriented Evaluate/Robustness/Latency/Records views |
 | Follow-up | Validate preliminary recorded-data LDA attributions and coaching; validate robustness on real faults; human babble and teach-back; more independent subjects; amputee evaluation; deployment |
 
@@ -109,8 +115,10 @@ based on only three development subjects, does not identify the cause, and is
 not validated fault detection. In the non-overlapping 200 ms rest windows from
 S11 E2, channel 1 exceeded 50 µV in 127/2,121 windows (6.0%); its median was
 6.31 µV and P99 was 496.28 µV. This quantifies intermittent high RMS, but the
-dataset has no artifact labels to determine its cause or validate the advisory
-threshold.
+exceedances appeared in 18 runs, with the longest spanning 49 consecutive
+200 ms windows (9.8 seconds). The maximum-RMS window starts at sample 1,704,000
+(about 14.2 minutes into E2); the data has no artifact labels to determine its
+cause or validate the advisory threshold.
 See [`docs/model_card.md`](docs/model_card.md) for limitations.
 
 The Cartography screen shows one simulated subject's babble map and prototype
@@ -151,13 +159,22 @@ python -m neurogrip.ninapro_feature_attribution \
 ```
 
 Across the three development subjects, pooled uncalibrated LDA accuracy was
-34.80% and the raw RBF-SVM comparator scored 29.36%; the comparator was correct
-on 11.5% of the LDA's errors. These research models are not the deployed ONNX
-decoder, and pooled scores are not directly comparable to the equal-subject
-means in the recognition table. This is an exploratory model explanation, not
-evidence that a feature causes an error or that the coaching is useful. The
-app's attribution screen remains a synthetic demonstration;
-independent-subject and human coaching validation have not been completed.
+34.80%; linear SVM, RBF-SVM, and random-forest references scored 29.50%,
+29.36%, and 38.04%, respectively. The random forest was correct on 19.7% of
+the LDA's errors, but it was selected after examining these same development
+subjects. These research models are not the deployed ONNX decoder, and pooled
+scores are not directly comparable to the equal-subject means in the
+recognition table. This is an exploratory model explanation, not evidence that
+a feature causes an error or that the coaching is useful. The app's attribution
+screen remains a synthetic demonstration; independent-subject and human
+coaching validation have not been completed.
+
+Internal patent-disclosure drafts are local working material; do not commit
+them while this GitHub repository is public. The
+[data/release review](docs/data_and_release_review.md) records the current
+permission status. The drafts are not patent applications or legal advice.
+NinaPro-derived artifacts remain private until the registered-download
+agreement is reviewed.
 
 The quality-gate acceptance rate is not gesture accuracy. On the full S10
 evaluation, the revised gate rejects 721 of 17,293 windows across rest and
@@ -182,7 +199,10 @@ This is poor cross-subject generalization, not evidence that adding S11 has
 improved recognition. A bounded three-subject leave-one-subject-out comparison
 now tests class-prior changes, rest downsampling, sigmoid calibration, and
 sampled weighted SVMs; none justified replacing the current decoder. The
-full-size multi-model comparison remains unrun. On S11, the model
+full-size multi-model comparison remains unrun. The separate exploratory
+attribution run now also compares capped LinearSVC, RBF-SVM, and random-forest
+references on the three local LOSO folds; it does not establish a final
+benchmark. On S11, the model
 predicted rest for 19,125 of 20,956 windows; six gesture classes had zero
 recall. The per-gesture recalls and audited signal levels are in
 [`docs/model_card.md`](docs/model_card.md).
@@ -192,7 +212,8 @@ predicted `rest` for about 91% of S11 windows even though rest accounts for
 about 22% of the evaluation windows. Subject-specific signal scale or electrode
 placement, the S11 E2 channel-1 rest-RMS outlier, and calibration/feature
 distribution shift are plausible contributors, but the current experiments do
-not isolate the cause. The full-corpus multi-model comparison has not been run.
+not isolate the cause. A bounded reference-model comparison on three subjects
+is exploratory; a larger independent benchmark has not been run.
 An 80% cross-subject target is not guaranteed; it would need better signal
 alignment and evaluation on a new subject that was not used for tuning.
 

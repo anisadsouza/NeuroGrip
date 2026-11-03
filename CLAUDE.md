@@ -48,14 +48,14 @@ holds the full design and the prior-art analysis behind each claim.
 | 1a | Corpus, LOSO evaluation, model comparison, calibration, ONNX export, latency | Complete |
 | 1b | Evidence accumulator, design system, browser app, Live screen, virtual hand, verification layer, TTUM | Complete |
 | 2 | Neuromotor Cartography | In progress — simulation map, per-prototype gate and illustrative assignment built; gate passes in 2/8 intact and 5/8 finger-atrophy simulated subjects |
-| 3 | Error-attribution router, anatomical coaching | Simulator-only pilot and screen built; controlled injections route 4/4; model-feature attribution and recorded/human validation remain |
+| 3 | Error-attribution router, anatomical coaching | Simulator-only pilot and screen built; controlled injections route 4/4; offline LDA feature attribution and three model references tested on three development subjects; independent/human validation remains |
 | 4 | Clinician review screens, amputee stratum, robustness | Review screens for Evaluate, Robustness, Latency and Records built; robustness plot is simulated only; amputee evaluation and real-world robustness validation remain |
-| 5 | Azure deployment, patent disclosures | Not started |
+| 5 | Azure deployment, patent disclosures | Deployment not started; internal disclosure drafts prepared, legal review and data permissions unresolved |
 
-**525 tests** — 222 Python, 275 TypeScript, 28 browser.
+**526 tests** — 223 Python, 275 TypeScript, 28 browser.
 
-Not yet built: Cartography teach-back, validated recorded-data error
-attribution and model-feature explanation, validated robustness and amputee
+Not yet built or validated: Cartography teach-back, integrated/independently
+validated error attribution and coaching, real-world robustness, amputee
 evaluation, and deployment.
 
 ---

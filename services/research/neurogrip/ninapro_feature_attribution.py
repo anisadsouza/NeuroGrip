@@ -21,8 +21,9 @@ import pathlib
 
 import numpy as np
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
-from sklearn.svm import SVC
+from sklearn.svm import LinearSVC, SVC
 
 from neurogrip.datasets import Corpus
 from neurogrip.evaluation import loso_splits
@@ -85,7 +86,11 @@ def run_feature_attribution(
     classes = np.unique(corpus.labels)
     primary_truth: list[np.ndarray] = []
     primary_predictions: list[np.ndarray] = []
-    reference_predictions: list[np.ndarray] = []
+    reference_predictions: dict[str, list[np.ndarray]] = {
+        "linear_svm": [],
+        "rbf_svm": [],
+        "random_forest": [],
+    }
     feature_abs_sum = np.zeros(corpus.n_features, dtype=np.float64)
     feature_signed_sum = np.zeros(corpus.n_features, dtype=np.float64)
     error_count = 0
@@ -102,8 +107,6 @@ def run_feature_attribution(
         )
         primary.fit(train_features, corpus.labels[train])
         primary_prediction = primary.predict(test_features)
-        reference_prediction = np.empty(test.size, dtype=corpus.labels.dtype)
-
         capped = _cap_per_subject_class(
             train,
             corpus.subjects,
@@ -114,9 +117,35 @@ def run_feature_attribution(
         reference_scaler = StandardScaler()
         reference_train = reference_scaler.fit_transform(corpus.features[capped])
         reference_test = reference_scaler.transform(corpus.features[test])
-        reference = SVC(C=10.0, class_weight="balanced", gamma="scale")
-        reference.fit(reference_train, corpus.labels[capped])
-        reference_prediction[:] = reference.predict(reference_test)
+        linear_reference = LinearSVC(
+            C=1.0,
+            class_weight="balanced",
+            dual="auto",
+            max_iter=5000,
+            random_state=seed + fold_number,
+        )
+        linear_reference.fit(reference_train, corpus.labels[capped])
+        linear_prediction = linear_reference.predict(reference_test)
+
+        rbf_reference = SVC(C=10.0, class_weight="balanced", gamma="scale")
+        rbf_reference.fit(reference_train, corpus.labels[capped])
+        rbf_prediction = rbf_reference.predict(reference_test)
+
+        forest_reference = RandomForestClassifier(
+            n_estimators=150,
+            max_features="sqrt",
+            min_samples_leaf=2,
+            class_weight="balanced_subsample",
+            n_jobs=1,
+            random_state=seed + fold_number,
+        )
+        forest_reference.fit(corpus.features[capped], corpus.labels[capped])
+        forest_prediction = forest_reference.predict(corpus.features[test])
+        fold_references = {
+            "linear_svm": linear_prediction,
+            "rbf_svm": rbf_prediction,
+            "random_forest": forest_prediction,
+        }
 
         truth = corpus.labels[test]
         errors = primary_prediction != truth
@@ -140,25 +169,35 @@ def run_feature_attribution(
 
         primary_truth.append(truth)
         primary_predictions.append(primary_prediction)
-        reference_predictions.append(reference_prediction)
+        for name, prediction in fold_references.items():
+            reference_predictions[name].append(prediction)
         folds.append(
             {
                 "subject": int(corpus.subjects[test[0]]),
                 "n_test": int(test.size),
                 "primary_accuracy": float(np.mean(primary_prediction == truth)),
-                "reference_accuracy": float(np.mean(reference_prediction == truth)),
+                "reference_accuracy": {
+                    name: float(np.mean(prediction == truth))
+                    for name, prediction in fold_references.items()
+                },
                 "primary_errors": int(errors.sum()),
-                "reference_correct_on_primary_errors": (
-                    float(np.mean(reference_prediction[errors] == truth[errors]))
-                    if np.any(errors)
-                    else None
-                ),
+                "reference_correct_on_primary_errors": {
+                    name: (
+                        float(np.mean(prediction[errors] == truth[errors]))
+                        if np.any(errors)
+                        else None
+                    )
+                    for name, prediction in fold_references.items()
+                },
             }
         )
 
     all_truth = np.concatenate(primary_truth)
     all_primary = np.concatenate(primary_predictions)
-    all_reference = np.concatenate(reference_predictions)
+    all_references = {
+        name: np.concatenate(predictions)
+        for name, predictions in reference_predictions.items()
+    }
     order = np.argsort(feature_abs_sum, kind="stable")[::-1][:TOP_FEATURES]
     top_features = [
         {
@@ -182,18 +221,34 @@ def run_feature_attribution(
             "research comparator: uncalibrated uniform-prior LDA with "
             "training-fold standardization; not the deployed ONNX decoder"
         ),
-        "reference_model": (
-            "RBF SVM (C=10, class_weight=balanced, gamma=scale), "
-            f"at most {svm_samples_per_class} samples per class per training subject"
-        ),
+        "reference_models": {
+            "linear_svm": (
+                "LinearSVC (C=1, class_weight=balanced), "
+                f"at most {svm_samples_per_class} samples per class per training subject"
+            ),
+            "rbf_svm": (
+                "RBF SVM (C=10, class_weight=balanced, gamma=scale), "
+                f"at most {svm_samples_per_class} samples per class per training subject"
+            ),
+            "random_forest": (
+                "RandomForest (150 trees, balanced_subsample, min_samples_leaf=2), "
+                f"at most {svm_samples_per_class} samples per class per training subject"
+            ),
+        },
         "primary_accuracy": float(np.mean(all_primary == all_truth)),
-        "reference_accuracy": float(np.mean(all_reference == all_truth)),
+        "reference_accuracy": {
+            name: float(np.mean(prediction == all_truth))
+            for name, prediction in all_references.items()
+        },
         "primary_error_count": int(primary_error_mask.sum()),
-        "reference_correct_on_primary_errors": (
-            float(np.mean(all_reference[primary_error_mask] == all_truth[primary_error_mask]))
-            if np.any(primary_error_mask)
-            else None
-        ),
+        "reference_correct_on_primary_errors": {
+            name: (
+                float(np.mean(prediction[primary_error_mask] == all_truth[primary_error_mask]))
+                if np.any(primary_error_mask)
+                else None
+            )
+            for name, prediction in all_references.items()
+        },
         "attribution": {
             "method": (
                 "For each misclassification, decompose the standardized LDA "
@@ -235,9 +290,13 @@ def main() -> None:
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    reference_summary = ", ".join(
+        f"{name}={accuracy:.3f}"
+        for name, accuracy in report["reference_accuracy"].items()
+    )
     print(
         f"wrote {args.out}; primary={report['primary_accuracy']:.3f}, "
-        f"reference={report['reference_accuracy']:.3f}, "
+        f"references=({reference_summary}), "
         f"attributed errors={report['attribution']['n_errors_attributed']}"
     )
 

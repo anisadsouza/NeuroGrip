@@ -67,3 +67,20 @@ def test_rest_window_report_counts_intermittent_threshold_exceedances():
     assert result["thresholdMicrovolts"] == pytest.approx(50)
     assert result["aboveThresholdWindowsByChannel"] == [1, 0]
     assert result["aboveThresholdFractionByChannel"] == pytest.approx([1 / 3, 0])
+    assert result["aboveThresholdRunsByChannel"] == [1, 0]
+    assert result["longestAboveThresholdRunWindowsByChannel"] == [1, 0]
+    assert result["maxRmsWindowStartSampleByChannel"] == [400, 0]
+
+
+def test_rest_window_report_preserves_consecutive_high_rms_bursts():
+    emg = np.full((1, 2000), 10e-6, dtype=np.float32)
+    emg[0, 400:1200] = 100e-6
+    labels = np.zeros(2000, dtype=np.int16)
+
+    result = _rest_window_percentiles(emg, labels)
+
+    assert result is not None
+    assert result["aboveThresholdWindowsByChannel"] == [2]
+    assert result["aboveThresholdRunsByChannel"] == [1]
+    assert result["longestAboveThresholdRunWindowsByChannel"] == [2]
+    assert result["maxRmsWindowStartSampleByChannel"] == [400]

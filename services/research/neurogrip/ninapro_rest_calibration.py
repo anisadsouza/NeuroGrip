@@ -24,15 +24,31 @@ REST_WINDOW_SAMPLES = 400
 
 def _rest_window_percentiles(emg: np.ndarray, labels: np.ndarray) -> dict | None:
     windows = []
+    starts = []
     for start in range(0, labels.size - REST_WINDOW_SAMPLES + 1, REST_WINDOW_SAMPLES):
         stop = start + REST_WINDOW_SAMPLES
         if np.all(labels[start:stop] == 0):
             samples = emg[:, start:stop].astype(np.float64)
             windows.append(np.sqrt(np.mean(np.square(samples), axis=1)))
+            starts.append(start)
     if not windows:
         return None
 
     rms = np.stack(windows)
+    starts_array = np.asarray(starts, dtype=np.int64)
+    above_threshold = rms > MAX_REST_CALIBRATION_RMS
+    run_counts = np.zeros(rms.shape[1], dtype=np.int64)
+    longest_runs = np.zeros(rms.shape[1], dtype=np.int64)
+    for channel in range(rms.shape[1]):
+        mask = above_threshold[:, channel]
+        transitions = np.diff(np.r_[False, mask, False].astype(np.int8))
+        run_starts = np.flatnonzero(transitions == 1)
+        run_ends = np.flatnonzero(transitions == -1)
+        lengths = run_ends - run_starts
+        run_counts[channel] = lengths.size
+        if lengths.size:
+            longest_runs[channel] = int(lengths.max())
+
     return {
         "windowMs": 200,
         "nWindows": int(rms.shape[0]),
@@ -41,12 +57,11 @@ def _rest_window_percentiles(emg: np.ndarray, labels: np.ndarray) -> dict | None
         "p99Microvolts": (np.percentile(rms, 99, axis=0) * 1e6).tolist(),
         "maxMicrovolts": (np.max(rms, axis=0) * 1e6).tolist(),
         "thresholdMicrovolts": MAX_REST_CALIBRATION_RMS * 1e6,
-        "aboveThresholdWindowsByChannel": np.count_nonzero(
-            rms > MAX_REST_CALIBRATION_RMS, axis=0
-        ).tolist(),
-        "aboveThresholdFractionByChannel": np.mean(
-            rms > MAX_REST_CALIBRATION_RMS, axis=0
-        ).tolist(),
+        "aboveThresholdWindowsByChannel": np.count_nonzero(above_threshold, axis=0).tolist(),
+        "aboveThresholdFractionByChannel": np.mean(above_threshold, axis=0).tolist(),
+        "aboveThresholdRunsByChannel": run_counts.tolist(),
+        "longestAboveThresholdRunWindowsByChannel": longest_runs.tolist(),
+        "maxRmsWindowStartSampleByChannel": starts_array[np.argmax(rms, axis=0)].tolist(),
     }
 
 

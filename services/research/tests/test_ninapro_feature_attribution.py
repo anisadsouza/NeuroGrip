@@ -63,7 +63,12 @@ def test_subject_heldout_report_compares_trained_models_and_attributes_errors():
     assert report["subjects"] == [1, 10, 11]
     assert len(report["folds"]) == 3
     assert 0 <= report["primary_accuracy"] <= 1
-    assert 0 <= report["reference_accuracy"] <= 1
+    assert set(report["reference_accuracy"]) == {
+        "linear_svm",
+        "rbf_svm",
+        "random_forest",
+    }
+    assert all(0 <= score <= 1 for score in report["reference_accuracy"].values())
     assert report["attribution"]["n_errors_attributed"] == report["primary_error_count"]
     assert report["attribution"]["max_score_decomposition_residual"] < 1e-9
     assert all(

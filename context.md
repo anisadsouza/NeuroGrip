@@ -66,16 +66,22 @@ These are the ones an AI assistant is most likely to break. The full list is in
 | Phase | What | State |
 | --- | --- | --- |
 | 0–1b | Simulator, Python/TypeScript feature conformance, decoder, ONNX, browser Live/virtual hand | Done |
-| Recorded DB2 path | Nine local S1/S10/S11 sessions, loader and mapping, subject-held-out export/replay, Results views, S11 quality audit | Implemented; exploratory, three subjects; full-corpus multi-model comparison remains |
+| Recorded DB2 path | Nine local S1/S10/S11 sessions, loader and mapping, subject-held-out export/replay, Results views, S11 quality audit | Implemented; exploratory, three subjects; independent benchmark and full-size SVM sweep remain |
 | 2 | Neuromotor Cartography (Pillar 1) | Simulated map, corrected per-prototype gate, illustrative assignment and screen implemented; human validation remains |
-| 3 | Error-attribution router, anatomical coaching | P/B/M/D simulator pilot and channel-localized coaching screen implemented; offline held-out LDA score-margin attribution and RBF-SVM comparison added; real-data generalization and human coaching validation remain |
+| 3 | Error-attribution router, anatomical coaching | P/B/M/D simulator pilot and channel-localized coaching screen implemented; offline held-out LDA score-margin attribution and three reference-model comparisons added; real-data generalization and human coaching validation remain |
 | 4 | Clinician views and robustness | Evaluate/Robustness/Latency/Records views built; the electrode-shift view is simulated only. Recorded-fault validation and amputee evaluation remain |
-| 5 | Azure deploy, patent disclosures | Not started |
+| 5 | Azure deploy, patent disclosures | Deployment not started; internal draft prepared locally; legal/inventorship review and permission clearance remain |
 
 The app has Live, Results, Cartography, Attribution and clinician-oriented
 Research review screens. Additional independent recorded subjects, validated
 error attribution/coaching and robustness, amputee evaluation, and deployment
 remain future work.
+
+The technical summary is in `docs/technical_reference.md`; the separate
+`docs/data_and_release_review.md` records that redistribution terms are
+unverified. Internal disclosure drafts are local working material and must not
+be committed while the GitHub repository is public. None is a legal clearance
+or patentability opinion.
 
 ---
 
@@ -229,6 +235,18 @@ Calibration reduced ECE for the LDA variants but did not solve cross-subject
 recognition. The weighted and unweighted sampled linear SVM results were
 effectively identical. No tested candidate was adopted.
 
+The separate `ninapro_feature_attribution` runner computes an exact
+per-feature decomposition of the predicted-versus-intended score margin for
+each uncalibrated uniform-prior LDA error. It also compares three trained
+references in the same subject-held-out folds (balanced LinearSVC, balanced
+RBF SVM, and balanced random forest), capped at 250 examples per class per
+training subject. Pooled scores were 34.80% for LDA, 29.50% for LinearSVC,
+29.36% for RBF SVM, and 38.04% for random forest. The random forest was right
+on 19.7% of LDA errors. Because these three subjects informed model and
+analysis choices, the random-forest result is an exploratory lead, not a
+reliable benchmark or reason to change the deployed decoder. The max numeric
+residual in the LDA score decomposition was 1.21e-13.
+
 The grouped-calibration uniform-LDA S11 fold scored 24.17% with ECE 0.4126,
 compared with 23.07% / 0.3664 in the existing staged S11 artifact. Both use
 the same 20,956 held-out windows, but the prior artifact uses the existing
@@ -324,7 +342,12 @@ windows. For S11 E2 channel 1, 2,121 windows have median RMS 6.31 µV, P95
 distribution is consistent with intermittent high-amplitude windows rather
 than a uniformly elevated baseline; 127/2,121 windows (6.0%) exceed the
 exploratory 50 µV advisory level. The dataset does not identify their cause or
-provide artifact labels for validating that threshold.
+provide artifact labels for validating that threshold. Those windows occur in
+18 separate runs; the longest is 49 consecutive windows (9.8 seconds). The
+maximum-RMS window begins at sample 1,704,000 (about 14.2 minutes into E2).
+The accompanying channels 2-8 remain far lower in the same 200 ms windows.
+This channel-local, intermittent pattern narrows the symptom but cannot
+distinguish electrode contact, movement, or another acquisition artifact.
 
 A repeatable fault probe samples 100 stable 200 ms S10 windows from each of
 the ten mapped classes (1,000 total, seed 20261103) and applies one fault at a
@@ -347,11 +370,12 @@ python -m neurogrip.ninapro_rest_calibration \
 ### Recorded-data feature attribution
 
 `python -m neurogrip.ninapro_feature_attribution` fits a uniform-prior LDA and
-a class-weighted RBF-SVM comparator in each leave-one-subject-out fold. The
-LDA's predicted-versus-intended score margin is exactly decomposed into
-standardized per-feature contributions for every held-out LDA error. On the
-current three-subject corpus, pooled uncalibrated LDA accuracy was 34.80%, raw
-RBF-SVM comparator accuracy was 29.36%, and the comparator corrected 11.5% of
+three reference models (balanced LinearSVC, RBF SVM, and random forest) in
+each leave-one-subject-out fold. The LDA's predicted-versus-intended score
+margin is exactly decomposed into standardized per-feature contributions for
+every held-out LDA error. On the current three-subject corpus, pooled
+uncalibrated LDA accuracy was 34.80%; LinearSVC, RBF SVM, and random forest
+scored 29.50%, 29.36%, and 38.04%. The random forest was correct on 19.7% of
 LDA errors. These research models are not the deployed ONNX decoder; pooled
 scores are not directly comparable to equal-subject means in the recognition
 table. The maximum numerical reconstruction residual was below 1.3e-13. This
@@ -427,7 +451,8 @@ quality-gate counts, zero-signal control, and Live virtual action.
    validate offline feature attribution on additional untouched subjects,
    integrate it with error routing, and validate coaching with human
    participants; clinician mode, amputee evaluation, and deployment.
-4. **Verify NinaPro redistribution terms.** No registered-download agreement
+4. **Verify NinaPro redistribution terms.** The current review found no
+   registered-download agreement
    was present alongside the local `.mat` recordings, so permission to
    redistribute derived replay or model files remains unverified. Do not
    publish those files until the agreement is reviewed.
@@ -520,9 +545,10 @@ npm run stage:attribution
 - **Phase 4:** clinician screens (Evaluate, Robustness, Latency, Records). The
   amputee stratum needs NinaPro DB3 (amputees, 2 kHz, also registration) and
   must be reported separately with sample-size caveats.
-- **Phase 5:** Azure deployment and patent-disclosure drafts. Per the design
-  spec, keep the repo private and draft the disclosures before anything goes
-  public.
+- **Phase 5:** Deployment remains unstarted. Internal patent-disclosure
+  working drafts exist, but inventorship, ownership, prior art, disclosure
+  timing, and filing strategy need review with the team/institution and patent
+  counsel before anything is made public.
 
 ## 9. Working with an AI assistant on this
 
