@@ -1,17 +1,26 @@
 # Data, licensing, and release review
 
 **Review date:** 2026-11-04  
-**Status:** Internal review; NinaPro redistribution permission is unverified.
+**Status:** Source correction received from the project owner: local DB2 files
+were obtained from Kaggle. The exact listing is identified and Kaggle currently
+labels it CC0, but the uploader's authority to license NinaPro's original data
+and downstream redistribution permission remain unverified.
 
 This is a technical inventory, not legal advice. It does not replace the
-agreement supplied to the registered downloader, institutional review, or
-counsel review.
+applicable upstream data terms, institutional review, or counsel review.
 
 ## What was reviewed
 
-- The local project tree and `data/ninapro/` for a registered-download
-  agreement, license, or terms file. The local DB2 directory contains nine
-  recordings (S1, S10, and S11; E1-E3) and no accompanying agreement was found.
+- The project owner's provided
+  [Kaggle dataset URL](https://www.kaggle.com/datasets/quddusikashaf/ninapro-db2)
+  and public Kaggle dataset metadata API. The API identifies the listing title
+  as “Ninapro DB2,” owner/creator as Quddusi Kashaf, current version 2, last
+  updated 2025-12-21, and `licenseName` as “CC0: Public Domain.” Its description
+  field is empty. Metadata reviewed 2026-11-04.
+- The local project tree and `data/ninapro/` for a downloaded license or
+  permission statement. The local DB2 directory contains nine recordings (S1,
+  S10, and S11; E1-E3), but no Kaggle terms snapshot, uploader authorization,
+  or upstream permission statement was found.
 - The [NinaPro home page](https://ninapro.hevs.ch/), which describes NinaPro as
   a publicly available research database and asks users to cite the relevant
   publication.
@@ -29,19 +38,31 @@ counsel review.
 
 ## Finding
 
+The project owner reports that the local files came from the identified Kaggle
+listing rather than directly from a NinaPro registration. Kaggle's current
+metadata labels the listing CC0 and names Quddusi Kashaf as owner/creator. The
+listing has no description field. This establishes what Kaggle currently
+displays; it does **not** establish that the uploader owned or had permission
+to license the NinaPro source data, that the local files are the exact listing
+version, or which terms were displayed when the files were downloaded.
+
 The public pages reviewed provide dataset descriptions and citation guidance.
 They did not state a license or grant permission to redistribute the raw
 recordings, a replay bundle, trained model weights, or other derived assets.
 “Publicly available” is not treated here as a redistribution license.
 
-**The registered-download terms were not available for review. Therefore,
-permission to publish or redistribute DB2-derived files is not verified.**
+**The listing currently displays a CC0 label, but the uploader's authority and
+any upstream redistribution grant have not been verified. Therefore, the CC0
+label alone is not sufficient evidence that the underlying NinaPro data, or
+derived replay/model files, may be redistributed.** This does not imply
+wrongdoing by the uploader; NinaPro's applicable terms or written permission
+are needed to assess the rights chain.
 The local `.gitignore` is a useful safeguard, but does not prevent a developer
 from force-adding ignored files or publishing a build directory.
 
 The NinaPro pages reviewed request citation. If the project reports results
 using DB2, include the dataset citation listed in the README and any additional
-attribution required by the downloader agreement.
+attribution required by the applicable upstream terms.
 
 The GitHub repository is currently public. Do not commit the local
 `docs/patent_disclosure_drafts.md` working document or other new invention
@@ -51,11 +72,17 @@ and applicable jurisdictions. No repository visibility change was made.
 
 ## Release status and required checks
 
-Until the agreement is obtained and reviewed:
+Until the applicable rights and terms are confirmed:
 
 - Keep raw `.mat` files, NinaPro-derived replay binaries, model weights, and
   derived artifacts private and out of commits, releases, public storage, and
   deployed static bundles.
+- Preserve the Kaggle dataset URL, uploader identity, dataset version, download
+  date, a copy/screenshot of the listing and its CC0 label, and any
+  accompanying source/permission statements.
+- Verify the uploader's redistribution authority against NinaPro's own terms
+  or a written grant from the rights holder; a Kaggle license label by itself
+  does not prove that the uploader could license NinaPro source data.
 - Do not assume that aggregate metrics, feature explanations, or model weights
   are exempt from the agreement; check the exact terms for derived data and
   trained models.
@@ -66,17 +93,25 @@ Until the agreement is obtained and reviewed:
 
 Before any public source or binary release, also:
 
-1. Obtain the registered-download agreement and record its version/date.
-2. Ask the data provider or institution if it does not clearly address
-   redistribution of derived replay and model files.
-3. Audit the final commit, release archive, static output, and hosted assets for
+1. Retain the exact Kaggle listing and metadata snapshot, including version,
+   license label, owner, and download date; compare the local files against the
+   listing's manifest/version if possible.
+2. Obtain evidence that Quddusi Kashaf was authorized by NinaPro/the relevant
+   rights holder to redistribute the original DB2 data under CC0. A Kaggle
+   license label alone does not establish this rights chain.
+3. Review the upstream NinaPro terms that applied to this dataset and ask
+   NinaPro/the data provider or institution for written clarification if those
+   terms do not clearly permit third-party redistribution or derived models.
+4. Ask the Kaggle uploader for the source/provenance of the upload and any
+   written permission, if appropriate.
+5. Audit the final commit, release archive, static output, and hosted assets for
    raw or derived data.
-4. Confirm the repository's own source-code license. No root `LICENSE` file
+6. Confirm the repository's own source-code license. No root `LICENSE` file
    was present in the reviewed tree, so this review does not grant a license to
    reuse NeuroGrip code.
-5. Review third-party package licenses and notices as a separate release task;
+7. Review third-party package licenses and notices as a separate release task;
    this was not a complete dependency/SBOM audit.
-6. Confirm team, course, and institutional ownership/disclosure requirements
+8. Confirm team, course, and institutional ownership/disclosure requirements
    before publicizing technical details or filing IP.
 
 ## Sources
@@ -85,6 +120,12 @@ Before any public source or binary release, also:
   request; reviewed 2026-11-04.
 - [NinaPro DB2 instructions](https://ninapro.hevs.ch/instructions/DB2.html) —
   dataset composition and acquisition details; reviewed 2026-11-04.
+- [Kaggle listing: Ninapro DB2](https://www.kaggle.com/datasets/quddusikashaf/ninapro-db2)
+  — metadata API reports Quddusi Kashaf, version 2, CC0: Public Domain, and no
+  description; reviewed 2026-11-04. The listing does not establish the
+  uploader's authority over the upstream data.
+- [Kaggle dataset metadata API](https://www.kaggle.com/api/v1/datasets/view/quddusikashaf/ninapro-db2)
+  — listing metadata; reviewed 2026-11-04.
 - [GitHub repository](https://github.com/anisadsouza/NeuroGrip) — metadata
   reports public visibility; reviewed 2026-11-04.
 - Atzori et al., “Electromyography data for non-invasive naturally-controlled

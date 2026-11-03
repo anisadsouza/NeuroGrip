@@ -152,8 +152,10 @@ npm run test:conformance
 npm run test:e2e
 ```
 
-NinaPro-derived artifacts are git-ignored and local. Do not publish them until
-the registered-download agreement is reviewed; see
+NinaPro-derived artifacts are git-ignored and local. The Kaggle listing
+currently labels the upload CC0, but that does not verify the uploader's
+authority over the original data. Do not publish derived files until the
+rights chain and applicable upstream/data-use terms are verified; see
 [data_and_release_review.md](data_and_release_review.md).
 
 ## Explicitly out of scope for this snapshot

@@ -451,11 +451,11 @@ quality-gate counts, zero-signal control, and Live virtual action.
    validate offline feature attribution on additional untouched subjects,
    integrate it with error routing, and validate coaching with human
    participants; clinician mode, amputee evaluation, and deployment.
-4. **Verify NinaPro redistribution terms.** The current review found no
-   registered-download agreement
-   was present alongside the local `.mat` recordings, so permission to
-   redistribute derived replay or model files remains unverified. Do not
-   publish those files until the agreement is reviewed.
+4. **Verify NinaPro/Kaggle provenance and redistribution terms.** The owner
+   identifies Kaggle listing `quddusikashaf/ninapro-db2`; Kaggle currently
+   displays CC0 and names Quddusi Kashaf as owner/creator. Verify that the
+   uploader was authorized to license the upstream NinaPro data and confirm
+   derived-file rights before publishing raw or derived files.
 5. **Do not optimize `build:assets` yet.** The app's production Vite build was
    about 5 seconds and the full E2E suite about 33 seconds in this environment.
    `build:assets` is an explicit simulator asset regeneration pipeline, not

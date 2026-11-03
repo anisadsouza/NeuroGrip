@@ -173,8 +173,8 @@ Internal patent-disclosure drafts are local working material; do not commit
 them while this GitHub repository is public. The
 [data/release review](docs/data_and_release_review.md) records the current
 permission status. The drafts are not patent applications or legal advice.
-NinaPro-derived artifacts remain private until the registered-download
-agreement is reviewed.
+NinaPro-derived artifacts remain private until the Kaggle uploader's authority
+and upstream terms are verified.
 
 The quality-gate acceptance rate is not gesture accuracy. On the full S10
 evaluation, the revised gate rejects 721 of 17,293 windows across rest and
@@ -365,12 +365,15 @@ Recorded results use NinaPro DB2. Cite the dataset and benchmark papers:
   Rehabilitation Engineering* 23(1), 73–83 (2015),
   [doi:10.1109/TNSRE.2014.2328495](https://doi.org/10.1109/TNSRE.2014.2328495).
 
-The NinaPro site says the databases are publicly available and asks users to
-cite the corresponding paper. The site pages reviewed do not state a separate
-license granting redistribution of recordings or derived replay/model files.
-Obtain data through NinaPro and follow the terms supplied with the registered
-download. Do not commit or publish raw recordings or derived assets unless
-those terms explicitly allow it.
+The project owner reports that the local DB2 files came from the Kaggle listing
+[Ninapro DB2](https://www.kaggle.com/datasets/quddusikashaf/ninapro-db2).
+Kaggle's current metadata names Quddusi Kashaf as owner/creator and labels the
+listing **CC0: Public Domain** (version 2; updated 2025-12-21). That label does
+not, by itself, establish the uploader's authority to relicense NinaPro's
+original data, or that derived replay/model files may be redistributed. Verify
+the upstream rights and the terms applying when the files were obtained before
+publishing any source or derived artifacts. See
+[`docs/data_and_release_review.md`](docs/data_and_release_review.md).
 
 The feature-conformance gate matters: Python trains the model and TypeScript
 feeds it at inference, so if the two feature implementations diverge, accuracy
