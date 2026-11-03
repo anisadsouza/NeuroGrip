@@ -11,6 +11,8 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
+from collections import Counter
+from dataclasses import asdict
 
 import numpy as np
 
@@ -80,6 +82,11 @@ def main() -> None:
     )
     parser.add_argument("--samples-per-label", type=int, default=100)
     parser.add_argument("--seed", type=int, default=20261103)
+    parser.add_argument(
+        "--out",
+        type=pathlib.Path,
+        default=pathlib.Path("artifacts/ninapro_quality_fault_probe.json"),
+    )
     args = parser.parse_args()
     if args.samples_per_label < 1:
         parser.error("--samples-per-label must be positive")
@@ -100,16 +107,55 @@ def main() -> None:
         f"S10 recorded 200 ms windows: {len(samples)} "
         f"({args.samples_per_label} per mapped class; seed {args.seed})"
     )
-    print("fault | rejected | total | rejection rate")
+    results: dict[str, dict[str, object]] = {}
     for fault in FAULTS:
-        rejected = sum(
-            not check_signal_quality(_inject(signal, fault), config).ok
-            for _, signal in samples
-        )
+        reasons: Counter[str] = Counter()
+        for _, signal in samples:
+            result = check_signal_quality(_inject(signal, fault), config)
+            if not result.ok:
+                reasons[result.reason or "unspecified"] += 1
+        rejected = sum(reasons.values())
+        reason_summary = ", ".join(
+            f"{reason}: {count}" for reason, count in sorted(reasons.items())
+        ) or "none"
+        results[fault] = {
+            "rejected": rejected,
+            "total": len(samples),
+            "rejection_rate": rejected / len(samples),
+            "reasons": dict(sorted(reasons.items())),
+        }
+
+    report = {
+        "source": "ninapro_db2_s10_controlled_fault_injection",
+        "subject": "S10",
+        "window_samples": WINDOW_SAMPLES,
+        "window_ms": WINDOW_SAMPLES / 2,
+        "samples_per_label": args.samples_per_label,
+        "n_windows": len(samples),
+        "seed": args.seed,
+        "signal_quality_config": asdict(config),
+        "faults": results,
+        "caveat": (
+            "Controlled artificial faults on selected recorded windows; these "
+            "rates are not validated sensitivity/specificity and are not clinical "
+            "or live-electrode validation."
+        ),
+    }
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    args.out.write_text(json.dumps(report, indent=2), encoding="utf-8")
+
+    print("fault | rejected | total | rejection rate | rejection reasons")
+    for fault, result in results.items():
+        reasons = result["reasons"]
+        assert isinstance(reasons, dict)
+        reason_summary = ", ".join(
+            f"{reason}: {count}" for reason, count in reasons.items()
+        ) or "none"
         print(
-            f"{fault} | {rejected} | {len(samples)} | "
-            f"{rejected / len(samples):.1%}"
+            f"{fault} | {result['rejected']} | {result['total']} | "
+            f"{result['rejection_rate']:.1%} | {reason_summary}"
         )
+    print(f"wrote {args.out}")
 
 
 if __name__ == "__main__":

@@ -80,6 +80,55 @@ describe('checkSignalQuality', () => {
     expect(result.failedChannel).toBe(0);
   });
 
+  it('rejects repeated extreme samples suggesting clipping', () => {
+    const channels = Array.from({ length: 8 }, (_, channel) =>
+      Float64Array.from({ length: 400 }, (_, sample) =>
+        100e-6 * Math.sin((2 * Math.PI * 35 * sample) / 2000 + channel),
+      ),
+    );
+    for (const channel of channels) {
+      for (let i = 0; i < channel.length; i++) {
+        channel[i] = Math.max(-50e-6, Math.min(50e-6, channel[i]!));
+      }
+    }
+
+    expect(checkSignalQuality(channels, DEFAULT_SIGNAL_QUALITY_CONFIG)).toMatchObject({
+      ok: false,
+      reason: 'repeated extreme samples suggest clipping',
+    });
+  });
+
+  it('rejects a repeated large-step burst', () => {
+    const channels = Array.from({ length: 8 }, (_, channel) =>
+      Float64Array.from({ length: 400 }, (_, sample) =>
+        100e-6 * Math.sin((2 * Math.PI * 35 * sample) / 2000 + channel),
+      ),
+    );
+    for (let i = 100; i < 120; i++) {
+      channels[0]![i] = channels[0]![i]! + (i % 2 ? 1e-3 : -1e-3);
+    }
+
+    expect(checkSignalQuality(channels, DEFAULT_SIGNAL_QUALITY_CONFIG)).toMatchObject({
+      ok: false,
+      reason: 'repeated large sample steps suggest transient noise',
+      failedChannel: 0,
+    });
+  });
+
+  it('rejects an abrupt half-window RMS change', () => {
+    const channels = Array.from({ length: 8 }, (_, channel) =>
+      Float64Array.from({ length: 400 }, (_, sample) => {
+        const scale = sample < 200 ? 1 : 10;
+        return scale * 100e-6 * Math.sin((2 * Math.PI * 35 * sample) / 2000 + channel);
+      }),
+    );
+
+    expect(checkSignalQuality(channels, DEFAULT_SIGNAL_QUALITY_CONFIG)).toMatchObject({
+      ok: false,
+      reason: 'abrupt half-window RMS change suggests gain shift',
+    });
+  });
+
   it('rejects non-finite samples before any other check', () => {
     const channels = good();
     channels[0]![5] = Number.NaN;

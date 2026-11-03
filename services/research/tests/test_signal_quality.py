@@ -46,7 +46,7 @@ def test_quality_rejects_recorded_calibration_with_wrong_channel_count():
     assert result.reason == "quality calibration channel count mismatch"
 
 
-def test_quality_gate_does_not_detect_clipping_noise_burst_or_gain_jump():
+def test_quality_rejects_repeated_extreme_samples_suggesting_clipping():
     time = np.arange(400, dtype=np.float32)
     signal = np.stack(
         [
@@ -56,11 +56,54 @@ def test_quality_gate_does_not_detect_clipping_noise_burst_or_gain_jump():
     ).astype(np.float32)
 
     clipped = np.clip(signal, -50e-6, 50e-6)
+
+    result = check_signal_quality(clipped)
+
+    assert not result.ok
+    assert result.reason == "repeated extreme samples suggest clipping"
+
+
+def test_quality_rejects_repeated_large_steps_suggesting_transient_noise():
+    time = np.arange(400, dtype=np.float32)
+    signal = np.stack(
+        [
+            100e-6 * np.sin(2 * np.pi * 35 * time / 2000 + channel)
+            for channel in range(8)
+        ]
+    ).astype(np.float32)
     burst = signal.copy()
     burst[0, 100:120] += np.where(np.arange(20) % 2, 1e-3, -1e-3)
+
+    result = check_signal_quality(burst)
+
+    assert not result.ok
+    assert result.reason == "repeated large sample steps suggest transient noise"
+
+
+def test_quality_rejects_abrupt_half_window_gain_shift():
+    time = np.arange(400, dtype=np.float32)
+    signal = np.stack(
+        [
+            100e-6 * np.sin(2 * np.pi * 35 * time / 2000 + channel)
+            for channel in range(8)
+        ]
+    ).astype(np.float32)
     jumped = signal.copy()
     jumped[:, 200:] *= 10
 
-    assert check_signal_quality(clipped).ok
-    assert check_signal_quality(burst).ok
-    assert check_signal_quality(jumped).ok
+    result = check_signal_quality(jumped)
+
+    assert not result.ok
+    assert result.reason == "abrupt half-window RMS change suggests gain shift"
+
+
+def test_quality_accepts_recorded_sized_signal_without_fault_patterns():
+    time = np.arange(400, dtype=np.float32)
+    signal = np.stack(
+        [
+            100e-6 * np.sin(2 * np.pi * 35 * time / 2000 + channel)
+            for channel in range(8)
+        ]
+    ).astype(np.float32)
+
+    assert check_signal_quality(signal).ok

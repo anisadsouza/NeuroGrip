@@ -71,9 +71,12 @@ channels can have lower recorded baseline levels than the simulator. It lets
 the app demonstrate the held-out recording while still rejecting near-zero
 channels. This replay-specific threshold has not been validated for live
 electrodes and must not be presented as a clinical/safety threshold. The
-simulated replay continues to use the unchanged fixed 5 µV minimum. The gate
-does not impose a useful per-channel RMS ceiling for excessive baseline noise:
-S11 E2 channel 1 has 136.70 µV rest RMS and is not rejected for being high.
+simulated replay continues to use the unchanged fixed 5 µV minimum. Waveform
+heuristics reject repeated clipping plateaus, repeated large transients and
+abrupt half-window RMS changes, but these have only been tested with controlled
+fault injection. The gate does not impose a useful per-channel RMS ceiling for
+excessive baseline noise: S11 E2 channel 1 has 136.70 µV rest RMS and is not
+rejected for being high.
 
 ---
 

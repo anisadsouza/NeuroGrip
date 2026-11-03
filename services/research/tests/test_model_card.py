@@ -304,7 +304,7 @@ def test_recorded_results_and_s11_audit_are_reported_separately(comparison, deco
     assert "| `rest` | 99.1% |" in card
     assert "| S11 | 26.61% | 35.45% | 25.98% |" in card
     assert "| E2 | 136.70 | 3.29 |" in card
-    assert "does not impose a useful per-channel RMS ceiling" in card
+    assert "no useful per-channel RMS ceiling" in card
 
 
 def test_model_card_without_local_recorded_artifacts_remains_simulator_only(comparison, decoder):
@@ -348,3 +348,60 @@ def test_card_reports_three_subject_recognition_experiment(comparison, decoder):
     assert "26.8%" in card
     assert "S11 27.6%" in card
     assert "no candidate was adopted" in card
+
+
+def test_card_reports_quality_gate_and_controlled_fault_probe(comparison, decoder):
+    heldout = {
+        "model": "lda_uniform",
+        "training_subjects": [1],
+        "test_subject": 10,
+        "n_test": 100,
+        "accuracy": 0.5,
+        "baseline_accuracy": 0.4,
+        "expected_calibration_error": 0.1,
+        "gesture_order": ["rest", "fist"],
+        "confusion_matrix": [[40, 10], [20, 30]],
+        "per_gesture_recall": {"rest": 0.8, "fist": 0.6},
+        "quality_gate": {
+            "windows_tested": 100,
+            "accepted": 90,
+            "rejected": 10,
+            "acceptance_rate": 0.9,
+            "rejected_by_performed_gesture": {"rest": 8, "fist": 2},
+        },
+    }
+    probe = {
+        "n_windows": 1000,
+        "window_ms": 200,
+        "samples_per_label": 100,
+        "seed": 20261103,
+        "faults": {
+            "clean": {
+                "rejected": 17,
+                "total": 1000,
+                "rejection_rate": 0.017,
+                "reasons": {"channel RMS below calibrated minimum": 14},
+            },
+            "clipping_50uV": {
+                "rejected": 966,
+                "total": 1000,
+                "rejection_rate": 0.966,
+                "reasons": {"repeated extreme samples suggest clipping": 966},
+            },
+        },
+        "caveat": "Controlled artificial fault probes only; not validated.",
+    }
+
+    card = render(
+        comparison,
+        decoder,
+        "2026-11-04",
+        recorded_holdout=heldout,
+        quality_probe=probe,
+    )
+
+    assert "90 of 100 held-out S10 windows (90.0%)" in card
+    assert "Rejections by performed class: `rest` 8, `fist` 2" in card
+    assert "Controlled signal-quality fault probes" in card
+    assert "`clipping_50uV` | 966/1,000 | 96.6%" in card
+    assert "not rejected for that reason" in card

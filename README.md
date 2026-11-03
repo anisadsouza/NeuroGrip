@@ -74,7 +74,7 @@ every number on it means.
 | --- | --- |
 | Simulator decoder | RBF SVM, 95.63% LOSO accuracy, ECE 0.022 |
 | NinaPro held-out results | Current Results export, uniform-prior LDA S1→S10: 46.61% (36.51% majority baseline; ECE 0.026); ordinary-LDA reference: 45.09%; uniform-prior LDA S1+S10→S11: 23.07% (22.26% baseline; ECE 0.3664). Exploratory only |
-| Recorded quality gate | 16,691 / 17,293 labeled S10 windows accepted (96.52%); all 602 rejects are rest windows. Acceptance is not accuracy |
+| Recorded quality gate | 16,572 / 17,293 labeled S10 windows accepted (95.83%); 721 rejected across rest and movement labels. Acceptance is not accuracy |
 | Browser replay latency | NinaPro worker P95: 1.93 ms (2026-11-02, MacBook Air / Apple M3; feature extraction + inference only, not total reaction time). P95 varies between runs; a prior run measured 2.70 ms |
 | Time to motion | Simulator-only TTUM: 40 ms median before the hand starts moving, 260 ms to latch |
 | Tests | 189 Python + 266 TypeScript tests; Playwright 24/24; typecheck passes |
@@ -88,18 +88,25 @@ recorded dataset; it is not validated for live electrodes or a safety claim.
 The simulator keeps the original fixed 5 µV gate.
 
 The quality gate rejects channels below their calibrated minimum RMS and has
-a broad 5 V absolute-amplitude sanity limit. It does **not** impose a useful
-per-channel RMS ceiling or detect excessive baseline noise. In particular,
-S11 E2 channel 1 has 136.70 µV rest RMS and would not be rejected for being
-noisy by this minimum-floor gate. This limitation and the channel audit are
-documented in [`docs/model_card.md`](docs/model_card.md).
+heuristics for repeated extreme-value plateaus, repeated >1 mV sample steps,
+and >8× half-window RMS changes. A seeded probe of 1,000 selected S10 windows
+rejected 96.6% of a controlled ±50 µV clipping injection, 100% of a 1 mV
+alternating burst and 10× half-window gain jump, and 1.7% of clean windows
+(1.4% failed the pre-existing RMS floors). These are artificial probes, not
+validated detector sensitivity or specificity. The gate still does **not**
+impose a useful per-channel RMS ceiling or identify high baseline noise:
+S11 E2 channel 1 has 136.70 µV rest RMS and is not rejected for that reason.
+See [`docs/model_card.md`](docs/model_card.md) for limitations.
 
 The quality-gate acceptance rate is not gesture accuracy. On the full S10
-evaluation, the gate rejects 602 low-RMS windows and all are labeled rest;
-none of the mapped movement windows are rejected. The decoder's accuracy and
-confusion matrix are scored separately against the dataset labels. A controlled
-zero-signal worker check must also be rejected, but that does not validate the
-gate on real electrode faults or motion artifacts.
+evaluation, the revised gate rejects 721 of 17,293 windows across rest and
+movement labels. The decoder's accuracy and confusion matrix are scored
+separately against the dataset labels. A seeded probe of 1,000 selected
+recorded windows rejects 96.6% of controlled clipping, 100% of a 1 mV
+alternating burst, and 100% of a 10× half-window gain jump, with a 1.7% clean
+sample rejection rate (including the existing low-RMS rejects). These probes
+are not real-fault validation. The gate still does not identify high baseline
+noise, including S11 E2 channel 1.
 
 The current Results export is a uniform-prior LDA trained on S1 and tested on
 S10; it scored 46.61%, with ECE 0.026. The separately evaluated ordinary-LDA

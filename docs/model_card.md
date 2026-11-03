@@ -165,6 +165,10 @@ Confusion matrix (rows: performed; columns: decoded):
 
 Zero-recall classes in this result: `fist`, `point`, `wrist_extension`.
 
+Recorded quality-gate summary:
+
+The gate accepted 16,572 of 17,293 held-out S10 windows (95.8%) and rejected 721. Rejections by performed class: `rest` 640, `fist` 8, `open_hand` 3, `pinch` 20, `point` 14, `wrist_flexion` 3, `wrist_extension` 5, `thumb_up` 16, `two_finger` 9, `spherical_grip` 3. A rejection is not a prediction and does not establish signal correctness.
+
 ## Additional S11 subject-held-out check
 
 This follow-up trains on S1 and S10 and evaluates only on S11.
@@ -217,7 +221,7 @@ S11 rest RMS in µV for the first eight channels:
 
 The 136.70 µV rest RMS on S11 E2 channel 1 is a conspicuous channel/session outlier and should be investigated; these recordings do not contain independent artifact labels to determine its cause.
 
-The replay quality gate enforces a minimum channel RMS plus a broad 5 V absolute-amplitude sanity limit. It does not impose a useful per-channel RMS ceiling for excessive baseline noise, so this high RMS channel is not rejected as noisy.
+The replay quality gate enforces a per-channel minimum RMS, a broad 5 V absolute-amplitude sanity limit, repeated extreme-value plateau checks, repeated >1 mV sample-step checks, and an 8× half-window RMS change check. These waveform rules are conservative heuristics, not a validated artifact classifier. There is no useful per-channel RMS ceiling or independent high-baseline-noise detector, so this high RMS channel is not rejected as noisy.
 
 ## Three-subject NinaPro recognition experiments
 
@@ -235,6 +239,21 @@ Fixed strategies were compared in leave-one-subject-out folds over S1, S10, S11.
 | `rbf_svm_weighted_sigmoid` | 28.0% ± 5.4% | 35.0% | 19.9% | 36.3% | 0.2667 | S1 21.0%; S10 34.1%; S11 28.8% |
 
 **Development comparison only.** All three local subjects have already informed development, so these folds do not provide an untouched final estimate. Rest downsampling reduced the rest-only prediction tendency and raised macro movement recall, but lowered mean accuracy; no candidate was adopted as the application decoder.
+
+## Controlled signal-quality fault probes
+
+Seeded probe of 1,000 selected S10 200 ms windows (100 per mapped class; seed 20261103). These are controlled signal injections, not labelled real faults.
+
+| Probe | Rejected | Rate | Reasons |
+| --- | ---: | ---: | --- |
+| `clean` | 17/1,000 | 1.7% | abrupt half-window RMS change suggests gain shift: 2, channel RMS below calibrated minimum: 14, repeated extreme samples suggest clipping: 1 |
+| `flat_channel` | 1,000/1,000 | 100.0% | channel RMS below calibrated minimum: 1000 |
+| `clipping_50uV` | 966/1,000 | 96.6% | channel RMS below calibrated minimum: 14, repeated extreme samples suggest clipping: 952 |
+| `noise_burst_1mV` | 1,000/1,000 | 100.0% | abrupt half-window RMS change suggests gain shift: 555, repeated large sample steps suggest transient noise: 445 |
+| `jump_10x` | 1,000/1,000 | 100.0% | abrupt half-window RMS change suggests gain shift: 973, repeated large sample steps suggest transient noise: 27 |
+
+**Caveat.** Controlled artificial faults on selected recorded windows; these rates are not validated sensitivity/specificity and are not clinical or live-electrode validation.
+The gate still has no per-channel RMS ceiling or independent high-baseline-noise detector; S11 E2 channel 1's 136.70 µV rest RMS is not rejected for that reason.
 
 ## Limitations
 

@@ -267,10 +267,11 @@ is development data, not an untouched final test subject.
 
 The replay manifest calibrates each channel's minimum RMS to 25% of that
 subject's selected recorded-rest segment, capped at the shared 5 uV floor.
-Running the same gate over all 17,293 S10 held-out windows accepted 16,691
-(96.52%) and rejected 602 (3.48%). **All 602 rejected windows are labeled rest;
-no mapped movement window was rejected.** Acceptance and rejection counts are
-quality-gate observations, not accuracy or correctness measurements.
+After the waveform heuristics were added, the gate was rerun on all 17,293 S10
+held-out windows: 16,572 (95.83%) accepted and 721 (4.17%) rejected. Rejections
+include movement windows as well as rest, so they must not be interpreted as
+correctness. Acceptance and rejection counts are quality-gate observations,
+not accuracy measurements.
 
 Controlled negative controls reject a zero signal, a detached channel, and a
 sample window attenuated to half amplitude. This shows the code responds to
@@ -296,22 +297,23 @@ user reaction time. The zero-signal control is rejected. The separate
 simulated bench has its own accuracy and latency results; do not mix them with
 recorded-data metrics.
 
-The quality gate is a minimum-RMS gate plus a broad 5 V absolute-amplitude
-sanity check. It has no useful per-channel RMS upper limit for detecting
-excessive baseline noise. S11 E2 channel 1's 136.70 µV rest RMS is therefore
-not rejected as noisy; high-RMS channel faults remain an unvalidated failure
-mode.
+The quality gate additionally checks for repeated clipping plateaus, repeated
+large sample steps, and abrupt half-window RMS changes. It still has no useful
+per-channel RMS upper limit or independent high-baseline-noise detector.
+S11 E2 channel 1's 136.70 µV rest RMS is therefore not rejected as noisy.
 
 A repeatable fault probe samples 100 stable 200 ms S10 windows from each of
 the ten mapped classes (1,000 total, seed 20261103) and applies one fault at a
-time using the replay's recorded per-channel floors. The clean sample rejected
-14/1,000 (1.4%). A flat channel in channel 1 rejected 1,000/1,000 (100%).
-Clipping all channels at ±50 µV rejected 14/1,000 (1.4%), the same as the
-clean sample. A 1 mV alternating noise burst lasting 20 samples and a 10×
-amplitude jump halfway through the window each rejected 0/1,000. These are
-controlled signal manipulations, not measured clinical fault conditions. They
-show that the current gate catches low RMS, but does not detect these
-above-floor waveform distortions. Reproduce with:
+time using the replay's recorded per-channel floors. The revised clean sample
+rejected 17/1,000 (1.7%): 14 failed the pre-existing per-channel RMS floors,
+one triggered the clipping heuristic, and two triggered the gain-shift
+heuristic. A flat channel in channel 1 rejected 1,000/1,000 (100%). Clipping
+all channels at ±50 µV rejected 966/1,000 (96.6%). A 1 mV alternating noise
+burst lasting 20 samples and a 10× amplitude jump halfway through the window
+each rejected 1,000/1,000. These are controlled signal manipulations, not
+measured fault detector sensitivity or clinical validation. The gate still
+does not identify high baseline noise, including S11 E2 channel 1's 136.70 µV
+rest RMS. Reproduce with:
 
 ```bash
 python services/research/scripts/ninapro_quality_fault_probe.py

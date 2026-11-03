@@ -39,6 +39,7 @@ def render(
     recorded_holdout: dict | None = None,
     recorded_uniform_trial: dict | None = None,
     ninapro_recognition: dict | None = None,
+    quality_probe: dict | None = None,
 ) -> str:
     best = comparison["best_model"]
     models = comparison["models"]
@@ -332,6 +333,24 @@ def render(
             + "."
         )
         add("")
+        gate = recorded_holdout.get("quality_gate")
+        if gate is not None:
+            add("Recorded quality-gate summary:")
+            add("")
+            add(
+                f"The gate accepted {gate['accepted']:,} of "
+                f"{gate['windows_tested']:,} held-out S10 windows "
+                f"({_fmt_pct(gate['acceptance_rate'])}) and rejected "
+                f"{gate['rejected']:,}. Rejections by performed class: "
+                + ", ".join(
+                    f"`{gesture}` {count}"
+                    for gesture, count in gate["rejected_by_performed_gesture"].items()
+                    if count
+                )
+                + ". A rejection is not a prediction and does not establish "
+                "signal correctness."
+            )
+            add("")
 
     if s11_evaluation is not None:
         add("## Additional S11 subject-held-out check")
@@ -418,9 +437,12 @@ def render(
         )
         add("")
         add(
-            "The replay quality gate enforces a minimum channel RMS plus a broad "
-            "5 V absolute-amplitude sanity limit. It does not impose a useful "
-            "per-channel RMS ceiling for excessive baseline noise, so this high "
+            "The replay quality gate enforces a per-channel minimum RMS, a broad "
+            "5 V absolute-amplitude sanity limit, repeated extreme-value plateau "
+            "checks, repeated >1 mV sample-step checks, and an 8× half-window RMS "
+            "change check. These waveform rules are conservative heuristics, not "
+            "a validated artifact classifier. There is no useful per-channel RMS "
+            "ceiling or independent high-baseline-noise detector, so this high "
             "RMS channel is not rejected as noisy."
         )
         add("")
@@ -460,6 +482,36 @@ def render(
             "untouched final estimate. Rest downsampling reduced the rest-only "
             "prediction tendency and raised macro movement recall, but lowered "
             "mean accuracy; no candidate was adopted as the application decoder."
+        )
+        add("")
+
+    if quality_probe is not None:
+        add("## Controlled signal-quality fault probes")
+        add("")
+        add(
+            f"Seeded probe of {quality_probe['n_windows']:,} selected S10 "
+            f"{quality_probe['window_ms']:.0f} ms windows "
+            f"({quality_probe['samples_per_label']} per mapped class; seed "
+            f"{quality_probe['seed']}). These are controlled signal injections, "
+            "not labelled real faults."
+        )
+        add("")
+        add("| Probe | Rejected | Rate | Reasons |")
+        add("| --- | ---: | ---: | --- |")
+        for fault, result in quality_probe["faults"].items():
+            reasons = ", ".join(
+                f"{reason}: {count}" for reason, count in result["reasons"].items()
+            ) or "none"
+            add(
+                f"| `{fault}` | {result['rejected']:,}/{result['total']:,} | "
+                f"{_fmt_pct(result['rejection_rate'])} | {reasons} |"
+            )
+        add("")
+        add(f"**Caveat.** {quality_probe['caveat']}")
+        add(
+            "The gate still has no per-channel RMS ceiling or independent "
+            "high-baseline-noise detector; S11 E2 channel 1's 136.70 µV rest "
+            "RMS is not rejected for that reason."
         )
         add("")
 
@@ -591,6 +643,12 @@ def main() -> None:
         if ninapro_recognition_path.exists()
         else None
     )
+    quality_probe_path = args.artifacts / "ninapro_quality_fault_probe.json"
+    quality_probe = (
+        json.loads(quality_probe_path.read_text(encoding="utf-8"))
+        if quality_probe_path.exists()
+        else None
+    )
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(
@@ -604,6 +662,7 @@ def main() -> None:
             recorded_holdout,
             recorded_uniform_trial,
             ninapro_recognition,
+            quality_probe,
         ),
         encoding="utf-8",
     )
