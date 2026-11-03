@@ -67,7 +67,7 @@ These are the ones an AI assistant is most likely to break. The full list is in
 | Phase | What | State |
 | --- | --- | --- |
 | 0–1b | Simulator, Python/TypeScript feature conformance, decoder, ONNX, browser Live/virtual hand | Done |
-| Recorded DB2 path | Nine local S1/S10/S11 sessions, loader and mapping, subject-held-out export/replay, Results views, S11 quality audit | Implemented; exploratory, three subjects; full multi-model comparison remains |
+| Recorded DB2 path | Nine local S1/S10/S11 sessions, loader and mapping, subject-held-out export/replay, Results views, S11 quality audit | Implemented; exploratory, three subjects; full-corpus multi-model comparison remains |
 | 2 | Neuromotor Cartography (Pillar 1) | Partly done; see §6 |
 | 3 | Error-attribution router, anatomical coaching | Not started |
 | 4 | Robustness | Electrode-shift sweep complete: passes through 0.2 rad, fails at 0.3/0.4 rad; simulated only |
@@ -174,12 +174,16 @@ summary serializes it. The comparison also reports subject count/IDs from the
 actual corpus rather than simulator configuration.
 
 The ordinary-LDA S1→S10 reference is 45.09% on 17,293 windows, with a 36.51%
-majority baseline. S10 informed diagnostics, so this is exploratory rather
-than an untouched final test. The additional uniform-prior check trained on
-S1+S10 and tested on S11 scored 23.07% on 20,956 windows, against a 22.26%
-majority baseline (ECE 0.3664). This is poor cross-subject performance. The
-full-corpus multi-model comparison was not completed; a bounded, subsampled
-SVM comparison is documented below.
+majority baseline. The current Results export is a separate uniform-prior LDA
+artifact on the same named split: 46.61% accuracy and ECE 0.026. An archived
+`ninapro_lda_uniform/evaluation.json` reports 46.85% for that split, but its
+run provenance has not been reconciled; use the current `ninapro_holdout`
+artifact when describing the app. S10 informed diagnostics, so these are
+exploratory rather than untouched final tests. The additional uniform-prior
+check trained on S1+S10 and tested on S11 scored 23.07% on 20,956 windows,
+against a 22.26% majority baseline (ECE 0.3664). This is poor cross-subject
+performance. The full-corpus multi-model comparison was not completed; a
+bounded, subsampled SVM comparison is documented below.
 
 The S11 confusion matrix predicts `rest` for 19,125 / 20,956 windows. Recall
 is 99.08% for `rest`, 5.11% for `thumb_up`, 4.92% for `two_finger`, and 1.63%
@@ -193,6 +197,8 @@ audit are included in the model card.
 These are development experiments on the three local subjects, not a new
 headline result. Nothing from these experiments replaced the recorded decoder.
 The same 56,714-window corpus was evaluated with subject-held-out folds.
+These comparisons were ad hoc inline runs; unlike the quality-fault probe
+below, they do not yet have a checked-in runner.
 
 - Changing LDA from empirical to uniform class priors barely moved the
   three-subject mean (36.15% vs 36.23%). With uniform priors, S11 remained at
@@ -224,7 +230,7 @@ rest-based normalization need a larger, independent subject set and a
 pre-specified evaluation before adoption. S11 has already been inspected and
 is development data, not an untouched final test subject.
 
-### Recorded quality gate and correctness (validated against the local corpus)
+### Recorded quality gate and fault probes (local development audit)
 
 The replay manifest calibrates each channel's minimum RMS to 25% of that
 subject's selected recorded-rest segment, capped at the shared 5 uV floor.
@@ -262,6 +268,21 @@ sanity check. It has no useful per-channel RMS upper limit for detecting
 excessive baseline noise. S11 E2 channel 1's 136.70 µV rest RMS is therefore
 not rejected as noisy; high-RMS channel faults remain an unvalidated failure
 mode.
+
+A repeatable fault probe samples 100 stable 200 ms S10 windows from each of
+the ten mapped classes (1,000 total, seed 20261103) and applies one fault at a
+time using the replay's recorded per-channel floors. The clean sample rejected
+14/1,000 (1.4%). A flat channel in channel 1 rejected 1,000/1,000 (100%).
+Clipping all channels at ±50 µV rejected 14/1,000 (1.4%), the same as the
+clean sample. A 1 mV alternating noise burst lasting 20 samples and a 10×
+amplitude jump halfway through the window each rejected 0/1,000. These are
+controlled signal manipulations, not measured clinical fault conditions. They
+show that the current gate catches low RMS, but does not detect these
+above-floor waveform distortions. Reproduce with:
+
+```bash
+python services/research/scripts/ninapro_quality_fault_probe.py
+```
 
 ### Held-out replay and Live screen (implemented)
 

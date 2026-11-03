@@ -253,13 +253,16 @@ The CPU figure covers ONNX inference on pre-extracted held-out windows; the
 browser figure covers feature extraction plus ONNX inference in the worker.
 Neither includes wearer reaction time or establishes medical-device safety.
 
-The recorded S1→S10 ordinary-LDA reference scored 45.09% across 17,293
-windows; S10 has informed model diagnostics, so this is exploratory rather
-than an untouched final test. A quick uniform-prior LDA check trained on
-S1+S10 and tested on S11 scored 23.07% versus a 22.26% majority baseline, with
-ECE 0.3664. This is poor cross-subject performance, not an improvement or an
-untouched final estimate. On S11, six gesture classes had zero recall and the
-model predicted rest for 19,125 of 20,956 windows.
+The current staged Results export is uniform-prior LDA trained on S1 and tested
+on S10: 46.61% over 17,293 windows, with ECE 0.026. A separate ordinary-LDA
+reference scored 45.09%. An archived uniform-prior artifact reports 46.85% for
+the same named split, but its run provenance has not been reconciled. S10 has
+informed diagnostics, so these are exploratory rather than untouched final
+tests. A uniform-prior LDA check trained on S1+S10 and tested on S11 scored
+23.07% versus a 22.26% majority baseline, with ECE 0.3664. This is poor
+cross-subject performance, not an improvement or an untouched final estimate.
+On S11, six gesture classes had zero recall and the model predicted rest for
+19,125 of 20,956 windows.
 
 The recorded S11 model's ECE is 0.3664. Risk-weighted commitment is exercised
 with simulator posteriors, but has not been validated on this poorly calibrated

@@ -36,6 +36,8 @@ def render(
     ttum: dict | None = None,
     recorded_baseline: dict | None = None,
     s11_evaluation: dict | None = None,
+    recorded_holdout: dict | None = None,
+    recorded_uniform_trial: dict | None = None,
 ) -> str:
     best = comparison["best_model"]
     models = comparison["models"]
@@ -270,6 +272,66 @@ def render(
         )
         add("")
 
+    if recorded_holdout is not None:
+        add("## Current staged S1→S10 decoder")
+        add("")
+        add(
+            "This is the held-out artifact currently staged for the Results "
+            "screen. It is distinct from the ordinary-LDA reference above."
+        )
+        add("")
+        add("| Property | Value |")
+        add("| --- | --- |")
+        add(f"| Model | `{recorded_holdout['model']}` |")
+        add(
+            f"| Split | Trained on "
+            f"{', '.join(f'S{subject}' for subject in recorded_holdout['training_subjects'])}; "
+            f"tested on S{recorded_holdout['test_subject']} |"
+        )
+        add(f"| Held-out windows | {recorded_holdout['n_test']:,} |")
+        add(f"| Accuracy | {recorded_holdout['accuracy']:.2%} |")
+        add(
+            f"| Majority-class baseline | "
+            f"{recorded_holdout['baseline_accuracy']:.2%} |"
+        )
+        add(
+            f"| Expected calibration error | "
+            f"{recorded_holdout['expected_calibration_error']:.4f} |"
+        )
+        add("")
+        add(
+            f"This current artifact reports {recorded_holdout['accuracy']:.2%}."
+        )
+        if recorded_uniform_trial is not None:
+            add(
+                "A separate archived `ninapro_lda_uniform/evaluation.json` "
+                f"reports {recorded_uniform_trial['accuracy']:.2%} for the same "
+                "named split; its run provenance has not been reconciled, so "
+                "the Results artifact above is the value quoted for the current app."
+            )
+        add("")
+        add("Confusion matrix (rows: performed; columns: decoded):")
+        add("")
+        gesture_order = recorded_holdout["gesture_order"]
+        add("| Performed \\ Decoded | " + " | ".join(f"`{name}`" for name in gesture_order) + " |")
+        add("| --- | " + " | ".join("---:" for _ in gesture_order) + " |")
+        for gesture, row in zip(
+            gesture_order, recorded_holdout["confusion_matrix"], strict=True
+        ):
+            add(f"| `{gesture}` | " + " | ".join(str(value) for value in row) + " |")
+        add("")
+        zero_recall = [
+            f"`{gesture}`"
+            for gesture, recall in recorded_holdout["per_gesture_recall"].items()
+            if recall == 0
+        ]
+        add(
+            "Zero-recall classes in this result: "
+            + (", ".join(zero_recall) if zero_recall else "none")
+            + "."
+        )
+        add("")
+
     if s11_evaluation is not None:
         add("## Additional S11 subject-held-out check")
         add("")
@@ -462,6 +524,20 @@ def main() -> None:
     s11_evaluation = (
         json.loads(s11_path.read_text(encoding="utf-8")) if s11_path.exists() else None
     )
+    recorded_holdout_path = args.artifacts / "ninapro_holdout" / "evaluation.json"
+    recorded_holdout = (
+        json.loads(recorded_holdout_path.read_text(encoding="utf-8"))
+        if recorded_holdout_path.exists()
+        else None
+    )
+    recorded_uniform_trial_path = (
+        args.artifacts / "ninapro_lda_uniform" / "evaluation.json"
+    )
+    recorded_uniform_trial = (
+        json.loads(recorded_uniform_trial_path.read_text(encoding="utf-8"))
+        if recorded_uniform_trial_path.exists()
+        else None
+    )
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(
@@ -472,6 +548,8 @@ def main() -> None:
             ttum,
             recorded_baseline,
             s11_evaluation,
+            recorded_holdout,
+            recorded_uniform_trial,
         ),
         encoding="utf-8",
     )

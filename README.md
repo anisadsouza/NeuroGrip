@@ -73,7 +73,7 @@ every number on it means.
 | | |
 | --- | --- |
 | Simulator decoder | RBF SVM, 95.63% LOSO accuracy, ECE 0.022 |
-| NinaPro held-out results | Ordinary-LDA S1→S10 reference: 45.09%; uniform-prior LDA S1+S10→S11: 23.07% (22.26% majority baseline; ECE 0.3664). Exploratory only |
+| NinaPro held-out results | Current Results export, uniform-prior LDA S1→S10: 46.61% (36.51% majority baseline; ECE 0.026); ordinary-LDA reference: 45.09%; uniform-prior LDA S1+S10→S11: 23.07% (22.26% baseline; ECE 0.3664). Exploratory only |
 | Recorded quality gate | 16,691 / 17,293 labeled S10 windows accepted (96.52%); all 602 rejects are rest windows. Acceptance is not accuracy |
 | Browser replay latency | NinaPro worker P95: 1.93 ms (2026-11-02, MacBook Air / Apple M3; feature extraction + inference only, not total reaction time). P95 varies between runs; a prior run measured 2.70 ms |
 | Time to motion | Simulator-only TTUM: 40 ms median before the hand starts moving, 260 ms to latch |
@@ -101,14 +101,20 @@ confusion matrix are scored separately against the dataset labels. A controlled
 zero-signal worker check must also be rejected, but that does not validate the
 gate on real electrode faults or motion artifacts.
 
-The ordinary-LDA S1→S10 reference scored 45.09%. S10 informed model
-diagnostics, so this is exploratory rather than an untouched final test. A
-quick uniform-prior LDA check trained on S1+S10 and tested on S11 scored
-23.07%, only slightly above the 22.26% majority baseline, with ECE 0.3664.
+The current Results export is a uniform-prior LDA trained on S1 and tested on
+S10; it scored 46.61%, with ECE 0.026. The separately evaluated ordinary-LDA
+reference scored 45.09%. An archived uniform-prior evaluation artifact reports
+46.85% for the same named split, but its run provenance has not been reconciled;
+the Results tab and this table use the current `ninapro_holdout` artifact.
+S10 informed model diagnostics, so these are exploratory rather than an
+untouched final test. A quick uniform-prior LDA check trained on S1+S10 and
+tested on S11 scored 23.07%, only slightly above the 22.26% majority baseline,
+with ECE 0.3664.
 This is poor cross-subject generalization, not evidence that adding S11 has
-improved recognition. The full multi-model comparison remains to be run. On
-S11, the model predicted rest for 19,125 of 20,956 windows; six gesture classes
-had zero recall. The per-gesture recalls and audited signal levels are in
+improved recognition. The full-corpus multi-model comparison remains to be run;
+only a bounded, subsampled SVM comparison was completed. On S11, the model
+predicted rest for 19,125 of 20,956 windows; six gesture classes had zero
+recall. The per-gesture recalls and audited signal levels are in
 [`docs/model_card.md`](docs/model_card.md).
 
 **Why the S11 score is low:** this is a cross-subject result, and the classifier
@@ -116,8 +122,8 @@ predicted `rest` for about 91% of S11 windows even though rest accounts for
 about 22% of the evaluation windows. Subject-specific signal scale or electrode
 placement, the S11 E2 channel-1 rest-RMS outlier, and calibration/feature
 distribution shift are plausible contributors, but the current experiments do
-not isolate the cause. The full multi-model comparison has not been run. An
-80% cross-subject target is not guaranteed; it would need better signal
+not isolate the cause. The full-corpus multi-model comparison has not been run.
+An 80% cross-subject target is not guaranteed; it would need better signal
 alignment and evaluation on a new subject that was not used for tuning.
 
 The DB2 label mapped to `open_hand` is label 5, *abduction of all fingers*; it
@@ -200,9 +206,9 @@ Electrode-shift robustness can be generated separately:
 python -m neurogrip.experiments robustness --out artifacts/electrode_shift_robustness.json
 ```
 
-The current local audit has six A1 files (S1 and S10, exercises E1-E3) under
-`data/ninapro/DB2/`. For a fresh, licensed DB2 copy, verify its version and
-movement mapping before reporting results. The exploratory comparison can be
+The current local audit has nine A1 files (S1, S10, and S11, exercises E1-E3)
+under `data/ninapro/DB2/`. For a fresh, licensed DB2 copy, verify its version
+and movement mapping before reporting results. The exploratory comparison can be
 rerun with:
 
 ```bash

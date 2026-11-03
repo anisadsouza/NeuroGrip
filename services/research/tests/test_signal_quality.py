@@ -44,3 +44,23 @@ def test_quality_rejects_recorded_calibration_with_wrong_channel_count():
 
     assert not result.ok
     assert result.reason == "quality calibration channel count mismatch"
+
+
+def test_quality_gate_does_not_detect_clipping_noise_burst_or_gain_jump():
+    time = np.arange(400, dtype=np.float32)
+    signal = np.stack(
+        [
+            100e-6 * np.sin(2 * np.pi * 35 * time / 2000 + channel)
+            for channel in range(8)
+        ]
+    ).astype(np.float32)
+
+    clipped = np.clip(signal, -50e-6, 50e-6)
+    burst = signal.copy()
+    burst[0, 100:120] += np.where(np.arange(20) % 2, 1e-3, -1e-3)
+    jumped = signal.copy()
+    jumped[:, 200:] *= 10
+
+    assert check_signal_quality(clipped).ok
+    assert check_signal_quality(burst).ok
+    assert check_signal_quality(jumped).ok

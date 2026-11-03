@@ -315,7 +315,7 @@ function HeldoutPanel({
         </div>
       </dl>
       <p className="results-caveat">
-        Exploratory only: just S1 and S10 are available, and S10 informed diagnostics.
+        Exploratory only: three subjects are available locally, and S10 informed diagnostics.
         This is not an untouched final test or clinical validation.
       </p>
 

@@ -258,19 +258,38 @@ def test_recorded_results_and_s11_audit_are_reported_separately(comparison, deco
             [1042, 0, 0, 0, 2, 0, 0, 373, 29, 24],
         ],
     }
+    active_s10 = {
+        "model": "lda_uniform",
+        "training_subjects": [1],
+        "test_subject": 10,
+        "n_test": 17293,
+        "accuracy": 0.4661,
+        "baseline_accuracy": 0.3651,
+        "expected_calibration_error": 0.026,
+        "gesture_order": ["rest", "fist"],
+        "confusion_matrix": [[100, 1], [20, 0]],
+        "per_gesture_recall": {"rest": 0.9901, "fist": 0.0},
+    }
+    archived_s10 = {"accuracy": 0.4685}
     card = render(
         comparison,
         decoder,
         "2026-10-30",
         recorded_baseline=s10_reference,
         s11_evaluation=s11,
+        recorded_holdout=active_s10,
+        recorded_uniform_trial=archived_s10,
     )
 
     assert "Recorded NinaPro DB2 exploratory checks" in card
     assert "Trained on S1; tested on S10" in card
     assert "45.09%" in card
     assert "36.51%" in card
-    assert "46.6%" not in card
+    assert "Current staged S1→S10 decoder" in card
+    assert "46.61%" in card
+    assert "46.85%" in card
+    assert "| `fist` | 20 | 0 |" in card
+    assert "Zero-recall classes in this result: `fist`." in card
     assert "S10 informed model diagnostics" in card
     assert "no amputee stratum" in card
     assert "abduction of all fingers" in card

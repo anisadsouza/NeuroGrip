@@ -2,7 +2,7 @@
 
 **Research prototype. Not a medical device. Not validated for clinical use.**
 
-Generated 2026-11-02 from recorded experiment artifacts.
+Generated 2026-11-03 from recorded experiment artifacts.
 
 ## Intended use
 
@@ -131,6 +131,39 @@ These subject-held-out checks use recorded data and are separate from the simula
 **Exploratory only.** S10 informed model diagnostics, so this is not an untouched final test. This reference result is not clinical validation. NinaPro DB2 subjects are intact participants; no amputee stratum has been evaluated.
 
 The DB2 label mapped to `open_hand` is label 5, **abduction of all fingers**, used only as a qualified proxy rather than an exact open-hand movement.
+
+## Current staged S1→S10 decoder
+
+This is the held-out artifact currently staged for the Results screen. It is distinct from the ordinary-LDA reference above.
+
+| Property | Value |
+| --- | --- |
+| Model | `lda_uniform` |
+| Split | Trained on S1; tested on S10 |
+| Held-out windows | 17,293 |
+| Accuracy | 46.61% |
+| Majority-class baseline | 36.51% |
+| Expected calibration error | 0.0260 |
+
+This current artifact reports 46.61%.
+A separate archived `ninapro_lda_uniform/evaluation.json` reports 46.85% for the same named split; its run provenance has not been reconciled, so the Results artifact above is the value quoted for the current app.
+
+Confusion matrix (rows: performed; columns: decoded):
+
+| Performed \ Decoded | `rest` | `fist` | `open_hand` | `pinch` | `point` | `wrist_flexion` | `wrist_extension` | `thumb_up` | `two_finger` | `spherical_grip` |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `rest` | 5052 | 2 | 183 | 402 | 0 | 0 | 0 | 124 | 207 | 344 |
+| `fist` | 22 | 0 | 391 | 3 | 0 | 0 | 0 | 62 | 80 | 148 |
+| `open_hand` | 94 | 0 | 618 | 0 | 7 | 16 | 0 | 8 | 28 | 0 |
+| `pinch` | 758 | 0 | 51 | 693 | 0 | 0 | 0 | 37 | 75 | 271 |
+| `point` | 716 | 0 | 14 | 12 | 0 | 0 | 0 | 297 | 441 | 30 |
+| `wrist_flexion` | 15 | 2 | 199 | 0 | 0 | 474 | 9 | 1 | 37 | 14 |
+| `wrist_extension` | 109 | 0 | 501 | 80 | 0 | 0 | 0 | 3 | 151 | 44 |
+| `thumb_up` | 944 | 0 | 116 | 94 | 0 | 0 | 0 | 625 | 15 | 67 |
+| `two_finger` | 887 | 0 | 166 | 16 | 0 | 0 | 0 | 36 | 160 | 41 |
+| `spherical_grip` | 414 | 0 | 59 | 297 | 0 | 0 | 0 | 13 | 80 | 438 |
+
+Zero-recall classes in this result: `fist`, `point`, `wrist_extension`.
 
 ## Additional S11 subject-held-out check
 
