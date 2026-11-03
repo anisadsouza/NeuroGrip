@@ -151,6 +151,28 @@ clinical instruction.
 
 ---
 
+## Research review
+
+The **Research review** section groups four research-facing views:
+
+- **Evaluate** reuses the held-out and model-comparison reports from Results.
+- **Robustness** plots the committed simulated electrode-shift experiment,
+  including its uncertainty interval and the current exploratory degradation
+  bound. It is not a real electrode-placement study.
+- **Latency** keeps the recorded S10 replay and simulator browser-worker
+  measurements separate. Its scope excludes total reaction time, scheduler
+  delay, and UI messaging.
+- **Records** shows provenance and metrics from the staged evaluation summary.
+  It is not an electronic health record and does not store patient information.
+
+`npm run dev:web` stages the decoder and research reports before Vite starts.
+The robustness report can be restaged directly with `npm run stage:clinician`.
+These views support research review only; they are not clinical decisions,
+device acceptance tests, or a validated clinician workflow. No amputee dataset
+is currently staged.
+
+---
+
 ## The Live screen
 
 The **Replay source** selector chooses either simulated sEMG with the

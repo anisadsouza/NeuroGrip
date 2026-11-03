@@ -1,7 +1,7 @@
 # NeuroGrip: current state and next steps
 
-Updated 2026-11-03 after the Cartography gate/screen and the simulator-only
-error-attribution/coaching pilot. Read
+Updated 2026-11-04 after the Cartography gate, simulator-only attribution pilot,
+and clinician-oriented research review screens. Read
 `CLAUDE.md` for the project's engineering and safety rules.
 
 **Research prototype. Not a medical device. Not validated for clinical use.**
@@ -69,12 +69,13 @@ These are the ones an AI assistant is most likely to break. The full list is in
 | Recorded DB2 path | Nine local S1/S10/S11 sessions, loader and mapping, subject-held-out export/replay, Results views, S11 quality audit | Implemented; exploratory, three subjects; full-corpus multi-model comparison remains |
 | 2 | Neuromotor Cartography (Pillar 1) | Simulated map, corrected per-prototype gate, illustrative assignment and screen implemented; human validation remains |
 | 3 | Error-attribution router, anatomical coaching | P/B/M/D simulator pilot and channel-localized coaching screen implemented; 4 controlled injections route as expected; real-data validation and model-feature explanations remain |
-| 4 | Robustness | Electrode-shift sweep complete: passes through 0.2 rad, fails at 0.3/0.4 rad; simulated only |
+| 4 | Clinician views and robustness | Evaluate/Robustness/Latency/Records views built; the electrode-shift view is simulated only. Recorded-fault validation and amputee evaluation remain |
 | 5 | Azure deploy, patent disclosures | Not started |
 
-The app has Live, Results, Cartography and Attribution screens. Additional
-independent recorded subjects, validated error attribution/coaching, clinician
-mode, amputee evaluation, and deployment remain future work.
+The app has Live, Results, Cartography, Attribution and clinician-oriented
+Research review screens. Additional independent recorded subjects, validated
+error attribution/coaching and robustness, amputee evaluation, and deployment
+remain future work.
 
 ---
 

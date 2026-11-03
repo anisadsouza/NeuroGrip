@@ -32,10 +32,10 @@ export default defineConfig({
     ...devices['Desktop Chrome'],
   },
   webServer: {
-    // Staging the model first: apps/web/public/models is gitignored, so a
-    // fresh clone has no decoder for the build to copy in.
+    // Public runtime artifacts are generated/staged so a fresh clone can test
+    // the same reports and model that the research screens consume.
     command:
-      'node scripts/stage-model.mjs && npm run build --workspace @neurogrip/web && ' +
+      'npm run stage:web && npm run build --workspace @neurogrip/web && ' +
       `npm run preview --workspace @neurogrip/web -- --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}/`,
     reuseExistingServer: !process.env.CI,

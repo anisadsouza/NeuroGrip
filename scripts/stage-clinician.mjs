@@ -1,10 +1,10 @@
-import { copyFile, mkdir, stat } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, stat } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
 const source = resolve(process.argv[2] ?? 'artifacts/electrode_shift_robustness.json');
 const target = resolve(process.argv[3] ?? 'apps/web/public/clinician/robustness.json');
 
-const report = JSON.parse(await (await import('node:fs/promises')).readFile(source, 'utf8'));
+const report = JSON.parse(await readFile(source, 'utf8'));
 if (
   !Array.isArray(report.shifts) ||
   report.shifts.length === 0 ||

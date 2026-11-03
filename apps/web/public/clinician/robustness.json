@@ -1,0 +1,118 @@
+{
+  "model": "rbf_svm",
+  "corpus": {
+    "n_subjects": 8,
+    "reps_per_gesture": 4,
+    "rep_seconds": 1.0,
+    "n_electrodes": 8,
+    "window_ms": 200,
+    "hop_ms": 20,
+    "max_fatigue": 0.5,
+    "base_seed": 1000,
+    "n_windows": 13120,
+    "n_features": 136
+  },
+  "baseline_accuracy": 0.9563,
+  "shifts": [
+    {
+      "shift_rad": 0.0,
+      "mean_accuracy": 0.9716,
+      "std_accuracy": 0.0294,
+      "min_accuracy": 0.9067,
+      "ci95_low": 0.9453,
+      "ci95_high": 0.9978,
+      "degradation_pp": -1.53,
+      "per_fold_accuracy": [
+        0.9768,
+        0.9067,
+        0.9994,
+        0.9994,
+        0.9457,
+        0.9884,
+        0.9848,
+        0.9713
+      ]
+    },
+    {
+      "shift_rad": 0.1,
+      "mean_accuracy": 0.9624,
+      "std_accuracy": 0.0361,
+      "min_accuracy": 0.8848,
+      "ci95_low": 0.9302,
+      "ci95_high": 0.9947,
+      "degradation_pp": -0.62,
+      "per_fold_accuracy": [
+        0.9695,
+        0.8848,
+        0.9927,
+        0.997,
+        0.9762,
+        0.9695,
+        0.9854,
+        0.9244
+      ]
+    },
+    {
+      "shift_rad": 0.2,
+      "mean_accuracy": 0.9262,
+      "std_accuracy": 0.0651,
+      "min_accuracy": 0.8128,
+      "ci95_low": 0.8681,
+      "ci95_high": 0.9844,
+      "degradation_pp": 3.0,
+      "per_fold_accuracy": [
+        0.9457,
+        0.8329,
+        0.9415,
+        0.9909,
+        0.9963,
+        0.914,
+        0.9756,
+        0.8128
+      ]
+    },
+    {
+      "shift_rad": 0.3,
+      "mean_accuracy": 0.8229,
+      "std_accuracy": 0.1119,
+      "min_accuracy": 0.6683,
+      "ci95_low": 0.7229,
+      "ci95_high": 0.923,
+      "degradation_pp": 13.33,
+      "per_fold_accuracy": [
+        0.8518,
+        0.6811,
+        0.8043,
+        0.9335,
+        0.989,
+        0.7409,
+        0.9146,
+        0.6683
+      ]
+    },
+    {
+      "shift_rad": 0.4,
+      "mean_accuracy": 0.6412,
+      "std_accuracy": 0.138,
+      "min_accuracy": 0.4482,
+      "ci95_low": 0.5179,
+      "ci95_high": 0.7645,
+      "degradation_pp": 31.51,
+      "per_fold_accuracy": [
+        0.6177,
+        0.4482,
+        0.6287,
+        0.722,
+        0.9402,
+        0.575,
+        0.6707,
+        0.5268
+      ]
+    }
+  ],
+  "acceptance": {
+    "max_allowed_degradation_pp": 8.0,
+    "meets_bound": false
+  },
+  "caveat": "Shift is simulated by overriding electrode placement in the motor-unit simulator. This is a robustness screen, not a substitute for repeated real electrode placement on human subjects."
+}

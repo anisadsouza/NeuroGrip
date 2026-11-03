@@ -49,13 +49,14 @@ holds the full design and the prior-art analysis behind each claim.
 | 1b | Evidence accumulator, design system, browser app, Live screen, virtual hand, verification layer, TTUM | Complete |
 | 2 | Neuromotor Cartography | In progress — simulation map, per-prototype gate and illustrative assignment built; gate passes in 2/8 intact and 5/8 finger-atrophy simulated subjects |
 | 3 | Error-attribution router, anatomical coaching | Simulator-only pilot and screen built; controlled injections route 4/4; model-feature attribution and recorded/human validation remain |
-| 4 | Clinician mode, amputee stratum, robustness | Not started |
+| 4 | Clinician review screens, amputee stratum, robustness | Review screens for Evaluate, Robustness, Latency and Records built; robustness plot is simulated only; amputee evaluation and real-world robustness validation remain |
 | 5 | Azure deployment, patent disclosures | Not started |
 
-**520 tests** — 219 Python, 275 TypeScript, 26 browser.
+**522 tests** — 219 Python, 275 TypeScript, 28 browser.
 
 Not yet built: Cartography teach-back, validated recorded-data error
-attribution and model-feature explanation, clinician mode, and deployment.
+attribution and model-feature explanation, validated robustness and amputee
+evaluation, and deployment.
 
 ---
 

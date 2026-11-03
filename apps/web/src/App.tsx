@@ -15,12 +15,20 @@ import { Icon } from './components/Icon.js';
 import { Wordmark } from './components/Wordmark.js';
 import { Attribution } from './screens/Attribution.js';
 import { Cartography } from './screens/Cartography.js';
+import { Clinician } from './screens/Clinician.js';
 import { Live } from './screens/Live.js';
 import { Results } from './screens/Results.js';
 
 type Theme = 'light' | 'dark';
 
 const THEME_KEY = 'neurogrip.theme';
+const SCREEN_TITLE = {
+  live: 'Live decoding',
+  results: 'Results',
+  cartography: 'Neuromotor Cartography',
+  attribution: 'Error attribution',
+  clinician: 'Research review',
+} as const;
 
 /** Whose work this is. Order as on the project report. */
 const TEAM = ['Harsh Bavaskar', "Anisa D'souza", 'Shruti Shanklesha'];
@@ -39,7 +47,7 @@ function readStoredTheme(): Theme | null {
 export function App() {
   const [theme, setTheme] = useState<Theme | null>(readStoredTheme);
   const [screen, setScreen] = useState<
-    'live' | 'results' | 'cartography' | 'attribution'
+    'live' | 'results' | 'cartography' | 'attribution' | 'clinician'
   >('live');
 
   useEffect(() => {
@@ -67,13 +75,14 @@ export function App() {
           <h1>
             <Wordmark />
           </h1>
-          <p className="masthead-sub">Live decoding</p>
+          <p className="masthead-sub">{SCREEN_TITLE[screen]}</p>
         </div>
         <nav className="screen-nav" aria-label="Application sections">
           <button type="button" aria-current={screen === 'live' ? 'page' : undefined} onClick={() => setScreen('live')}>Live</button>
           <button type="button" aria-current={screen === 'results' ? 'page' : undefined} onClick={() => setScreen('results')}>Results</button>
           <button type="button" aria-current={screen === 'cartography' ? 'page' : undefined} onClick={() => setScreen('cartography')}>Cartography</button>
           <button type="button" aria-current={screen === 'attribution' ? 'page' : undefined} onClick={() => setScreen('attribution')}>Attribution</button>
+          <button type="button" aria-current={screen === 'clinician' ? 'page' : undefined} onClick={() => setScreen('clinician')}>Research review</button>
         </nav>
         <button
           type="button"
@@ -89,7 +98,8 @@ export function App() {
         {screen === 'live' ? <Live />
           : screen === 'results' ? <Results />
             : screen === 'cartography' ? <Cartography />
-              : <Attribution />}
+              : screen === 'attribution' ? <Attribution />
+                : <Clinician />}
       </main>
 
       <footer className="colophon">

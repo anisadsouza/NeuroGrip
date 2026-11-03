@@ -14,11 +14,13 @@
     "typecheck": "tsc --noEmit -p packages/core/tsconfig.json && tsc --noEmit -p packages/design/tsconfig.json && tsc --noEmit -p apps/web/tsconfig.json",
     "fixtures": "python -m neurogrip.fixtures --out fixtures/conformance/golden.json",
     "build:assets": "node scripts/build-assets.mjs",
-    "dev:web": "npm run dev --workspace @neurogrip/web",
+    "dev:web": "npm run stage:web && npm run dev --workspace @neurogrip/web -- --host 127.0.0.1",
     "test:e2e": "playwright test",
+    "stage:web": "npm run stage:model && npm run stage:cartography && npm run stage:attribution && npm run stage:clinician",
     "stage:model": "node scripts/stage-model.mjs",
     "stage:cartography": "node scripts/stage-cartography.mjs",
     "stage:attribution": "node scripts/stage-attribution.mjs",
+    "stage:clinician": "node scripts/stage-clinician.mjs",
     "ttum": "vite-node scripts/ttum.ts"
   },
   "devDependencies": {

@@ -285,33 +285,33 @@ function HeldoutPanel({
         <div>
           <dt>Held-out accuracy</dt>
           <dd>{percentage(result.accuracy)}</dd>
-          <small>{result.n_test.toLocaleString()} windows</small>
+          <dd className="results-metric-detail">{result.n_test.toLocaleString()} windows</dd>
         </div>
         <div>
           <dt>Stable replay top-1</dt>
           <dd>{typeof stableAccuracy === 'number' ? percentage(stableAccuracy) : '—'}</dd>
-          <small>
+          <dd className="results-metric-detail">
             {browserLatency?.correctStablePredictions ?? 0}/
             {browserLatency?.stablePredictionWindows ?? 0} windows
-          </small>
+          </dd>
         </div>
         <div>
           <dt>Quality-gate accepted</dt>
           <dd>{percentage(result.quality_gate.acceptance_rate)}</dd>
-          <small>
+          <dd className="results-metric-detail">
             {result.quality_gate.accepted.toLocaleString()} accepted ·{' '}
             {result.quality_gate.rejected.toLocaleString()} rejected
-          </small>
+          </dd>
         </div>
         <div>
           <dt>Browser worker P95</dt>
           <dd>{browserLatency ? `${browserLatency.p95Ms.toFixed(2)} ms` : '—'}</dd>
-          <small>feature extraction + ONNX inference</small>
+          <dd className="results-metric-detail">feature extraction + ONNX inference</dd>
         </div>
         <div>
           <dt>Calibration error</dt>
           <dd>{result.expected_calibration_error.toFixed(3)}</dd>
-          <small>lower is better</small>
+          <dd className="results-metric-detail">lower is better</dd>
         </div>
       </dl>
       <p className="results-caveat">
