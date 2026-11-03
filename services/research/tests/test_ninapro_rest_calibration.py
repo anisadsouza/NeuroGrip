@@ -53,3 +53,17 @@ def test_rest_window_percentiles_exclude_windows_with_non_rest_labels():
     assert result is not None
     assert result["nWindows"] == 1
     assert result["p50Microvolts"][0] == pytest.approx(10)
+
+
+def test_rest_window_report_counts_intermittent_threshold_exceedances():
+    emg = np.full((2, 1200), 10e-6, dtype=np.float32)
+    emg[0, 400:800] = 100e-6
+    labels = np.zeros(1200, dtype=np.int16)
+
+    result = _rest_window_percentiles(emg, labels)
+
+    assert result is not None
+    assert result["nWindows"] == 3
+    assert result["thresholdMicrovolts"] == pytest.approx(50)
+    assert result["aboveThresholdWindowsByChannel"] == [1, 0]
+    assert result["aboveThresholdFractionByChannel"] == pytest.approx([1 / 3, 0])

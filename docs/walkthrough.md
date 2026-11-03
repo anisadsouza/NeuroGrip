@@ -144,10 +144,22 @@ npm run stage:attribution
 The four examples are deliberately injected synthetic cases; the displayed
 4/4 checks that the routing logic matches those known cases. It is not an
 estimate of attribution accuracy. Channel locations do not identify a
-specific muscle or finger, and the current prototype does not compute
-model-specific feature importance. The thresholds and coaching have not been
-validated on NinaPro errors or human users; do not treat them as diagnosis or
-clinical instruction.
+specific muscle or finger. An offline research command now computes exact
+feature contributions to the predicted-versus-intended score margin for an
+uncalibrated uniform-prior LDA and compares its errors against a trained
+RBF-SVM reference. These are research models, not the deployed ONNX decoder:
+
+```bash
+python -m neurogrip.ninapro_feature_attribution \
+  --data-root data/ninapro/DB2 \
+  --out artifacts/ninapro_feature_attribution.json
+```
+
+That analysis uses the three development subjects and is not shown in this
+screen. It does not establish that a feature causes an error or validate the
+coaching. The screen still demonstrates synthetic routes only; its thresholds
+and coaching have not been validated on independent subjects or human users.
+Do not treat it as diagnosis or clinical instruction.
 
 ---
 

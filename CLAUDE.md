@@ -52,7 +52,7 @@ holds the full design and the prior-art analysis behind each claim.
 | 4 | Clinician review screens, amputee stratum, robustness | Review screens for Evaluate, Robustness, Latency and Records built; robustness plot is simulated only; amputee evaluation and real-world robustness validation remain |
 | 5 | Azure deployment, patent disclosures | Not started |
 
-**522 tests** — 219 Python, 275 TypeScript, 28 browser.
+**525 tests** — 222 Python, 275 TypeScript, 28 browser.
 
 Not yet built: Cartography teach-back, validated recorded-data error
 attribution and model-feature explanation, validated robustness and amputee

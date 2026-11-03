@@ -82,10 +82,10 @@ every number on it means.
 | Browser replay latency | NinaPro worker P95: 1.18 ms (2026-11-03, MacBook Air / Apple M3; feature extraction + inference only, not total reaction time). P95 varies between runs; a prior run measured 2.70 ms |
 | Time to motion | Simulator-only TTUM: 40 ms median before the hand starts moving, 260 ms to latch |
 | Neuromotor Cartography | Simulator-only per-prototype gate: at least one prototype passes for 2/8 intact and 5/8 finger-atrophy subjects; no human learnability result |
-| Error attribution | Four controlled synthetic injections routed to their intended P/B/M/D action (4/4); logic check only, not attribution accuracy |
-| Tests | 219 Python + 275 TypeScript tests; 28 browser tests; typecheck passes |
+| Error attribution | Synthetic router checks: 4/4; offline LDA score-margin attribution plus RBF-SVM comparison on three development subjects; not causal or human-validated |
+| Tests | 222 Python + 275 TypeScript tests; 28 browser tests; typecheck passes |
 | Built | Simulator and decoder, DB2 loader and comparison, subject-held-out ONNX export/replay, Live and Results, simulator-only Cartography and Error Attribution, clinician-oriented Evaluate/Robustness/Latency/Records views |
-| Follow-up | Validate attribution and robustness on recorded data; compute model feature attributions and validate coaching; human babble and teach-back; more independent subjects; amputee evaluation; deployment |
+| Follow-up | Validate preliminary recorded-data LDA attributions and coaching; validate robustness on real faults; human babble and teach-back; more independent subjects; amputee evaluation; deployment |
 
 The NinaPro replay uses per-channel quality floors calibrated at 25% of each
 channel's RMS in the held-out subject's recorded rest segment, capped at the
@@ -106,7 +106,11 @@ above an exploratory 50 µV threshold. It flags channel 1 for S10 (56.82 µV
 across its available recordings) and S11 (102.74 µV); S1 has no flagged
 channels. The specific S11 E2 recording has 136.70 µV rest RMS. This check is
 based on only three development subjects, does not identify the cause, and is
-not validated fault detection.
+not validated fault detection. In the non-overlapping 200 ms rest windows from
+S11 E2, channel 1 exceeded 50 µV in 127/2,121 windows (6.0%); its median was
+6.31 µV and P99 was 496.28 µV. This quantifies intermittent high RMS, but the
+dataset has no artifact labels to determine its cause or validate the advisory
+threshold.
 See [`docs/model_card.md`](docs/model_card.md) for limitations.
 
 The Cartography screen shows one simulated subject's babble map and prototype
@@ -136,8 +140,24 @@ npm run stage:attribution
 
 The 4/4 result verifies only those designed cases. It is not measured
 attribution accuracy. Its ring marks channel-level deviations, not specific
-muscles or fingers; no model-specific feature attribution or human coaching
-validation has been completed.
+muscles or fingers. A separate offline analysis now decomposes held-out errors
+from a trained uniform-prior LDA into exact feature contributions and compares
+them with a trained RBF-SVM reference:
+
+```bash
+python -m neurogrip.ninapro_feature_attribution \
+  --data-root data/ninapro/DB2 \
+  --out artifacts/ninapro_feature_attribution.json
+```
+
+Across the three development subjects, pooled uncalibrated LDA accuracy was
+34.80% and the raw RBF-SVM comparator scored 29.36%; the comparator was correct
+on 11.5% of the LDA's errors. These research models are not the deployed ONNX
+decoder, and pooled scores are not directly comparable to the equal-subject
+means in the recognition table. This is an exploratory model explanation, not
+evidence that a feature causes an error or that the coaching is useful. The
+app's attribution screen remains a synthetic demonstration;
+independent-subject and human coaching validation have not been completed.
 
 The quality-gate acceptance rate is not gesture accuracy. On the full S10
 evaluation, the revised gate rejects 721 of 17,293 windows across rest and
@@ -209,8 +229,9 @@ not evidence that the system is robust on people.
 2. Keep the browser app usable as the main final demo: live signal, decoded
    gesture, confidence/evidence, latency, and virtual hand motion.
 3. Validate the simulator-only error-attribution/coaching pilot against
-   held-out recorded errors, implement model-specific feature attribution,
-   and expand evaluation to more independent subjects. Clinician mode,
+   additional untouched subjects, integrate the offline model-specific
+   attribution with the router, and validate coaching with human participants.
+   Expand evaluation to more independent subjects. Clinician mode,
    amputee evaluation (if suitable data is available), and live electrode
    input remain future work.
 4. Keep documentation updated after each meaningful change: README for project

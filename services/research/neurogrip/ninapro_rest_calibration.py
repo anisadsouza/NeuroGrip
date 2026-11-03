@@ -40,6 +40,13 @@ def _rest_window_percentiles(emg: np.ndarray, labels: np.ndarray) -> dict | None
         "p95Microvolts": (np.percentile(rms, 95, axis=0) * 1e6).tolist(),
         "p99Microvolts": (np.percentile(rms, 99, axis=0) * 1e6).tolist(),
         "maxMicrovolts": (np.max(rms, axis=0) * 1e6).tolist(),
+        "thresholdMicrovolts": MAX_REST_CALIBRATION_RMS * 1e6,
+        "aboveThresholdWindowsByChannel": np.count_nonzero(
+            rms > MAX_REST_CALIBRATION_RMS, axis=0
+        ).tolist(),
+        "aboveThresholdFractionByChannel": np.mean(
+            rms > MAX_REST_CALIBRATION_RMS, axis=0
+        ).tolist(),
     }
 
 

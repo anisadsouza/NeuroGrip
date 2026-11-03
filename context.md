@@ -68,7 +68,7 @@ These are the ones an AI assistant is most likely to break. The full list is in
 | 0–1b | Simulator, Python/TypeScript feature conformance, decoder, ONNX, browser Live/virtual hand | Done |
 | Recorded DB2 path | Nine local S1/S10/S11 sessions, loader and mapping, subject-held-out export/replay, Results views, S11 quality audit | Implemented; exploratory, three subjects; full-corpus multi-model comparison remains |
 | 2 | Neuromotor Cartography (Pillar 1) | Simulated map, corrected per-prototype gate, illustrative assignment and screen implemented; human validation remains |
-| 3 | Error-attribution router, anatomical coaching | P/B/M/D simulator pilot and channel-localized coaching screen implemented; 4 controlled injections route as expected; real-data validation and model-feature explanations remain |
+| 3 | Error-attribution router, anatomical coaching | P/B/M/D simulator pilot and channel-localized coaching screen implemented; offline held-out LDA score-margin attribution and RBF-SVM comparison added; real-data generalization and human coaching validation remain |
 | 4 | Clinician views and robustness | Evaluate/Robustness/Latency/Records views built; the electrode-shift view is simulated only. Recorded-fault validation and amputee evaluation remain |
 | 5 | Azure deploy, patent disclosures | Not started |
 
@@ -322,7 +322,9 @@ The reproducible audit also summarizes non-overlapping 200 ms rest-labeled
 windows. For S11 E2 channel 1, 2,121 windows have median RMS 6.31 µV, P95
 76.87 µV, P99 496.28 µV, and maximum 3,879.40 µV. This strongly skewed
 distribution is consistent with intermittent high-amplitude windows rather
-than a uniformly elevated baseline; the dataset does not identify their cause.
+than a uniformly elevated baseline; 127/2,121 windows (6.0%) exceed the
+exploratory 50 µV advisory level. The dataset does not identify their cause or
+provide artifact labels for validating that threshold.
 
 A repeatable fault probe samples 100 stable 200 ms S10 windows from each of
 the ten mapped classes (1,000 total, seed 20261103) and applies one fault at a
@@ -340,6 +342,29 @@ rest-baseline screen with:
 python -m neurogrip.ninapro_rest_calibration \
   --data-root data/ninapro/DB2 \
   --out artifacts/ninapro_rest_calibration.json
+```
+
+### Recorded-data feature attribution
+
+`python -m neurogrip.ninapro_feature_attribution` fits a uniform-prior LDA and
+a class-weighted RBF-SVM comparator in each leave-one-subject-out fold. The
+LDA's predicted-versus-intended score margin is exactly decomposed into
+standardized per-feature contributions for every held-out LDA error. On the
+current three-subject corpus, pooled uncalibrated LDA accuracy was 34.80%, raw
+RBF-SVM comparator accuracy was 29.36%, and the comparator corrected 11.5% of
+LDA errors. These research models are not the deployed ONNX decoder; pooled
+scores are not directly comparable to equal-subject means in the recognition
+table. The maximum numerical reconstruction residual was below 1.3e-13. This
+is a recorded-data model explanation, not an attribution accuracy estimate,
+causal physiology, or human coaching validation; all three subjects have
+informed development.
+
+Reproduce the analysis with:
+
+```bash
+python -m neurogrip.ninapro_feature_attribution \
+  --data-root data/ninapro/DB2 \
+  --out artifacts/ninapro_feature_attribution.json
 ```
 
 The separate screen warns about S10 and S11 channel 1 but does not identify
@@ -399,8 +424,9 @@ quality-gate counts, zero-signal control, and Live virtual action.
    these limitations visible and assess mapping, signal quality, calibration,
    and class balance with additional subjects.
 3. **Continue unfinished project phases** below: Cartography teach-back;
-   validation and model-specific feature attribution for the new error-routing
-   pilot; clinician mode, amputee evaluation, and deployment.
+   validate offline feature attribution on additional untouched subjects,
+   integrate it with error routing, and validate coaching with human
+   participants; clinician mode, amputee evaluation, and deployment.
 4. **Verify NinaPro redistribution terms.** No registered-download agreement
    was present alongside the local `.mat` recordings, so permission to
    redistribute derived replay or model files remains unverified. Do not
@@ -488,9 +514,9 @@ npm run stage:attribution
 
 ### Remaining phases
 
-- **Phase 3 validation:** evaluate on held-out recorded errors, fit a real
-  reference model, implement model-specific feature attributions, and validate
-  the coaching before presenting it as user guidance.
+- **Phase 3 validation:** test the preliminary attribution and reference-model
+  comparison on additional untouched subjects, then validate whether coaching
+  is useful and understandable with approved human-participant research.
 - **Phase 4:** clinician screens (Evaluate, Robustness, Latency, Records). The
   amputee stratum needs NinaPro DB3 (amputees, 2 kHz, also registration) and
   must be reported separately with sample-size caveats.
