@@ -64,3 +64,6 @@ apps/web/dist/
 
 apps/web/public/replay/ninapro*/
 artifacts/ninapro*/
+
+# Internal invention disclosures: never commit while the repository is public
+docs/patent_disclosure_drafts.md
