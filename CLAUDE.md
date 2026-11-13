@@ -59,7 +59,7 @@ holds the full design and the prior-art analysis behind each claim.
 | 4 | Clinician review screens, amputee stratum, robustness | Evaluate, Decision timing (TTUM + CWER), Robustness, Latency and Records built; robustness and timing are simulated only; amputee evaluation and real-world robustness validation remain |
 | 5 | Azure deployment, patent disclosures | Deployment not started; internal disclosure drafts kept local and untracked (the public repo's history still contains an earlier copy), legal review and data permissions unresolved |
 
-**587 tests** — 253 Python, 298 TypeScript, 36 browser. Without locally
+**600 tests** — 253 Python, 311 TypeScript, 36 browser. Without locally
 staged NinaPro data, four browser tests skip; everything else runs on
 simulated data alone.
 

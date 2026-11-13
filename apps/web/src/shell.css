@@ -1501,6 +1501,15 @@ td,
   .mechanisms ol {
     grid-template-columns: minmax(0, 1fr);
   }
+  /* Six steps must fit a 360 px phone without scrolling: a strip that
+     scrolls sideways hides the last steps of the path off the right edge.
+     Targets stay 32 px wide, above the 24 px WCAG 2.5.8 minimum. */
+  .path button {
+    padding-inline: var(--ng-space-1);
+  }
+  .path li + li::before {
+    width: 8px;
+  }
   .screen-controls,
   .pager-tabs {
     width: 100%;

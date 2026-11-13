@@ -62,16 +62,19 @@ test('Step 6 pages through timing, robustness, latency, records and limits', asy
   }
   await audit();
 
-  await tabs.getByRole('tab', { name: 'Records' }).click();
+  // With no held-out record staged there is nothing to show, so the page is
+  // left out rather than offered and then found empty (design rule 4).
+  const records = tabs.getByRole('tab', { name: 'Records' });
   if (HAS_HELDOUT) {
+    await records.click();
     await expect(page.getByRole('region', { name: 'Held-out study record' }))
       .toContainText('NinaPro DB2');
     await expect(page.getByRole('region', { name: 'Held-out study record' }))
       .toContainText('S10');
+    await audit();
   } else {
-    await expect(page.locator('.screen-body')).toContainText('No held-out evaluation record');
+    await expect(records).toHaveCount(0);
   }
-  await audit();
 
   // The path promises limits; the last page states them, and the last step
   // offers no Next button because there is nowhere further to go.
