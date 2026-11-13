@@ -1,0 +1,741 @@
+{
+  "source": "simulated_sessions",
+  "reps": 4,
+  "thresholds": {
+    "cusum_allowance": 0.5,
+    "cusum_threshold": 8,
+    "mdf_threshold_hz": 20
+  },
+  "sessions": [
+    {
+      "fault": "physiological",
+      "injected_cause": "physiological",
+      "subject": "router00",
+      "deployed_model": "shrinkage LDA",
+      "reference_model": "RBF SVM (C=10, gamma=scale)",
+      "injection": "Subject produces `pinch` and `point` as one muscle pattern (their average), in training and in the session.",
+      "n_windows": 81,
+      "n_error_windows": 9,
+      "deployed_accuracy": 0.8889,
+      "reference_accuracy": 0.8519,
+      "routed": {
+        "physiological": 9,
+        "behavioral": 0,
+        "model_capacity": 0,
+        "drift": 0,
+        "inconclusive": 0
+      },
+      "plurality_route": "physiological",
+      "routes_to_injected_cause": true,
+      "share_routed_to_injected_cause": 1,
+      "final_cusum_ratio": 1.6393,
+      "final_mdf_shift_hz": 0.527,
+      "coached_examples": 0,
+      "examples": [
+        {
+          "name": "physiological_18",
+          "intended": "pinch",
+          "decoded": "point",
+          "cause": "physiological",
+          "cause_label": "Physiological overlap",
+          "scores": {
+            "physiological": 0.706,
+            "behavioral": 0.1545,
+            "model_capacity": 0,
+            "drift": 0.1395
+          },
+          "evidence": {
+            "class_overlap": 0.6207,
+            "behavioral_deviation_ratio": 1.3145,
+            "reference_correct_when_deployed_wrong": false,
+            "centroid_cusum_ratio": 0.2115,
+            "median_frequency_shift_ratio": 0.0337
+          },
+          "routed_action": "Review this gesture pair and consider selecting or synthesizing a more separable target.",
+          "coaching": null,
+          "channel_attribution": [
+            {
+              "channel": 2,
+              "ring_location": "upper-right",
+              "deviation": 1,
+              "direction": "above"
+            },
+            {
+              "channel": 7,
+              "ring_location": "left",
+              "deviation": 0.946,
+              "direction": "above"
+            },
+            {
+              "channel": 3,
+              "ring_location": "right",
+              "deviation": 0.778,
+              "direction": "above"
+            }
+          ],
+          "window": 18
+        },
+        {
+          "name": "physiological_19",
+          "intended": "pinch",
+          "decoded": "point",
+          "cause": "physiological",
+          "cause_label": "Physiological overlap",
+          "scores": {
+            "physiological": 0.6584,
+            "behavioral": 0.213,
+            "model_capacity": 0,
+            "drift": 0.1286
+          },
+          "evidence": {
+            "class_overlap": 0.6207,
+            "behavioral_deviation_ratio": 1.5024,
+            "reference_correct_when_deployed_wrong": false,
+            "centroid_cusum_ratio": 0.2115,
+            "median_frequency_shift_ratio": 0.031
+          },
+          "routed_action": "Review this gesture pair and consider selecting or synthesizing a more separable target.",
+          "coaching": null,
+          "channel_attribution": [
+            {
+              "channel": 2,
+              "ring_location": "upper-right",
+              "deviation": 1,
+              "direction": "below"
+            },
+            {
+              "channel": 3,
+              "ring_location": "right",
+              "deviation": 0.699,
+              "direction": "below"
+            },
+            {
+              "channel": 7,
+              "ring_location": "left",
+              "deviation": 0.652,
+              "direction": "above"
+            }
+          ],
+          "window": 19
+        },
+        {
+          "name": "physiological_20",
+          "intended": "pinch",
+          "decoded": "point",
+          "cause": "physiological",
+          "cause_label": "Physiological overlap",
+          "scores": {
+            "physiological": 0.6888,
+            "behavioral": 0.1747,
+            "model_capacity": 0,
+            "drift": 0.1365
+          },
+          "evidence": {
+            "class_overlap": 0.6207,
+            "behavioral_deviation_ratio": 1.3737,
+            "reference_correct_when_deployed_wrong": false,
+            "centroid_cusum_ratio": 0.2115,
+            "median_frequency_shift_ratio": 0.0344
+          },
+          "routed_action": "Review this gesture pair and consider selecting or synthesizing a more separable target.",
+          "coaching": null,
+          "channel_attribution": [
+            {
+              "channel": 2,
+              "ring_location": "upper-right",
+              "deviation": 1,
+              "direction": "below"
+            },
+            {
+              "channel": 3,
+              "ring_location": "right",
+              "deviation": 0.772,
+              "direction": "below"
+            },
+            {
+              "channel": 6,
+              "ring_location": "lower-left",
+              "deviation": 0.748,
+              "direction": "above"
+            }
+          ],
+          "window": 20
+        }
+      ]
+    },
+    {
+      "fault": "behavioral",
+      "injected_cause": "behavioral",
+      "subject": "router00",
+      "deployed_model": "shrinkage LDA",
+      "reference_model": "RBF SVM (C=10, gamma=scale)",
+      "injection": "`point` performed with wrist-flexor excitation raised by 0.35; all other cues clean.",
+      "n_windows": 81,
+      "n_error_windows": 9,
+      "deployed_accuracy": 0.8889,
+      "reference_accuracy": 0.8889,
+      "routed": {
+        "physiological": 0,
+        "behavioral": 8,
+        "model_capacity": 0,
+        "drift": 0,
+        "inconclusive": 1
+      },
+      "plurality_route": "behavioral",
+      "routes_to_injected_cause": true,
+      "share_routed_to_injected_cause": 0.8889,
+      "final_cusum_ratio": 2.4148,
+      "final_mdf_shift_hz": 1.008,
+      "coached_examples": 2,
+      "examples": [
+        {
+          "name": "behavioral_0",
+          "intended": "fist",
+          "decoded": "two_finger",
+          "cause": "inconclusive",
+          "cause_label": "Inconclusive",
+          "scores": {
+            "physiological": 0,
+            "behavioral": 0.6683,
+            "model_capacity": 0,
+            "drift": 0.3317
+          },
+          "evidence": {
+            "class_overlap": 0,
+            "behavioral_deviation_ratio": 1.4835,
+            "reference_correct_when_deployed_wrong": false,
+            "centroid_cusum_ratio": 0,
+            "median_frequency_shift_ratio": 0.1933
+          },
+          "routed_action": "Gather more repeated attempts and review the evidence; no single cause is supported strongly enough to route automatically.",
+          "coaching": null,
+          "channel_attribution": [
+            {
+              "channel": 4,
+              "ring_location": "lower-right",
+              "deviation": 1,
+              "direction": "below"
+            },
+            {
+              "channel": 2,
+              "ring_location": "upper-right",
+              "deviation": 0.9,
+              "direction": "above"
+            },
+            {
+              "channel": 1,
+              "ring_location": "top",
+              "deviation": 0.799,
+              "direction": "above"
+            }
+          ],
+          "window": 0
+        },
+        {
+          "name": "behavioral_27",
+          "intended": "point",
+          "decoded": "spherical_grip",
+          "cause": "behavioral",
+          "cause_label": "Behavioral deviation",
+          "scores": {
+            "physiological": 0,
+            "behavioral": 0.9103,
+            "model_capacity": 0,
+            "drift": 0.0897
+          },
+          "evidence": {
+            "class_overlap": 0,
+            "behavioral_deviation_ratio": 3.4742,
+            "reference_correct_when_deployed_wrong": false,
+            "centroid_cusum_ratio": 0.0603,
+            "median_frequency_shift_ratio": 0.0487
+          },
+          "routed_action": "Use a low-pressure repeat drill for the intended gesture, comparing the attempt with the user's own stable repetitions.",
+          "coaching": "Your point attempt was read as spherical grip. Try to keep your wrist from bending inward, and straighten your fingers a little more.",
+          "channel_attribution": [
+            {
+              "channel": 2,
+              "ring_location": "upper-right",
+              "deviation": 1,
+              "direction": "above"
+            },
+            {
+              "channel": 4,
+              "ring_location": "lower-right",
+              "deviation": 0.959,
+              "direction": "above"
+            },
+            {
+              "channel": 1,
+              "ring_location": "top",
+              "deviation": 0.462,
+              "direction": "above"
+            }
+          ],
+          "anatomy": {
+            "muscle_groups": {
+              "digit_flexor": -35.2797,
+              "digit_extensor": -82.9616,
+              "wrist_flexor": 158.568,
+              "wrist_extensor": 18.1296
+            },
+            "channels": [
+              {
+                "channel": 1,
+                "attribution_share": 0.1508,
+                "activity_log_ratio": 0.4842
+              },
+              {
+                "channel": 2,
+                "attribution_share": 0.134,
+                "activity_log_ratio": 0.6534
+              },
+              {
+                "channel": 3,
+                "attribution_share": 0,
+                "activity_log_ratio": 0.0126
+              },
+              {
+                "channel": 4,
+                "attribution_share": 0.398,
+                "activity_log_ratio": 0.6364
+              },
+              {
+                "channel": 5,
+                "attribution_share": 0.0289,
+                "activity_log_ratio": 0.1722
+              },
+              {
+                "channel": 6,
+                "attribution_share": 0,
+                "activity_log_ratio": -0.1835
+              },
+              {
+                "channel": 7,
+                "attribution_share": 0.2883,
+                "activity_log_ratio": -0.1525
+              },
+              {
+                "channel": 8,
+                "attribution_share": 0,
+                "activity_log_ratio": -0.0898
+              }
+            ],
+            "coaching": {
+              "confident": true,
+              "group": "wrist_flexor",
+              "group_name": "wrist flexors",
+              "direction": "excess",
+              "share": 0.5376,
+              "instruction": "Your point attempt was read as spherical grip. Try to keep your wrist from bending inward, and straighten your fingers a little more.",
+              "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+            }
+          },
+          "window": 27
+        },
+        {
+          "name": "behavioral_28",
+          "intended": "point",
+          "decoded": "spherical_grip",
+          "cause": "behavioral",
+          "cause_label": "Behavioral deviation",
+          "scores": {
+            "physiological": 0,
+            "behavioral": 0.9133,
+            "model_capacity": 0,
+            "drift": 0.0867
+          },
+          "evidence": {
+            "class_overlap": 0,
+            "behavioral_deviation_ratio": 3.7696,
+            "reference_correct_when_deployed_wrong": false,
+            "centroid_cusum_ratio": 0.0603,
+            "median_frequency_shift_ratio": 0.0499
+          },
+          "routed_action": "Use a low-pressure repeat drill for the intended gesture, comparing the attempt with the user's own stable repetitions.",
+          "coaching": "Your point attempt was read as spherical grip. Try to keep your wrist from bending inward, and straighten your fingers a little more.",
+          "channel_attribution": [
+            {
+              "channel": 4,
+              "ring_location": "lower-right",
+              "deviation": 1,
+              "direction": "above"
+            },
+            {
+              "channel": 2,
+              "ring_location": "upper-right",
+              "deviation": 0.948,
+              "direction": "above"
+            },
+            {
+              "channel": 5,
+              "ring_location": "bottom",
+              "deviation": 0.364,
+              "direction": "above"
+            }
+          ],
+          "anatomy": {
+            "muscle_groups": {
+              "digit_flexor": -35.3189,
+              "digit_extensor": -107.9319,
+              "wrist_flexor": 165.9763,
+              "wrist_extensor": 21.6724
+            },
+            "channels": [
+              {
+                "channel": 1,
+                "attribution_share": 0.0937,
+                "activity_log_ratio": 0.4304
+              },
+              {
+                "channel": 2,
+                "attribution_share": 0.1173,
+                "activity_log_ratio": 0.7092
+              },
+              {
+                "channel": 3,
+                "attribution_share": 0,
+                "activity_log_ratio": 0.1126
+              },
+              {
+                "channel": 4,
+                "attribution_share": 0.3916,
+                "activity_log_ratio": 0.7317
+              },
+              {
+                "channel": 5,
+                "attribution_share": 0.0367,
+                "activity_log_ratio": 0.2529
+              },
+              {
+                "channel": 6,
+                "attribution_share": 0.0272,
+                "activity_log_ratio": -0.2873
+              },
+              {
+                "channel": 7,
+                "attribution_share": 0.3335,
+                "activity_log_ratio": -0.2957
+              },
+              {
+                "channel": 8,
+                "attribution_share": 0,
+                "activity_log_ratio": -0.273
+              }
+            ],
+            "coaching": {
+              "confident": true,
+              "group": "wrist_flexor",
+              "group_name": "wrist flexors",
+              "direction": "excess",
+              "share": 0.5016,
+              "instruction": "Your point attempt was read as spherical grip. Try to keep your wrist from bending inward, and straighten your fingers a little more.",
+              "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+            }
+          },
+          "window": 28
+        }
+      ]
+    },
+    {
+      "fault": "model_capacity",
+      "injected_cause": "model_capacity",
+      "subject": "router00",
+      "deployed_model": "PCA(2) + LDA (deliberately under-capacity)",
+      "reference_model": "RBF SVM (C=10, gamma=scale)",
+      "injection": "Deployed decoder restricted to two principal components before LDA.",
+      "n_windows": 81,
+      "n_error_windows": 22,
+      "deployed_accuracy": 0.7284,
+      "reference_accuracy": 0.9877,
+      "routed": {
+        "physiological": 0,
+        "behavioral": 0,
+        "model_capacity": 21,
+        "drift": 0,
+        "inconclusive": 1
+      },
+      "plurality_route": "model_capacity",
+      "routes_to_injected_cause": true,
+      "share_routed_to_injected_cause": 0.9545,
+      "final_cusum_ratio": 1.6226,
+      "final_mdf_shift_hz": 0.942,
+      "coached_examples": 0,
+      "examples": [
+        {
+          "name": "model_capacity_0",
+          "intended": "fist",
+          "decoded": "wrist_flexion",
+          "cause": "inconclusive",
+          "cause_label": "Inconclusive",
+          "scores": {
+            "physiological": 0,
+            "behavioral": 0.6683,
+            "model_capacity": 0,
+            "drift": 0.3317
+          },
+          "evidence": {
+            "class_overlap": 0,
+            "behavioral_deviation_ratio": 1.4835,
+            "reference_correct_when_deployed_wrong": false,
+            "centroid_cusum_ratio": 0,
+            "median_frequency_shift_ratio": 0.1933
+          },
+          "routed_action": "Gather more repeated attempts and review the evidence; no single cause is supported strongly enough to route automatically.",
+          "coaching": null,
+          "channel_attribution": [
+            {
+              "channel": 4,
+              "ring_location": "lower-right",
+              "deviation": 1,
+              "direction": "below"
+            },
+            {
+              "channel": 2,
+              "ring_location": "upper-right",
+              "deviation": 0.9,
+              "direction": "above"
+            },
+            {
+              "channel": 1,
+              "ring_location": "top",
+              "deviation": 0.799,
+              "direction": "above"
+            }
+          ],
+          "window": 0
+        },
+        {
+          "name": "model_capacity_1",
+          "intended": "fist",
+          "decoded": "wrist_flexion",
+          "cause": "model_capacity",
+          "cause_label": "Model-capacity limitation",
+          "scores": {
+            "physiological": 0,
+            "behavioral": 0.0636,
+            "model_capacity": 0.9205,
+            "drift": 0.0159
+          },
+          "evidence": {
+            "class_overlap": 0,
+            "behavioral_deviation_ratio": 1.1485,
+            "reference_correct_when_deployed_wrong": true,
+            "centroid_cusum_ratio": 0,
+            "median_frequency_shift_ratio": 0.0346
+          },
+          "routed_action": "Compare the deployed decoder with a stronger reference model before considering model adaptation.",
+          "coaching": null,
+          "channel_attribution": [
+            {
+              "channel": 6,
+              "ring_location": "lower-left",
+              "deviation": 1,
+              "direction": "above"
+            },
+            {
+              "channel": 4,
+              "ring_location": "lower-right",
+              "deviation": 0.908,
+              "direction": "below"
+            },
+            {
+              "channel": 1,
+              "ring_location": "top",
+              "deviation": 0.868,
+              "direction": "below"
+            }
+          ],
+          "window": 1
+        },
+        {
+          "name": "model_capacity_2",
+          "intended": "fist",
+          "decoded": "wrist_flexion",
+          "cause": "model_capacity",
+          "cause_label": "Model-capacity limitation",
+          "scores": {
+            "physiological": 0,
+            "behavioral": 0.1422,
+            "model_capacity": 0.8219,
+            "drift": 0.036
+          },
+          "evidence": {
+            "class_overlap": 0,
+            "behavioral_deviation_ratio": 1.4183,
+            "reference_correct_when_deployed_wrong": true,
+            "centroid_cusum_ratio": 0,
+            "median_frequency_shift_ratio": 0.0875
+          },
+          "routed_action": "Compare the deployed decoder with a stronger reference model before considering model adaptation.",
+          "coaching": null,
+          "channel_attribution": [
+            {
+              "channel": 2,
+              "ring_location": "upper-right",
+              "deviation": 1,
+              "direction": "above"
+            },
+            {
+              "channel": 5,
+              "ring_location": "bottom",
+              "deviation": 0.79,
+              "direction": "below"
+            },
+            {
+              "channel": 6,
+              "ring_location": "lower-left",
+              "deviation": 0.671,
+              "direction": "above"
+            }
+          ],
+          "window": 2
+        }
+      ]
+    },
+    {
+      "fault": "drift",
+      "injected_cause": "drift",
+      "subject": "router00",
+      "deployed_model": "shrinkage LDA",
+      "reference_model": "RBF SVM (C=10, gamma=scale)",
+      "injection": "Whole session simulated at fatigue 0.9 (MUAP widening).",
+      "n_windows": 81,
+      "n_error_windows": 1,
+      "deployed_accuracy": 0.9877,
+      "reference_accuracy": 0.9259,
+      "routed": {
+        "physiological": 0,
+        "behavioral": 0,
+        "model_capacity": 0,
+        "drift": 1,
+        "inconclusive": 0
+      },
+      "plurality_route": "drift",
+      "routes_to_injected_cause": true,
+      "share_routed_to_injected_cause": 1,
+      "final_cusum_ratio": 21.2528,
+      "final_mdf_shift_hz": -22.387,
+      "coached_examples": 0,
+      "examples": [
+        {
+          "name": "drift_72",
+          "intended": "spherical_grip",
+          "decoded": "fist",
+          "cause": "drift",
+          "cause_label": "Signal drift",
+          "scores": {
+            "physiological": 0,
+            "behavioral": 0.4161,
+            "model_capacity": 0,
+            "drift": 0.5839
+          },
+          "evidence": {
+            "class_overlap": 0,
+            "behavioral_deviation_ratio": 5.9559,
+            "reference_correct_when_deployed_wrong": false,
+            "centroid_cusum_ratio": 1,
+            "median_frequency_shift_ratio": 1
+          },
+          "routed_action": "Pause for recalibration and inspect fatigue or electrode placement before adapting the decoder.",
+          "coaching": null,
+          "channel_attribution": [
+            {
+              "channel": 3,
+              "ring_location": "right",
+              "deviation": 1,
+              "direction": "above"
+            },
+            {
+              "channel": 7,
+              "ring_location": "left",
+              "deviation": 0.554,
+              "direction": "above"
+            },
+            {
+              "channel": 2,
+              "ring_location": "upper-right",
+              "deviation": 0.411,
+              "direction": "above"
+            }
+          ],
+          "window": 72
+        }
+      ]
+    }
+  ],
+  "method": "Each session is generated by the motor-unit simulator and decoded. Every misclassified window is routed: P from overlap of the two classes' tightest training repetitions; B from channel deviation against the intended class's training spread; M from whether an RBF-SVM reference is right where the deployed model is wrong; D from a one-sided CUSUM of distance to the cued class centroid and the running median-frequency shift. A session routes correctly when the plurality of its errors reaches the injected cause. Behavioural routes receive anatomical coaching from an LDA surrogate.",
+  "caveat": "Simulated subjects and injected faults. Sessions are cued, so the intended gesture is known. Within-attempt windows are correlated, which inflates CUSUM even in clean sessions. This checks the integrated pipeline on simulator signals; it is not attribution accuracy on recorded or human errors, and the coaching is not validated with people.",
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "sessions_routed": 15,
+  "n_sessions": 20,
+  "per_seed_routed": {
+    "0": 4,
+    "1": 2,
+    "2": 3,
+    "3": 3,
+    "4": 3
+  },
+  "per_fault": {
+    "physiological": {
+      "sessions_routed": 2,
+      "n_sessions": 5,
+      "n_error_windows": 57,
+      "n_errors_routed_to_injected_cause": 20,
+      "error_windows_per_session": [
+        9,
+        9,
+        9,
+        15,
+        15
+      ]
+    },
+    "behavioral": {
+      "sessions_routed": 5,
+      "n_sessions": 5,
+      "n_error_windows": 38,
+      "n_errors_routed_to_injected_cause": 34,
+      "error_windows_per_session": [
+        9,
+        10,
+        6,
+        4,
+        9
+      ]
+    },
+    "model_capacity": {
+      "sessions_routed": 5,
+      "n_sessions": 5,
+      "n_error_windows": 87,
+      "n_errors_routed_to_injected_cause": 84,
+      "error_windows_per_session": [
+        22,
+        15,
+        10,
+        21,
+        19
+      ]
+    },
+    "drift": {
+      "sessions_routed": 3,
+      "n_sessions": 5,
+      "n_error_windows": 9,
+      "n_errors_routed_to_injected_cause": 7,
+      "error_windows_per_session": [
+        1,
+        2,
+        1,
+        3,
+        2
+      ]
+    }
+  },
+  "detail_seed": 0,
+  "history": "First run (seed 0): 2/4. Three estimator defects were then fixed on principle, without changing any routing threshold: P used a diagonal Bhattacharyya coefficient that collapsed to ~1e-50 in 136 dimensions; D compared fresh windows with in-sample training distances; D read drift off the gesture in error, double-counting behavioural deviation. The physiological injection was changed from 30% finger reach, which produced one error, to two cues produced as one pattern. The cohort below was run once after those changes, over a seed list fixed beforehand."
+}

@@ -1,81 +1,93 @@
 /**
  * NeuroGrip design tokens.
  *
- * The instrument this interface imitates is a chart recorder, not a dashboard.
- * Two rules follow from that and are enforced throughout:
+ * Direction (revised 2026-11-08, owner's questionnaire): clinical precision.
+ * The interface should read like medical-device software shown to examiners:
+ * calm greys, one accent, hairlines instead of floating tiles, and colour
+ * only where it carries data.
  *
- *   1. The graticule means measurement. A grid appears only behind data that
- *      has a real scale -- signal lanes, the cartograph, the commitment bar.
- *      It is never chrome. If you see the grid, you are looking at measured
- *      values, and the grid is their ruler.
+ *   1. One accent. Medical blue marks what is interactive or current: the
+ *      active step, the primary action, focus. Nothing else in the chrome is
+ *      coloured.
  *
- *   2. Carmine means muscle. The one chromatic hue in the palette encodes
- *      activation intensity, following anatomical illustration convention. It
- *      is never used to emphasise a heading, a link, or a button.
+ *   2. Data colours live inside figures only. Four categorical hues
+ *      (muscle, signal, evidence, grip) are reserved for plots, the hand and
+ *      the commitment bar, where they encode a quantity. The chrome
+ *      stylesheet (shell.css) is tested never to reference them.
  *
- * No gradients. No glows. No shadows beyond a single hairline. Depth comes
- * from rules and spacing.
+ *   3. State colours keep their meaning: commit (latched), caution (drift,
+ *      fatigue), stop (rejected window, detached electrode).
+ *
+ *   4. The graticule means measurement. A grid appears only behind data with
+ *      a real scale. It is never chrome.
+ *
+ * No gradients. No glows. No shadows. Depth comes from rules and spacing.
  */
 
 :root {
   /* ---- Ground and ink ------------------------------------------------- */
-  /* A cool green-grey, the colour of clinical laminate and glassware.
-     Deliberately not a warm cream. */
-  --ng-paper: #f3f4f2;
-  --ng-paper-sunk: #eaece9; /* recessed wells: signal lanes, plot beds */
-  --ng-paper-raised: #f9faf8; /* the one surface that sits above the ground */
-  --ng-ink: #16191a;
-  --ng-ink-muted: #5a6163;
-  --ng-ink-faint: #868d8f;
+  /* Cool neutral. Not cream, not green-grey: the grey of instrument casings. */
+  --ng-paper: #f4f5f7;
+  --ng-paper-sunk: #eceef1; /* recessed wells: signal lanes, plot beds */
+  --ng-paper-raised: #fcfcfd; /* panels */
+  --ng-ink: #12161b;
+  --ng-ink-muted: #545c68;
+  --ng-ink-faint: #868e9a;
 
   /* ---- Rules ---------------------------------------------------------- */
-  --ng-rule: #d8dbd8;
-  --ng-rule-strong: #b9bebb;
-  /* Graticule: fine divisions plus a heavier line every decade, as on chart
-     paper. Both sit far below text contrast so they never compete with data. */
-  --ng-graticule-fine: #e2e5e1;
-  --ng-graticule-decade: #cfd4cf;
+  --ng-rule: #dfe2e7;
+  --ng-rule-strong: #c3c8d0;
+  --ng-graticule-fine: #e4e7eb;
+  --ng-graticule-decade: #d3d8de;
 
-  /* ---- Muscle activation ---------------------------------------------- */
-  /* Carmine, the anatomical convention for muscle. Encodes activation only. */
-  --ng-muscle: #a8324a;
-  --ng-muscle-weak: #d9a2ae;
-  --ng-muscle-wash: #f2dfe3;
+  /* ---- The accent ----------------------------------------------------- */
+  --ng-accent: #0b5fd9;
+  --ng-accent-strong: #084bb0; /* hover and pressed */
+  --ng-accent-wash: #e7effc; /* selected rows, the active step's ground */
+  --ng-on-accent: #fcfcfd;
+
+  /* ---- Data colours: figures only ------------------------------------ */
+  --ng-muscle: #b0344f;
+  --ng-muscle-weak: #dca3b0;
+  --ng-muscle-wash: #f4e1e5;
+  --ng-signal: #2f6fd6;
+  --ng-signal-wash: #e5edfa;
+  --ng-evidence: #9c5f05;
+  --ng-evidence-wash: #f5ebdc;
+  --ng-grip: #0d7d6e;
+  --ng-grip-wash: #dcefec;
 
   /* ---- State ---------------------------------------------------------- */
-  --ng-commit: #1f5c4c; /* latched: the gesture is held */
-  /* Ochre. Darkened from #b26a00, which measured 3.84:1 on the light ground
-     and failed the 4.5:1 text minimum. Amber is the hardest hue to make
-     legible on a light ground; it has to go this deep to qualify. */
+  --ng-commit: #1b6a4e; /* latched: the gesture is held */
   --ng-caution: #9a5b00; /* drift, fatigue, degraded signal */
-  --ng-stop: #8c1d1d; /* rejected window, detached electrode */
+  --ng-stop: #b0281c; /* rejected window, detached electrode */
 
   /* ---- Type ----------------------------------------------------------- */
-  /* Atkinson Hyperlegible was designed for maximum character distinction at
-     low vision. The intended users of this system are people with
-     disabilities, so this is an argument from the brief, not a preference. */
-  --ng-font-text: 'Atkinson Hyperlegible', 'Helvetica Neue', Arial, sans-serif;
-  /* Numerals only. Instrument readouts must align and must never reflow. */
+  /* IBM Plex: drawn for engineering and scientific software, with numerals
+     that stay distinct at small sizes. One family for the whole interface;
+     the mono cut is for numbers that must align and never reflow. */
+  --ng-font-text: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+  --ng-font-display: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
   --ng-font-numeric: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
 
   /* A modest scale. An instrument has few type sizes; it is not a magazine. */
-  --ng-text-xs: 0.6875rem; /* 11px - axis ticks, units */
-  --ng-text-sm: 0.8125rem; /* 13px - table cells, secondary */
-  --ng-text-base: 0.9375rem; /* 15px - body */
+  --ng-text-xs: 0.75rem; /* 12px - axis ticks, units */
+  --ng-text-sm: 0.875rem; /* 14px - table cells, secondary */
+  --ng-text-base: 1rem; /* 16px - body; projector-legible */
   --ng-text-lg: 1.125rem; /* 18px - panel titles */
-  --ng-text-xl: 1.5rem; /* 24px - screen title */
-  --ng-text-readout: 2rem; /* 32px - the one big number per panel */
+  --ng-text-xl: 1.75rem; /* 28px - screen title */
+  --ng-text-readout: 2.25rem; /* 36px - the one big number per panel */
 
-  --ng-leading-tight: 1.25;
-  --ng-leading-normal: 1.55;
-  --ng-measure: 68ch; /* prose never runs wider than this */
+  --ng-leading-tight: 1.2;
+  --ng-leading-normal: 1.5;
+  --ng-measure: 68ch;
 
   /* ---- Space ---------------------------------------------------------- */
-  /* A 4px base, because the graticule is 8px and everything must land on it. */
   --ng-space-1: 0.25rem;
   --ng-space-2: 0.5rem;
   --ng-space-3: 0.75rem;
   --ng-space-4: 1rem;
+  --ng-space-5: 1.25rem;
   --ng-space-6: 1.5rem;
   --ng-space-8: 2rem;
   --ng-space-12: 3rem;
@@ -83,87 +95,103 @@
   --ng-graticule-decade-step: 40px;
 
   /* ---- Geometry ------------------------------------------------------- */
-  /* A scale, not a single value. Nested surfaces need a smaller radius than
-     the surface containing them or the corners look concentric-but-wrong: the
-     eye reads the inner curve as too loose. Rule of thumb applied throughout:
-     an inner radius is roughly the outer radius minus the gap between them. */
-  --ng-radius-sm: 3px; /* chips, ticks, small marks */
-  --ng-radius: 6px; /* default: buttons, inputs, nested beds */
-  --ng-radius-lg: 10px; /* panels and other outermost surfaces */
-  --ng-radius-dot: 999px; /* status dots only */
+  /* Stated once: controls 8, panels 12, small marks 4. Nested surfaces take
+     the next step down so corners never look concentric-but-wrong. */
+  --ng-radius-sm: 4px;
+  --ng-radius: 8px;
+  --ng-radius-lg: 12px;
+  --ng-radius-dot: 999px; /* status dots and step numbers only */
   --ng-hairline: 1px;
   --ng-stroke-icon: 1.5px;
 
   /* ---- Motion --------------------------------------------------------- */
-  /* Motion is only ever used to show a value changing. Nothing enters, fades
-     or slides for effect. */
+  /* Motion only shows a value changing or acknowledges a press. */
   --ng-duration-fast: 90ms;
   --ng-duration: 140ms;
   --ng-duration-slow: 200ms;
   --ng-ease: cubic-bezier(0.2, 0, 0.13, 1);
 
-  --ng-focus: 2px solid var(--ng-ink);
+  --ng-focus: 2px solid var(--ng-accent);
   --ng-focus-offset: 2px;
 
   color-scheme: light;
 }
 
 /*
- * Dark counterpart. Designed as its own palette, not an inversion: the ground
- * is a warm-neutral graphite rather than the light theme's cool grey, because
- * a cool dark ground makes carmine read as purple. Carmine is lifted and
- * desaturated to hold its identity against dark, and the graticule is dimmed
- * relative to the ground so it stays subordinate to the trace.
+ * Dark counterpart, its own palette rather than an inversion: a blue-black
+ * ground so the accent keeps its identity, data hues lifted to hold contrast.
  */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --ng-paper: #1a1b1a;
-    --ng-paper-sunk: #131413;
-    --ng-paper-raised: #242624;
-    --ng-ink: #e8eae6;
-    --ng-ink-muted: #9aa19c;
-    --ng-ink-faint: #6d7570;
+    --ng-paper: #0e1115;
+    --ng-paper-sunk: #090b0e;
+    --ng-paper-raised: #161a20;
+    --ng-ink: #e8ebef;
+    --ng-ink-muted: #a1a9b4;
+    --ng-ink-faint: #6e7783;
 
-    --ng-rule: #333634;
-    --ng-rule-strong: #4a4e4b;
-    --ng-graticule-fine: #262825;
-    --ng-graticule-decade: #33362f;
+    --ng-rule: #252a31;
+    --ng-rule-strong: #3a414a;
+    --ng-graticule-fine: #161a1f;
+    --ng-graticule-decade: #232830;
 
-    --ng-muscle: #e4697f;
-    --ng-muscle-weak: #7d3a46;
-    --ng-muscle-wash: #331f24;
+    --ng-accent: #5c98ff;
+    --ng-accent-strong: #84b1ff;
+    --ng-accent-wash: #15243b;
+    --ng-on-accent: #0e1115;
 
-    --ng-commit: #57b598;
+    --ng-muscle: #ec6f8a;
+    --ng-muscle-weak: #7a3a48;
+    --ng-muscle-wash: #331d24;
+    --ng-signal: #6aa3ff;
+    --ng-signal-wash: #172a45;
+    --ng-evidence: #d9a03a;
+    --ng-evidence-wash: #2f2412;
+    --ng-grip: #36b9a6;
+    --ng-grip-wash: #12302c;
+
+    --ng-commit: #4fc296;
     --ng-caution: #e0a04a;
-    --ng-stop: #e07070;
+    --ng-stop: #f07b6f;
 
-    --ng-focus: 2px solid var(--ng-ink);
+    --ng-focus: 2px solid var(--ng-accent);
     color-scheme: dark;
   }
 }
 
 :root[data-theme='dark'] {
-  --ng-paper: #1a1b1a;
-  --ng-paper-sunk: #131413;
-  --ng-paper-raised: #242624;
-  --ng-ink: #e8eae6;
-  --ng-ink-muted: #9aa19c;
-  --ng-ink-faint: #6d7570;
+  --ng-paper: #0e1115;
+  --ng-paper-sunk: #090b0e;
+  --ng-paper-raised: #161a20;
+  --ng-ink: #e8ebef;
+  --ng-ink-muted: #a1a9b4;
+  --ng-ink-faint: #6e7783;
 
-  --ng-rule: #333634;
-  --ng-rule-strong: #4a4e4b;
-  --ng-graticule-fine: #262825;
-  --ng-graticule-decade: #33362f;
+  --ng-rule: #252a31;
+  --ng-rule-strong: #3a414a;
+  --ng-graticule-fine: #161a1f;
+  --ng-graticule-decade: #232830;
 
-  --ng-muscle: #e4697f;
-  --ng-muscle-weak: #7d3a46;
-  --ng-muscle-wash: #331f24;
+  --ng-accent: #5c98ff;
+  --ng-accent-strong: #84b1ff;
+  --ng-accent-wash: #15243b;
+  --ng-on-accent: #0e1115;
 
-  --ng-commit: #57b598;
+  --ng-muscle: #ec6f8a;
+  --ng-muscle-weak: #7a3a48;
+  --ng-muscle-wash: #331d24;
+  --ng-signal: #6aa3ff;
+  --ng-signal-wash: #172a45;
+  --ng-evidence: #d9a03a;
+  --ng-evidence-wash: #2f2412;
+  --ng-grip: #36b9a6;
+  --ng-grip-wash: #12302c;
+
+  --ng-commit: #4fc296;
   --ng-caution: #e0a04a;
-  --ng-stop: #e07070;
+  --ng-stop: #f07b6f;
 
-  --ng-focus: 2px solid var(--ng-ink);
+  --ng-focus: 2px solid var(--ng-accent);
   color-scheme: dark;
 }
 

@@ -1,0 +1,143 @@
+- generic [ref=f5e3]:
+  - banner [ref=f5e4]:
+    - heading [level=1] [ref=f5e5]:
+      - link "NeuroGrip, the idea" [ref=f5e6] [cursor=pointer]:
+        - /url: "#overview"
+        - generic [ref=f5e7]: NeuroGrip
+    - navigation "Guided path" [ref=f5e20]:
+      - list [ref=f5e21]:
+        - listitem [ref=f5e22]:
+          - 'button "Step 1: The idea" [ref=f5e23] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e24]: "1"
+            - generic [ref=f5e25]: Idea
+        - listitem [ref=f5e26]:
+          - 'button "Step 2: Live demo" [ref=f5e27] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e28]: "2"
+            - generic [ref=f5e29]: Live
+        - listitem [ref=f5e30]:
+          - 'button "Step 3: Accuracy" [ref=f5e31] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e32]: "3"
+            - generic [ref=f5e33]: Accuracy
+        - listitem [ref=f5e34]:
+          - 'button "Step 4: Personal gestures" [ref=f5e35] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e36]: "4"
+            - generic [ref=f5e37]: Gestures
+        - listitem [ref=f5e38]:
+          - 'button "Step 5: Why errors happen" [ref=f5e39] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e40]: "5"
+            - generic [ref=f5e41]: Errors
+        - listitem [ref=f5e42]:
+          - 'button "Step 6: Speed, safety and limits" [ref=f5e43] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e44]: "6"
+            - generic [ref=f5e45]: Safety
+    - generic [ref=f5e46]:
+      - button "Words explained" [ref=f5e47] [cursor=pointer]
+      - button "Switch to dark theme" [ref=f5e51] [cursor=pointer]
+  - main [ref=f5e55]:
+    - region [ref=f5e280]:
+      - generic [ref=f5e282]:
+        - heading "Live decoding" [level=2] [ref=f5e283]
+        - paragraph [ref=f5e284]: Pick a gesture and press Start. Evidence builds in the bar; the hand moves early, can still retract, and locks only when sure.
+      - generic [ref=f5e287]:
+        - complementary "Decoder controls" [ref=f5e288]:
+          - region [ref=f5e289]:
+            - heading "Choose a gesture" [level=3] [ref=f5e290]:
+              - generic [aria-hidden] [ref=f5e291]: "1"
+              - text: Choose a gesture
+            - paragraph [ref=f5e292]: Its recorded signal plays. The decoder is not told which one.
+            - radiogroup "Intended gesture"
+          - region [ref=f5e293]:
+            - heading "Choose the signal" [level=3] [ref=f5e294]:
+              - generic [aria-hidden] [ref=f5e295]: "2"
+            - combobox "Choose the signal" [ref=f5e297]:
+              - option "Simulated forearm" [selected]
+              - option "Recorded person (not in this build)" [disabled]
+            - status [ref=f5e298]: Loading replay bundle…
+          - region [ref=f5e299]:
+            - heading "Run it" [level=3] [ref=f5e300]:
+              - generic [aria-hidden] [ref=f5e301]: "3"
+              - text: Run it
+            - generic [ref=f5e302]:
+              - button "Start decoding" [disabled] [ref=f5e303]
+              - button "Release" [disabled] [ref=f5e305]
+        - generic [ref=f5e309]:
+          - figure "Virtual prosthesis" [ref=f5e310]:
+            - img "Prosthetic hand, at rest. 0 percent of full travel, muscle drive 0 percent." [ref=f5e312]
+            - paragraph [ref=f5e355]: Waiting for the decoder to be sure.
+            - paragraph [ref=f5e356]: "Shape: what the decoder decided. muscle effort on that joint, from the sensors."
+          - generic [ref=f5e358]:
+            - paragraph [ref=f5e359]: Loading the decoder…
+            - paragraph [ref=f5e360]: The evidence bar fills here. The hand starts moving at the first mark, can still retract, and locks at the end mark.
+        - generic [ref=f5e361]:
+          - figure "Signal 600 µV · 200 ms" [ref=f5e362]:
+            - generic [ref=f5e363]:
+              - generic [ref=f5e364]: Signal
+              - generic [ref=f5e365]: 600 µV · 200 ms
+            - paragraph [ref=f5e368]: 8 channels of surface electromyography, 200 millisecond window, full scale 600 microvolts.
+          - figure "Activation" [ref=f5e370]:
+            - img "Forearm cross-section, 8 electrodes, shaded by activation" [ref=f5e372]:
+              - generic [ref=f5e374]: "1"
+              - generic [ref=f5e377]: "2"
+              - generic [ref=f5e380]: "3"
+              - generic [ref=f5e383]: "4"
+              - generic [ref=f5e386]: "5"
+              - generic [ref=f5e389]: "6"
+              - generic [ref=f5e392]: "7"
+              - generic [ref=f5e395]: "8"
+            - table [ref=f5e398]:
+              - caption [ref=f5e399]: Per-channel activation, microvolts RMS
+              - rowgroup [ref=f5e400]:
+                - row [ref=f5e401]:
+                  - rowheader "Channel 1" [ref=f5e402]
+                  - cell "0 µV" [ref=f5e403]
+                - row [ref=f5e404]:
+                  - rowheader "Channel 2" [ref=f5e405]
+                  - cell "0 µV" [ref=f5e406]
+                - row [ref=f5e407]:
+                  - rowheader "Channel 3" [ref=f5e408]
+                  - cell "0 µV" [ref=f5e409]
+                - row [ref=f5e410]:
+                  - rowheader "Channel 4" [ref=f5e411]
+                  - cell "0 µV" [ref=f5e412]
+                - row [ref=f5e413]:
+                  - rowheader "Channel 5" [ref=f5e414]
+                  - cell "0 µV" [ref=f5e415]
+                - row [ref=f5e416]:
+                  - rowheader "Channel 6" [ref=f5e417]
+                  - cell "0 µV" [ref=f5e418]
+                - row [ref=f5e419]:
+                  - rowheader "Channel 7" [ref=f5e420]
+                  - cell "0 µV" [ref=f5e421]
+                - row [ref=f5e422]:
+                  - rowheader "Channel 8" [ref=f5e423]
+                  - cell "0 µV" [ref=f5e424]
+          - region [ref=f5e425]:
+            - heading "Decoder" [level=3] [ref=f5e426]
+            - generic [ref=f5e427]:
+              - generic [ref=f5e428]:
+                - term [ref=f5e429]: Decided gesture
+                - definition [ref=f5e430]: —
+              - generic [ref=f5e431]:
+                - term [ref=f5e432]: Posterior
+                - definition [ref=f5e433]: —
+              - generic [ref=f5e434]:
+                - term [ref=f5e435]: Hand action
+                - definition [ref=f5e436]: —
+              - generic [ref=f5e437]:
+                - term [ref=f5e438]:
+                  - button "Latency" [ref=f5e440]
+                - definition [ref=f5e441]: —
+            - paragraph [ref=f5e442]: Single-threaded WASM. On-screen hand only; no motor is connected.
+  - contentinfo [ref=f5e270]:
+    - note [ref=f5e271]: Research prototype. Not a medical device. Replays simulated or recorded research data; reads no live electrodes.
+    - paragraph [ref=f5e272]:
+      - generic [ref=f5e273]: Built by
+      - text: Harsh Bavaskar, Anisa D'Souza, Shruti Shanklesha
+    - navigation "Step through the path" [ref=f5e274]:
+      - 'button "Previous: Idea" [ref=f5e443] [cursor=pointer]':
+        - generic [ref=f5e446]: "Previous:"
+        - text: Idea
+      - 'button "Next: Accuracy" [ref=f5e447] [cursor=pointer]':
+        - generic [ref=f5e276]:
+          - generic [ref=f5e277]: "Next:"
+          - text: 3Accuracy

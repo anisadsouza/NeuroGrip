@@ -1,6 +1,17 @@
 /** Recorded experiment results, kept separate from the live control screen. */
 
 import { useEffect, useState } from 'react';
+import { Screen, type ScreenPage } from '../components/Screen.js';
+import { MethodNote } from '../components/MethodNote.js';
+import { Term } from '../components/Term.js';
+
+/** Plain names for the decoders compared. */
+const MODEL_NAME: Readonly<Record<string, string>> = {
+  rbf_svm: 'RBF SVM',
+  linear_svm: 'Linear SVM',
+  lda: 'LDA',
+  lda_uniform: 'LDA, uniform prior',
+};
 
 interface ModelResult {
   readonly mean_accuracy: number;
@@ -102,7 +113,6 @@ export function Results() {
   const [simulated, setSimulated] = useState<Comparison | null>(null);
   const [recorded, setRecorded] = useState<Comparison | null>(null);
   const [heldout, setHeldout] = useState<HeldoutEvaluation | null>(null);
-  const [simulatedLatency, setSimulatedLatency] = useState<BrowserLatency | null>(null);
   const [recordedLatency, setRecordedLatency] = useState<BrowserLatency | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -111,40 +121,64 @@ export function Results() {
       readOptionalJson<Comparison>(`${import.meta.env.BASE_URL}results/model_comparison.json`),
       readOptionalJson<Comparison>(`${import.meta.env.BASE_URL}results/model_comparison_ninapro.json`),
       readOptionalJson<HeldoutEvaluation>(`${import.meta.env.BASE_URL}results/ninapro_holdout.json`),
-      readOptionalJson<BrowserLatency>(`${import.meta.env.BASE_URL}results/browser_latency.json`),
       readOptionalJson<BrowserLatency>(`${import.meta.env.BASE_URL}results/browser_latency_ninapro.json`),
-    ]).then(([simulation, ninaPro, evaluation, simulationLatency, ninaProLatency]) => {
+    ]).then(([simulation, ninaPro, evaluation, ninaProLatency]) => {
       setSimulated(simulation);
       setRecorded(ninaPro);
       setHeldout(evaluation);
-      setSimulatedLatency(simulationLatency);
       setRecordedLatency(ninaProLatency);
     }).catch((error: unknown) => {
       setLoadError(error instanceof Error ? error.message : String(error));
     });
   }, []);
 
-  return (
-    <section className="results" aria-labelledby="results-title">
-      <header className="results-head">
-        <h2 id="results-title">Recorded-data results</h2>
-        <p className="muted">
-          NinaPro DB2 · held-out subject evaluation. Simulator results are kept separate below.
-        </p>
-      </header>
+  const [page, setPage] = useState(0);
 
-      {loadError ? <p className="notice notice-stop" role="alert">{loadError}</p> : null}
-      <HeldoutPanel result={heldout} browserLatency={recordedLatency} />
-      <details className="results-details">
-        <summary>Model comparison and simulator results</summary>
-        <div className="results-detail-grid">
-          <ResultTable title="Recorded NinaPro DB2 model comparison" result={recorded} />
-          <ResultTable title="Simulated sEMG model comparison" result={simulated} />
-          <LatencyPanel title="NinaPro browser diagnostics" result={recordedLatency} />
-          <LatencyPanel title="Simulator browser diagnostics" result={simulatedLatency} />
-        </div>
-      </details>
-    </section>
+  const recordedPages: ScreenPage[] = heldout
+    ? [
+        {
+          id: 'recorded',
+          label: 'Real recording',
+          summary: 'A recorded person the decoder never trained on. Exploratory.',
+          content: <HeldoutPanel result={heldout} browserLatency={recordedLatency} />,
+        },
+        {
+          id: 'confusion',
+          label: 'Mistakes',
+          summary: 'Rows: performed. Columns: decoded. The diagonal is correct.',
+          content: <ConfusionMatrix result={heldout} />,
+        },
+        {
+          id: 'timeline',
+          label: 'Timeline',
+          summary: 'Performed movements in order, with what the decoder said.',
+          content: <Timeline events={heldout.timeline} />,
+        },
+      ]
+    : [];
+  const comparisonPage: ScreenPage = {
+    id: 'comparison',
+    label: 'Model comparison',
+    summary: 'Three decoders, each tested on subjects it never saw.',
+    content: (
+      <div className="results-pair" data-count={recorded ? 2 : 1}>
+        <ResultTable title="Simulated sEMG model comparison" result={simulated} />
+        {recorded ? <ResultTable title="Recorded NinaPro DB2 model comparison" result={recorded} /> : null}
+      </div>
+    ),
+  };
+  // Real data first when it exists. Browser speed lives in step 6, not here.
+  const pages: ScreenPage[] = [...recordedPages, comparisonPage];
+
+  return (
+    <Screen
+      title="Accuracy"
+      className="screen-results"
+      pages={pages}
+      page={page}
+      onPage={setPage}
+      status={loadError ? <p className="notice notice-stop" role="alert">{loadError}</p> : undefined}
+    />
   );
 }
 
@@ -155,85 +189,46 @@ function ResultTable({ title, result }: { title: string; result: Comparison | nu
       <h3 id={id}>{title}</h3>
       {result === null ? (
         <p className="muted">
-          No artifact staged yet. Run the corresponding experiment, then
-          <code> npm run build:assets</code> to make it available here.
+          Not in this build: NinaPro recordings are licensed separately.
         </p>
       ) : (
         <>
           <table>
-            <caption>{result.source} · selected model: {result.best_model}</caption>
-            <thead><tr><th>Model</th><th>LOSO accuracy</th><th>SD</th><th>ECE</th></tr></thead>
+            <caption>Selected: {MODEL_NAME[result.best_model] ?? result.best_model}, highest accuracy and lowest ECE</caption>
+            <thead><tr><th scope="col">Decoder</th><th scope="col"><Term id="unseen">LOSO accuracy</Term></th><th scope="col">SD</th><th scope="col"><Term id="calibration">ECE</Term></th></tr></thead>
             <tbody>
               {Object.entries(result.models).map(([name, model]) => (
                 <tr key={name} data-selected={name === result.best_model || undefined}>
-                  <th scope="row">{name}</th>
-                  <td>{percentage(model.mean_accuracy)}</td>
-                  <td>{model.std_accuracy.toFixed(3)}</td>
+                  <th scope="row">{MODEL_NAME[name] ?? name}</th>
+                  <td>
+                    <span className="meter-cell">
+                      <span className="ng-num">{percentage(model.mean_accuracy)}</span>
+                      <span className="meter" data-story="grip" aria-hidden="true">
+                        <span style={{ width: `${Math.max(0, Math.min(1, model.mean_accuracy)) * 100}%` }} />
+                      </span>
+                    </span>
+                  </td>
+                  <td className="ng-num">±{(model.std_accuracy * 100).toFixed(1)} pts</td>
                   <td>{model.expected_calibration_error.toFixed(3)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <p className="small muted">{result.caveat}</p>
-          {result.source === 'ninapro_db2' ? (
-            <p className="small muted">
-              DB2 label 5 is finger abduction; it is an explicitly qualified proxy
-              for the app's open-hand class, not an exact movement-name match.
-            </p>
-          ) : null}
+          <MethodNote title={title}>
+            <p>{result.caveat}</p>
+            {result.source === 'ninapro_db2' ? (
+              <p>
+                DB2 label 5 is finger abduction; it is an explicitly qualified proxy
+                for the app's open-hand class, not an exact movement-name match.
+              </p>
+            ) : (
+              <p>
+                Recorded-person results need the NinaPro recordings, which are licensed
+                separately; when they are staged, they appear beside this table.
+              </p>
+            )}
+          </MethodNote>
         </>
-      )}
-    </section>
-  );
-}
-
-function LatencyPanel({
-  title,
-  result,
-}: {
-  title: string;
-  result: BrowserLatency | null;
-}) {
-  const id = headingId(title);
-  return (
-    <section className="panel results-table" aria-labelledby={id}>
-      <h3 id={id}>{title}</h3>
-      {result ? (
-        <>
-          <dl className="readout-list">
-            <div><dt>Worker P95</dt><dd className="ng-num">{result.p95Ms.toFixed(3)} ms</dd></div>
-            <div>
-              <dt>Measured windows</dt>
-              <dd className="ng-num">
-                {result.n}
-                {typeof result.rejectedWindows === 'number'
-                  ? ` decoded · ${result.rejectedWindows} rejected`
-                  : ' decoded'}
-              </dd>
-            </div>
-            <div><dt>Backend</dt><dd>{result.backend}{result.threaded ? ' · threads enabled' : ' · single-threaded'}</dd></div>
-            {typeof result.stablePredictionAccuracy === 'number' &&
-            typeof result.stablePredictionWindows === 'number' &&
-            typeof result.correctStablePredictions === 'number' ? (
-              <div>
-                <dt>Stable replay top-1</dt>
-                <dd className="ng-num">
-                  {(result.stablePredictionAccuracy * 100).toFixed(1)}% ·{' '}
-                  {result.correctStablePredictions}/{result.stablePredictionWindows}
-                </dd>
-              </div>
-            ) : null}
-            {typeof result.zeroSignalRejected === 'boolean' ? (
-              <div>
-                <dt>Zero-signal control</dt>
-                <dd>{result.zeroSignalRejected ? 'rejected' : 'not rejected'}</dd>
-              </div>
-            ) : null}
-          </dl>
-          <p className="small muted">{result.note}</p>
-        </>
-      ) : (
-        <p className="muted">No browser measurement staged. Run <code>npm run test:e2e</code>.</p>
       )}
     </section>
   );
@@ -249,10 +244,12 @@ function HeldoutPanel({
   if (!result) {
     return (
       <section className="panel results-table" aria-labelledby="heldout-heading">
-        <h3 id="heldout-heading">Subject-held-out NinaPro evaluation</h3>
+        <h3 id="heldout-heading">A real person it never saw</h3>
         <p className="muted">
-          No held-out evaluation is available. The model comparison below is not a
-          held-out-subject test.
+          This build does not include the real recordings, which are licensed
+          separately. When they are present, this page shows how well the decoder
+          did on a recorded person it never trained on. Meanwhile, Model
+          comparison shows results on simulated people.
         </p>
       </section>
     );
@@ -283,12 +280,12 @@ function HeldoutPanel({
       </p>
       <dl className="results-metrics">
         <div>
-          <dt>Held-out accuracy</dt>
+          <dt>Accuracy</dt>
           <dd>{percentage(result.accuracy)}</dd>
           <dd className="results-metric-detail">{result.n_test.toLocaleString()} windows</dd>
         </div>
         <div>
-          <dt>Stable replay top-1</dt>
+          <dt>Right on a steady signal</dt>
           <dd>{typeof stableAccuracy === 'number' ? percentage(stableAccuracy) : '—'}</dd>
           <dd className="results-metric-detail">
             {browserLatency?.correctStablePredictions ?? 0}/
@@ -296,7 +293,7 @@ function HeldoutPanel({
           </dd>
         </div>
         <div>
-          <dt>Quality-gate accepted</dt>
+          <dt>Signal passed the check</dt>
           <dd>{percentage(result.quality_gate.acceptance_rate)}</dd>
           <dd className="results-metric-detail">
             {result.quality_gate.accepted.toLocaleString()} accepted ·{' '}
@@ -304,20 +301,16 @@ function HeldoutPanel({
           </dd>
         </div>
         <div>
-          <dt>Browser worker P95</dt>
+          <dt>Decision time, P95</dt>
           <dd>{browserLatency ? `${browserLatency.p95Ms.toFixed(2)} ms` : '—'}</dd>
           <dd className="results-metric-detail">feature extraction + ONNX inference</dd>
         </div>
         <div>
-          <dt>Calibration error</dt>
+          <dt><Term id="calibration">Confidence error</Term></dt>
           <dd>{result.expected_calibration_error.toFixed(3)}</dd>
           <dd className="results-metric-detail">lower is better</dd>
         </div>
       </dl>
-      <p className="results-caveat">
-        Exploratory only: three subjects are available locally, and S10 informed diagnostics.
-        This is not an untouched final test or clinical validation.
-      </p>
 
       <section className="results-errors" aria-labelledby="top-errors-heading">
         <h4 id="top-errors-heading">Most common wrong predictions</h4>
@@ -335,17 +328,11 @@ function HeldoutPanel({
         </ol>
       </section>
 
-      <details className="results-details">
-        <summary>View confusion matrix</summary>
-        <ConfusionMatrix result={result} />
-      </details>
-      <details className="results-details">
-        <summary>View performed-versus-decoded timeline</summary>
-        <Timeline events={result.timeline} />
-      </details>
-      <details className="results-details">
-        <summary>Evaluation and quality-gate notes</summary>
-        <div className="results-detail-copy">
+      <MethodNote title="Held-out evaluation">
+          <p>
+            Exploratory only: three subjects are available locally, and S10 informed
+            diagnostics. This is not an untouched final test or clinical validation.
+          </p>
           <p>
             CPU ONNX inference P95: {result.latency.p95_ms.toFixed(2)} ms across{' '}
             {result.latency.n_windows} windows.
@@ -375,8 +362,7 @@ function HeldoutPanel({
               ? 'not measured'
               : browserLatency.zeroSignalRejected ? 'rejected' : 'not rejected'}.
           </p>
-        </div>
-      </details>
+      </MethodNote>
     </section>
   );
 }
@@ -385,10 +371,10 @@ function ConfusionMatrix({ result }: { result: HeldoutEvaluation }) {
   return (
     <div className="matrix-scroll">
       <table className="confusion-matrix">
-        <caption>Held-out confusion matrix · rows are performed, columns are decoded</caption>
+        <caption>Rows: what the person did. Columns: what the decoder said.</caption>
         <thead>
           <tr>
-            <th scope="col">Performed ↓ / Decoded →</th>
+            <th scope="col">Did ↓ / Said →</th>
             {result.gesture_order.map((gesture) => (
               <th scope="col" key={gesture}>{result.dataset_movements[gesture] ?? gesture}</th>
             ))}
@@ -412,11 +398,13 @@ function ConfusionMatrix({ result }: { result: HeldoutEvaluation }) {
 function Timeline({ events }: { events: readonly TimelineEvent[] }) {
   return (
     <section className="performed-timeline" aria-labelledby="timeline-heading">
-      <h4 id="timeline-heading">Performed vs decoded timeline</h4>
-      <p className="small muted">
-        Mapped, eligible 200 ms windows in recording order; each window advances 20 ms.
-        Transition and unmapped-label windows are omitted.
-      </p>
+      <h4 id="timeline-heading">What they did, and what the decoder said</h4>
+      <MethodNote>
+        <p>
+          Mapped, eligible 200 ms windows in recording order; each window advances 20 ms.
+          Transition and unmapped-label windows are omitted.
+        </p>
+      </MethodNote>
       <ol>
         {events.map((event, index) => (
           <li key={`${event.recording}-${event.repetition}-${event.start_ms}-${index}`}>

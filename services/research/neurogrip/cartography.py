@@ -37,9 +37,11 @@ catalogue selection weighted by effort and fatigue. It is a trade, not a free
 win -- the gate artifact records what it gives up in worst-pair separability
 and what it saves in effort and fatigue, per subject.
 
-Not yet here: the effort field's time-to-reach term, which needs sustained
-holds rather than babble poses. Effort is amplitude only. The risk-weighted
-assignment is illustrative; teach-back and wearer validation are not built.
+Teach-back (`teach_back`) is simulated: a reward-driven learner reaches each
+prototype from Cartograph feedback alone, and the learned commands are scored
+as a vocabulary. Not yet here: the effort field's time-to-reach term, which
+needs sustained holds rather than babble poses; effort is amplitude only. The
+risk-weighted assignment is illustrative, and nothing is validated on people.
 
 Everything is seeded. Nothing here may touch global RNG state.
 """
@@ -681,6 +683,142 @@ def select_weighted(
     return [names[index] for index in chosen]
 
 
+@dataclass(frozen=True)
+class TeachBackConfig:
+    """Closed-loop teach-back: the spec's step 5.
+
+    The learner is a reinforcement hill-climber over the same six synergies
+    babble explores (Therrien et al., 2016, model reward-based motor learning
+    this way). Each attempt perturbs the current command, the Cartograph shows
+    where the attempt landed, and the change is kept only if it landed closer
+    to the target. The learner is never shown the muscle pattern, and the
+    feedback is a noisy measurement of a noisy attempt.
+
+    An attempt is **on target** when it lands nearer its own target than any
+    other vocabulary target, rest included -- the question a decoder asks. A
+    target is **learned** once `hits` of the last `window` attempts are on
+    target; one that never gets there within `max_attempts` is censored, not
+    given the budget as its value.
+
+    Why a majority and not a streak, and no distance tolerance: performing the
+    exact target command lands in the right cell only 60-85% of the time per
+    0.25 s attempt in this simulator, and its distance to the target has a
+    median of about 0.25 log-RMS units. A tolerance tighter than that, or a run
+    of perfect attempts, would measure luck rather than learning. The first
+    version had both and censored every target, including ones a perfect
+    performer could not have passed.
+
+    Every `remeasure_every`-th attempt repeats the kept command instead of
+    exploring, and its distance replaces the stored best: with noisy feedback a
+    single lucky landing otherwise becomes a bar no later attempt can clear.
+    """
+
+    max_attempts: int = 60
+    attempt_seconds: float = 0.25
+    exploration: float = 0.15
+    exploration_decay: float = 0.96
+    min_exploration: float = 0.03
+    window: int = 5
+    hits: int = 3
+    remeasure_every: int = 3
+
+
+def _command_to_excitation(command: np.ndarray) -> np.ndarray:
+    return np.clip(REST_EXCITATION + command @ NATURAL_SYNERGIES, 0.0, 1.0)
+
+
+def teach_back(
+    cartograph: Cartograph,
+    poses: list[int],
+    subject: SubjectProfile,
+    sim: SimulatorConfig,
+    config: TeachBackConfig = TeachBackConfig(),
+    seed: int = 0,
+) -> dict[str, object]:
+    """Teach each prototype pose back to a simulated learner starting at rest."""
+    targets = np.vstack(
+        [cartograph.signature_at(cartograph.rest), cartograph.signatures[poses]]
+    )
+
+    results = []
+    for index, pose in enumerate(poses):
+        rng = np.random.default_rng(seed * 7919 + 800_000 + index * 1_009)
+        goal = index + 1  # row in `targets`; row 0 is rest
+        command = np.zeros(NATURAL_SYNERGIES.shape[0])
+        best = np.inf
+        sigma = config.exploration
+        trajectory, distances, on_target = [], [], []
+        learned_at = None
+        for attempt in range(config.max_attempts):
+            remeasure = attempt > 0 and attempt % config.remeasure_every == 0
+            proposal = (
+                command
+                if remeasure
+                else np.clip(command + rng.normal(0.0, sigma, command.shape), 0.0, 1.0)
+            )
+            executed = _attempt(_command_to_excitation(proposal), rng)
+            signal = simulate_excitation(
+                executed,
+                config.attempt_seconds,
+                sim,
+                subject,
+                seed=seed * 7919 + 900_000 + index * 1_009 + attempt,
+            )
+            position = cartograph.embed(_rms(signal))
+            signature = cartograph.signature_at(position)[0]
+            gaps = _pattern_distance(signature[None, :], targets)
+            distance = float(gaps[goal])
+            hit = int(np.argmin(gaps)) == goal
+
+            trajectory.append([round(float(v), 4) for v in cartograph.to_map(position)[0]])
+            distances.append(round(distance, 4))
+            on_target.append(bool(hit))
+            if remeasure:
+                best = distance
+            elif distance < best:
+                command, best = proposal, distance
+            sigma = max(config.min_exploration, sigma * config.exploration_decay)
+            recent = on_target[-config.window :]
+            if len(recent) == config.window and sum(recent) >= config.hits:
+                learned_at = attempt + 1
+                break
+
+        results.append(
+            {
+                "prototype": f"proto_{index + 1}",
+                "pose": int(pose),
+                "attempts_to_criterion": learned_at,
+                "attempts_made": len(distances),
+                "distances": distances,
+                "on_target": on_target,
+                "trajectory_map": trajectory,
+                "target_map": [
+                    round(float(v), 4)
+                    for v in cartograph.to_map(cartograph.activations[pose])[0]
+                ],
+                "learned_command": [round(float(v), 4) for v in command],
+                "learned_excitation": [
+                    round(float(v), 4) for v in _command_to_excitation(command)
+                ],
+                "target_excitation": [
+                    round(float(v), 4) for v in cartograph.excitations[pose]
+                ],
+            }
+        )
+
+    learned = [r["attempts_to_criterion"] for r in results if r["attempts_to_criterion"] is not None]
+    return {
+        "config": dataclasses.asdict(config),
+        "n_targets": len(results),
+        "n_learned": len(learned),
+        "n_censored": len(results) - len(learned),
+        "median_attempts_to_criterion": (
+            float(np.median(learned)) if learned else None
+        ),
+        "targets": results,
+    }
+
+
 def _vocabulary_report(
     classes: dict[str, np.ndarray],
     subject: SubjectProfile,
@@ -937,11 +1075,37 @@ def compare_vocabularies(
             for p in cartograph.to_map(cartograph.activations[poses])
         ],
         "prototype_comparisons": comparisons,
+        "prototype_poses": [int(pose) for pose in poses],
         "selection_costs": costs,
         "synthesized": synthesized_report,
         "catalogue": report(catalogue),
         "weighted_catalogue": report(weighted),
     }
+
+
+def _teach_back_report(
+    cartograph: Cartograph,
+    result: dict[str, object],
+    subject: SubjectProfile,
+    sim: SimulatorConfig,
+    reps: int,
+    seed: int,
+) -> dict[str, object]:
+    """Teach the prototypes back, then score the learned commands as a
+    vocabulary. Scoring seeds sit apart from the gate's own scoring seeds."""
+    report = teach_back(cartograph, result["prototype_poses"], subject, sim, seed=seed)
+    learned = {"rest": REST_EXCITATION}
+    for target in report["targets"]:
+        learned[target["prototype"]] = np.asarray(target["learned_excitation"])
+    retained = _vocabulary_report(learned, subject, sim, reps, 1.0, seed + 2_000)
+    gate = {row["prototype"]: row for row in result["prototype_comparisons"]}
+    for target in report["targets"]:
+        name = target["prototype"]
+        target["recall_after_teach_back"] = retained["per_class"][name]["recall"]
+        target["recall_at_exact_target"] = result["synthesized"]["per_class"][name]["recall"]
+        target["passes_gate"] = bool(gate[name]["passes"])
+    report["cv_accuracy_after_teach_back"] = retained["cv_accuracy"]
+    return report
 
 
 # Residual-limb stand-in: finger flexor and extensor (fds, edc) at 30% of their
@@ -987,6 +1151,9 @@ def cartography_gate(
                 comparison["passes"]
                 for comparison in result["prototype_comparisons"]
             )
+            result["teach_back"] = _teach_back_report(
+                cartograph, result, subject, sim, reps, seed=index
+            )
             plain, weighted = result["catalogue"], result["weighted_catalogue"]
             result["weighted_vs_maxmin"] = {
                 "separability_ratio": round(
@@ -1005,9 +1172,32 @@ def cartography_gate(
                 float(np.median([row["weighted_vs_maxmin"][key] for row in subjects])), 4
             )
 
+        targets = [t for row in subjects for t in row["teach_back"]["targets"]]
+        learned = [t for t in targets if t["attempts_to_criterion"] is not None]
         cohorts[cohort] = {
             "wins": sum(int(row["synthesis_wins"]) for row in subjects),
             "n_subjects": n_subjects,
+            "teach_back": {
+                "n_targets": len(targets),
+                "n_learned": len(learned),
+                "n_censored": len(targets) - len(learned),
+                "median_attempts_to_criterion": (
+                    float(np.median([t["attempts_to_criterion"] for t in learned]))
+                    if learned
+                    else None
+                ),
+                "median_recall_at_exact_target": round(
+                    float(np.median([t["recall_at_exact_target"] for t in targets])), 4
+                ),
+                "median_recall_after_teach_back": round(
+                    float(np.median([t["recall_after_teach_back"] for t in targets])), 4
+                ),
+                "n_passing_gate": sum(bool(t["passes_gate"]) for t in targets),
+                "n_passing_gate_and_retained": sum(
+                    bool(t["passes_gate"]) and t["recall_after_teach_back"] >= 0.80
+                    for t in targets
+                ),
+            },
             "weighted_selection": {
                 key: median(key)
                 for key in (
@@ -1036,10 +1226,20 @@ def cartography_gate(
         "level_weight": LEVEL_WEIGHT,
         "hold_fatigue_per_excitation": HOLD_FATIGUE_PER_EXCITATION,
         "cohorts": cohorts,
+        "teach_back_definition": (
+            "A simulated reward-driven learner starts at rest and adjusts its "
+            "synergy command from Cartograph feedback alone (where each attempt "
+            "landed, and its distance to the target). Learned: at least 3 of the "
+            "last 5 attempts land nearer the target than any other vocabulary "
+            "target. Retention: held-out decoder recall when the learned commands "
+            "are performed as a vocabulary, against recall of the exact targets."
+        ),
         "caveat": (
             "Simulated babble and simulated users. Fatigue accrual is a simulator "
             "assumption proportional to excitation, so the fatigue term largely "
-            "duplicates effort here. Learnability (teach-back) is not measured. "
-            "Not a human result."
+            "duplicates effort here. Teach-back uses a simulated learner whose "
+            "command space is the same synergy set babble was generated from, so "
+            "every target is reachable by construction; whether people can learn "
+            "these targets is untested. Not a human result."
         ),
     }

@@ -1,0 +1,24 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - heading [level=1] [ref=e5]:
+      - link "NeuroGrip, overview" [ref=e6] [cursor=pointer]:
+        - /url: "#overview"
+        - generic [ref=e7]: NeuroGrip
+    - navigation "Application sections" [ref=e18]:
+      - button "Live" [ref=e19] [cursor=pointer]
+      - button "Results" [ref=e20] [cursor=pointer]
+      - button "Cartography" [ref=e21] [cursor=pointer]
+      - button "Attribution" [ref=e22] [cursor=pointer]
+      - button "Research review" [ref=e23] [cursor=pointer]: Review
+    - generic [ref=e24]:
+      - button "Words explained" [ref=e25] [cursor=pointer]
+      - button "Switch to dark theme" [ref=e29] [cursor=pointer]
+  - main [ref=e33]:
+    - region [ref=e310]:
+      - heading "Neuromotor Cartography" [level=2] [ref=e318]
+      - status [ref=e320]: Loading Cartography report…
+  - contentinfo [ref=e116]:
+    - note [ref=e117]: Research prototype. Not a medical device. It replays simulated or recorded research data and reads no live electrodes.
+    - paragraph [ref=e118]:
+      - generic [ref=e119]: Built by
+      - text: Harsh Bavaskar · Anisa D'souza · Shruti Shanklesha

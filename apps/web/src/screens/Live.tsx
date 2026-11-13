@@ -24,6 +24,8 @@ import { Oscilloscope } from '../components/Oscilloscope.js';
 import { VirtualHand, type MuscleDrive } from '../components/VirtualHand.js';
 import { GestureChoices } from '../components/GestureChoices.js';
 import { Icon } from '../components/Icon.js';
+import { Screen } from '../components/Screen.js';
+import { Term } from '../components/Term.js';
 import { labelsFor, risksFor } from '../decode/commitCost.js';
 import { decisionOutputFor } from '../decode/decisionOutput.js';
 import { percentile95, trimRing } from '../decode/latency.js';
@@ -65,6 +67,10 @@ export function Live() {
   const [bundle, setBundle] = useState<ReplayBundle | null>(null);
   const [gestures, setGestures] = useState<readonly string[]>([]);
   const [replayMode, setReplayMode] = useState<ReplayMode>('simulated');
+  // Whether a recorded replay is installed in this build. Checked once, so the
+  // option can say so up front instead of failing after it is chosen.
+  const [recordedAvailable, setRecordedAvailable] = useState<boolean | null>(null);
+  const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
   const [decision, setDecision] = useState<DecisionResponse | null>(null);
   const [intended, setIntended] = useState(0);
   // Mirrored in a ref because the transport callback reads it. Reading the
@@ -112,6 +118,30 @@ export function Live() {
   );
 
   useEffect(() => {
+    const controller = new AbortController();
+    void fetch(`${import.meta.env.BASE_URL}replay/ninapro/emg-replay.json`, {
+      signal: controller.signal,
+    })
+      .then((response) =>
+        setRecordedAvailable(
+          response.ok && !(response.headers.get('content-type') ?? '').includes('text/html'),
+        ),
+      )
+      .catch(() => setRecordedAvailable(false));
+    return () => controller.abort();
+  }, []);
+
+  // A recorded replay that cannot be opened is not a reason to lose the whole
+  // screen: fall back to the simulated signal and say what happened.
+  const fallBackToSimulated = useCallback(() => {
+    setFallbackNotice(
+      'The recorded replay could not be opened in this build, so the simulated signal is playing instead.',
+    );
+    setRecordedAvailable(false);
+    setReplayMode('simulated');
+  }, []);
+
+  useEffect(() => {
     let disposed = false;
     setStatus({ ready: false, threaded: false, error: null, rejected: null });
     setBundle(null);
@@ -147,7 +177,8 @@ export function Live() {
           }));
           break;
         case 'error':
-          setStatus((s) => ({ ...s, error: message.message }));
+          if (replayMode === 'ninapro') fallBackToSimulated();
+          else setStatus((s) => ({ ...s, error: message.message }));
           break;
       }
     };
@@ -180,7 +211,8 @@ export function Live() {
       })
       .catch((error: unknown) => {
         if (!disposed) {
-          setStatus((s) => ({ ...s, error: String(error) }));
+          if (replayMode === 'ninapro') fallBackToSimulated();
+          else setStatus((s) => ({ ...s, error: String(error) }));
         }
       });
 
@@ -189,7 +221,7 @@ export function Live() {
       sourceRef.current?.stop();
       worker.terminate();
     };
-  }, [replayMode]);
+  }, [replayMode, fallBackToSimulated]);
 
   const toggleRunning = useCallback(() => {
     const worker = workerRef.current;
@@ -247,30 +279,78 @@ export function Live() {
   const virtualCommand = outputGesture ? virtualCommandFor(outputGesture) : null;
   const modelProbability = decision?.posteriors[decision.leader];
 
-  if (status.error) {
-    return (
-      <div className="panel notice notice-stop">
-        <Icon name="alert" label="Error" />
-        <div>
-          <h2>The decoder could not start</h2>
-          <p className="ng-num">{status.error}</p>
-          <p>
-            Run <code>npm run build:assets</code> to regenerate the model and replay
-            bundle, then reload.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const transport = (
+    <div className="live-transport">
+      <button
+        type="button"
+        className="transport"
+        onClick={toggleRunning}
+        disabled={!status.ready}
+      >
+        <Icon name={running ? 'pause' : 'play'} />
+        {running ? 'Pause' : 'Start decoding'}
+      </button>
+      <button
+        type="button"
+        className="transport transport-quiet"
+        onClick={() => workerRef.current?.postMessage({ type: 'reset' } satisfies WorkerRequest)}
+        disabled={!status.ready}
+      >
+        <Icon name="reset" />
+        Release
+      </button>
+    </div>
+  );
 
-  return (
-    <div className="live">
-      <div className="live-main">
-        <p className="panel muted" role="status">
-          Source: {bundle ? replaySourceLabel(bundle.manifest) : 'Loading replay bundle…'}
+  const errorStatus = status.error ? (
+    <div className="panel notice notice-stop">
+      <Icon name="alert" label="Error" />
+      <div>
+        <h3>The live decoder could not start</h3>
+        <p>
+          This build is missing the decoder or its sample signal. Every other
+          screen still works; reload the page to try again.
         </p>
-        <div className="panel replay-source">
-          <label htmlFor="replay-source">Replay source</label>
+        <p className="small ng-num">Detail: {status.error}</p>
+      </div>
+    </div>
+  ) : undefined;
+
+  const decodedLabel = decision?.latched
+    ? decision.timedOut
+      ? 'No clear intent'
+      : (gestureLabels[decision.latchedClass ?? 0] ?? '—')
+    : '—';
+
+  const ring = (
+    <ActivationRing
+      channelRms={decision?.channelRms ?? new Array(nChannels).fill(0)}
+      fullScaleVolts={FULL_SCALE_VOLTS}
+      failedChannel={status.rejected?.channel ?? null}
+    />
+  );
+
+  const body = (
+    <div className="live">
+      <aside className="live-controls" aria-label="Decoder controls">
+        <section className="live-step" aria-labelledby="live-step-gesture">
+          <h3 id="live-step-gesture">
+            <span className="step-index ng-num" aria-hidden="true">1</span>
+            Gesture
+          </h3>
+          <GestureChoices
+            labels={gestureLabels}
+            selected={intended}
+            onSelect={chooseGesture}
+            legend="Intended gesture"
+          />
+        </section>
+
+        <section className="live-step replay-source" aria-labelledby="live-step-source">
+          <h3 id="live-step-source">
+            <span className="step-index ng-num" aria-hidden="true">2</span>
+            <label htmlFor="replay-source">Signal</label>
+          </h3>
           <select
             id="replay-source"
             value={replayMode}
@@ -280,34 +360,50 @@ export function Live() {
             }}
             disabled={running}
           >
-            <option value="simulated">Simulated sEMG</option>
-            <option value="ninapro">Held-out NinaPro DB2 recording</option>
+            <option value="simulated">Simulated forearm</option>
+            <option value="ninapro" disabled={recordedAvailable === false}>
+              {recordedAvailable === false
+                ? 'Recorded person (not in this build)'
+                : 'Recorded person (NinaPro DB2)'}
+            </option>
           </select>
-          <p className="small muted">
-            Recorded replay uses a separate model trained without the replay subject.
+          {fallbackNotice ? (
+            <p className="notice small" role="status">{fallbackNotice}</p>
+          ) : null}
+          <p className="small muted" role="status">
+            {bundle ? replaySourceLabel(bundle.manifest) : 'Loading replay bundle…'}
           </p>
-          {replayMode === 'ninapro' && bundle?.manifest.signalQuality ? (
-            <p className="small muted">
-              Recorded-data channel checks use per-channel rest calibration. A
-              rejected window still produces no gesture.
-            </p>
-          ) : null}
           {replayMode === 'ninapro' && restCalibration?.flaggedChannels.length ? (
-            <p className="notice" role="status">
-              Recorded rest RMS screen flagged channel
-              {restCalibration.flaggedChannels.length === 1
-                ? ''
-                : 's'}{' '}
-              {restCalibration.flaggedChannels.join(', ')} above the exploratory{' '}
-              {(restCalibration.maxChannelRms * 1e6).toFixed(0)} µV RMS screen.
-              Replay continues; this warning is not a validated fault diagnosis.
+            <p className="notice small" role="status">
+              Rest screen flagged channel
+              {restCalibration.flaggedChannels.length === 1 ? '' : 's'}{' '}
+              {restCalibration.flaggedChannels.join(', ')} above{' '}
+              {(restCalibration.maxChannelRms * 1e6).toFixed(0)} µV RMS. Replay
+              continues; this is not a validated fault diagnosis.
             </p>
           ) : null}
-        </div>
-        <Oscilloscope
-          display={decision?.display ?? null}
-          nChannels={nChannels}
-          windowMs={200}
+        </section>
+
+        <section className="live-step live-run" aria-labelledby="live-step-run">
+          <h3 id="live-step-run">
+            <span className="step-index ng-num" aria-hidden="true">3</span>
+            Run it
+          </h3>
+          {transport}
+        </section>
+      </aside>
+
+      <div className="live-center">
+        {/* The hand is shown from the first frame, at rest, so the viewer
+            sees what it looks like before anything is decoded. */}
+        <VirtualHand
+          gesture={outputGesture || 'rest'}
+          label={output.index >= 0 ? (gestureLabels[output.index] ?? 'this gesture') : 'Rest'}
+          commitment={output.handCommitment}
+          latched={decision?.latched ?? false}
+          reversible={decision?.reversible ?? false}
+          timedOut={decision?.timedOut ?? false}
+          drive={drive}
         />
 
         {status.rejected ? (
@@ -323,138 +419,95 @@ export function Live() {
           </p>
         ) : null}
 
-        <div className="actuation">
-          {/* The hand is shown from the first frame, at rest, so the wearer
-              sees what it looks like before anything is decoded. */}
-          <VirtualHand
-            gesture={outputGesture || 'rest'}
-            label={output.index >= 0 ? (gestureLabels[output.index] ?? 'this gesture') : 'Rest'}
-            commitment={output.handCommitment}
-            latched={decision?.latched ?? false}
-            reversible={decision?.reversible ?? false}
-            timedOut={decision?.timedOut ?? false}
-            drive={drive}
+        {gestures.length > 0 && decision ? (
+          <CommitmentBar
+            gestures={gestures}
+            labels={gestureLabels}
+            leader={decision.leader}
+            commitment={decision.commitment}
+            latched={decision.latched}
+            reversible={decision.reversible}
+            timedOut={decision.timedOut}
+            evidence={decision.evidence}
+            effectiveThreshold={decision.effectiveThreshold}
+            risks={risks}
+            baseThreshold={DEFAULT_EVIDENCE_CONFIG.baseThreshold}
+            riskWeight={DEFAULT_EVIDENCE_CONFIG.riskWeight}
+            motionOnset={DEFAULT_EVIDENCE_CONFIG.motionOnset}
           />
-
-          <div className="actuation-readout">
-            {gestures.length > 0 && decision ? (
-              <CommitmentBar
-                gestures={gestures}
-                labels={gestureLabels}
-                leader={decision.leader}
-                commitment={decision.commitment}
-                latched={decision.latched}
-                reversible={decision.reversible}
-                timedOut={decision.timedOut}
-                evidence={decision.evidence}
-                effectiveThreshold={decision.effectiveThreshold}
-                risks={risks}
-                baseThreshold={DEFAULT_EVIDENCE_CONFIG.baseThreshold}
-                riskWeight={DEFAULT_EVIDENCE_CONFIG.riskWeight}
-                motionOnset={DEFAULT_EVIDENCE_CONFIG.motionOnset}
-              />
-            ) : (
-              <p className="panel muted" aria-busy={!status.ready}>
-                {status.ready ? 'Press start to begin decoding.' : 'Loading the decoder…'}
-              </p>
-            )}
-
-            <div className="panel">
-              <h2>Decoder</h2>
-              <dl className="readout-list">
-                <div>
-                  <dt>Decoded</dt>
-                  <dd data-correct={decision?.latched ? correct : undefined}>
-                    {decision?.latched
-                      ? decision.timedOut
-                        ? 'No clear intent'
-                        : (gestureLabels[decision.latchedClass ?? 0] ?? '—')
-                      : '—'}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Latency, this window</dt>
-                  <dd className="ng-num">
-                    {decision ? `${decision.latencyMs.toFixed(2)} ms` : '—'}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Model probability</dt>
-                  <dd className="ng-num">
-                    {typeof modelProbability === 'number'
-                      ? `${(modelProbability * 100).toFixed(1)}%`
-                      : '—'}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Virtual actuator</dt>
-                  <dd>
-                    {decision
-                      ? `${virtualCommand ?? 'Unmapped class'}${outputState ? ` · ${outputState}` : ''}`
-                      : '—'}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Latency, P95</dt>
-                  <dd className="ng-num">{p95 ? `${p95.toFixed(2)} ms` : 'measuring…'}</dd>
-                </div>
-                <div>
-                  <dt>WASM threads</dt>
-                  <dd className="ng-num">{status.threaded ? 'enabled' : 'single'}</dd>
-                </div>
-              </dl>
-              <p className="small muted">
-                Virtual output only. No physical actuator or motor is connected.
-              </p>
-            </div>
+        ) : (
+          <div className="live-idle" aria-busy={!status.ready}>
+            <p className="live-idle-title">
+              {status.ready ? 'Ready. Press Start decoding.' : 'Loading the decoder…'}
+            </p>
           </div>
-        </div>
+        )}
       </div>
 
-      <aside className="live-side">
-        <div className="panel">
-          <h2>Intended gesture</h2>
-          <p className="muted small">
-            Choose what you are attempting. The decoder is not told your choice.
+      <div className="live-output">
+        <Oscilloscope
+          display={decision?.display ?? null}
+          nChannels={nChannels}
+          windowMs={200}
+        />
+
+        <div className="live-ring">{ring}</div>
+
+        <section className="live-decoder" aria-labelledby="live-decoder-heading">
+          <h3 id="live-decoder-heading" className="visually-hidden">Decoder</h3>
+          <dl className="readout-list">
+            <div className="readout-primary">
+              <dt>Decided gesture</dt>
+              <dd data-correct={decision?.latched ? correct : undefined}>{decodedLabel}</dd>
+            </div>
+            <div>
+              <dt>Posterior</dt>
+              <dd className="ng-num">
+                {typeof modelProbability === 'number'
+                  ? `${(modelProbability * 100).toFixed(1)}%`
+                  : '—'}
+              </dd>
+            </div>
+            <div>
+              <dt>Hand action</dt>
+              <dd>
+                {decision
+                  ? `${virtualCommand ?? 'Unmapped class'}${outputState ? ` · ${outputState}` : ''}`
+                  : '—'}
+              </dd>
+            </div>
+            <div>
+              <dt><Term id="latency">Latency</Term></dt>
+              <dd className="ng-num">
+                {decision ? `${decision.latencyMs.toFixed(1)} ms` : '—'}
+                {p95 ? ` · P95 ${p95.toFixed(1)}` : ''}
+              </dd>
+            </div>
+          </dl>
+          <p className="small muted">
+            {status.threaded ? 'WASM threads on' : 'Single-threaded WASM'} · no motor attached
           </p>
-          <GestureChoices
-            labels={gestureLabels}
-            selected={intended}
-            onSelect={chooseGesture}
-            legend="Intended gesture"
-          />
-        </div>
-
-        <div className="panel">
-          <ActivationRing
-            channelRms={decision?.channelRms ?? new Array(nChannels).fill(0)}
-            fullScaleVolts={FULL_SCALE_VOLTS}
-            failedChannel={status.rejected?.channel ?? null}
-          />
-        </div>
-
-      </aside>
-
-      <div className="live-transport">
-        <button
-          type="button"
-          className="transport"
-          onClick={toggleRunning}
-          disabled={!status.ready}
-        >
-          <Icon name={running ? 'pause' : 'play'} />
-          {running ? 'Pause' : 'Start decoding'}
-        </button>
-        <button
-          type="button"
-          className="transport transport-quiet"
-          onClick={() => workerRef.current?.postMessage({ type: 'reset' } satisfies WorkerRequest)}
-          disabled={!status.ready}
-        >
-          <Icon name="reset" />
-          Release
-        </button>
+        </section>
       </div>
     </div>
+  );
+
+  return (
+    <Screen
+      title="Live decoding"
+      className="screen-live"
+      page={0}
+      onPage={() => undefined}
+      status={errorStatus}
+      pages={[
+        {
+          id: 'live',
+          label: 'Live',
+          summary:
+            'Pick a gesture, press Start, watch the hand.',
+          content: body,
+        },
+      ]}
+    />
   );
 }

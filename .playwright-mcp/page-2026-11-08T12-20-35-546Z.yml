@@ -1,0 +1,85 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - heading [level=1] [ref=e5]:
+      - link "NeuroGrip, overview" [ref=e6] [cursor=pointer]:
+        - /url: "#overview"
+        - generic [ref=e7]: NeuroGrip
+    - navigation "Application sections" [ref=e18]:
+      - button "Live" [ref=e19] [cursor=pointer]
+      - button "Results" [ref=e20] [cursor=pointer]
+      - button "Cartography" [ref=e21] [cursor=pointer]
+      - button "Attribution" [ref=e22] [cursor=pointer]
+      - button "Research review" [ref=e23] [cursor=pointer]: Review
+    - generic [ref=e24]:
+      - button "Words explained" [ref=e25] [cursor=pointer]
+      - button "Switch to dark theme" [ref=e29] [cursor=pointer]
+  - main [ref=e33]:
+    - region [ref=e34]:
+      - article [ref=e35]:
+        - generic [ref=e36]:
+          - heading "Muscle signal in. A careful grip out." [level=2] [ref=e37]
+          - paragraph [ref=e38]: It reads forearm muscle signals and moves a prosthetic hand, but only when it is sure.
+          - link "Try it live" [ref=e39] [cursor=pointer]:
+            - /url: "#live"
+      - link "Live decoding Watch a gesture become a decision" [ref=e42] [cursor=pointer]:
+        - /url: "#live"
+        - generic [ref=e43]:
+          - generic [ref=e44]: Live decoding
+          - generic [ref=e45]: Watch a gesture become a decision
+      - link "Cartography Gestures chosen to fit your muscles" [ref=e49] [cursor=pointer]:
+        - /url: "#cartography"
+        - generic [ref=e50]:
+          - generic [ref=e51]: Cartography
+          - generic [ref=e52]: Gestures chosen to fit your muscles
+      - region [ref=e56]:
+        - heading "From muscle to hand, in four steps" [level=3] [ref=e57]
+        - list [ref=e58]:
+          - listitem [ref=e59]:
+            - generic [aria-hidden] [ref=e60]: "1"
+            - heading "Muscles fire" [level=4] [ref=e68]
+            - paragraph [ref=e69]: Skin sensors pick up the tiny electricity your forearm makes.
+          - listitem [ref=e70]:
+            - generic [aria-hidden] [ref=e71]: "2"
+            - heading "Signal is measured" [level=4] [ref=e75]
+            - paragraph [ref=e76]: Fifty times a second, the latest slice becomes a few numbers.
+          - listitem [ref=e77]:
+            - generic [aria-hidden] [ref=e78]: "3"
+            - heading "Evidence builds" [level=4] [ref=e83]
+            - paragraph [ref=e84]: Confidence fills up. Risky grips need more of it.
+          - listitem [ref=e85]:
+            - generic [aria-hidden] [ref=e86]: "4"
+            - heading "Hand moves" [level=4] [ref=e90]
+            - paragraph [ref=e91]: It starts early, can still go back, and locks in when sure.
+      - region [ref=e92]:
+        - heading "Where it stands" [level=3] [ref=e93]
+        - generic [ref=e94]:
+          - generic [ref=e95]:
+            - term [ref=e96]: Gestures recognised
+            - definition [ref=e97]: 95.6%
+            - definition [ref=e98]: simulated people it never saw
+          - generic [ref=e99]:
+            - term [ref=e100]: Real recordings
+            - definition [ref=e101]: Lower
+            - definition [ref=e102]: early, exploratory tests
+          - generic [ref=e103]:
+            - term [ref=e104]: Hand starts moving
+            - definition [ref=e105]: 40 ms
+            - definition [ref=e106]: typical, in the simulator
+          - generic [ref=e107]:
+            - term [ref=e108]: One decision takes
+            - definition [ref=e109]: 2.6 ms
+            - definition [ref=e110]: in this browser, 10 ms limit
+        - navigation "Explore the research" [ref=e111]:
+          - link "How accurate" [ref=e112] [cursor=pointer]:
+            - /url: "#results"
+          - link "Why mistakes happen" [ref=e113] [cursor=pointer]:
+            - /url: "#attribution"
+          - link "Speed and safety" [ref=e114] [cursor=pointer]:
+            - /url: "#review"
+          - link "Words explained" [ref=e115] [cursor=pointer]:
+            - /url: "#glossary"
+  - contentinfo [ref=e116]:
+    - note [ref=e117]: Research prototype. Not a medical device. It replays simulated or recorded research data and reads no live electrodes.
+    - paragraph [ref=e118]:
+      - generic [ref=e119]: Built by
+      - text: Harsh Bavaskar · Anisa D'souza · Shruti Shanklesha

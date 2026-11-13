@@ -1,0 +1,4 @@
+[     162ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=c347d438:20100
+[     419ms] [WARNING] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio @ http://localhost:5173/node_modules/.vite/deps/chunk-OOILMEWI.js?v=c347d438:10696
+[    1839ms] [WARNING] AudioContext resume rejected, muting playback and continuing without audio InvalidStateError: AudioContext is closed. @ http://localhost:5173/node_modules/.vite/deps/chunk-OOILMEWI.js?v=c347d438:1282
+[  263804ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=c347d438:20100

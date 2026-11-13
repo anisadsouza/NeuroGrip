@@ -5,23 +5,35 @@ from neurogrip.attribution import (
     ErrorObservation,
     attribution_demo,
     attribute_error,
-    bhattacharyya_overlap,
+    repeat_confusability,
 )
 
 
-def test_identical_repetition_clusters_have_full_overlap():
+def test_identical_repetition_clusters_are_fully_confusable():
     rng = np.random.default_rng(4)
     samples = rng.normal(size=(20, 136))
 
-    assert bhattacharyya_overlap(samples, samples) == pytest.approx(1.0)
+    assert repeat_confusability(samples, samples.copy()) == pytest.approx(1.0, abs=0.15)
 
 
-def test_separated_repetition_clusters_have_less_overlap():
+def test_independent_draws_of_one_pattern_stay_confusable_in_high_dimension():
+    # The case the diagonal Bhattacharyya coefficient got wrong: two finite
+    # samples of the same distribution in 136 dimensions. Per-feature sampling
+    # noise multiplies across features and drove that coefficient to ~1e-50
+    # on simulated signals the decoder could not separate.
+    rng = np.random.default_rng(6)
+    first = rng.normal(size=(30, 136))
+    second = rng.normal(size=(30, 136))
+
+    assert repeat_confusability(first, second) > 0.6
+
+
+def test_separated_repetition_clusters_are_not_confusable():
     rng = np.random.default_rng(5)
     first = rng.normal(size=(20, 136))
     second = first + np.r_[np.full(17, 5.0), np.zeros(119)]
 
-    assert bhattacharyya_overlap(first, second) < 0.1
+    assert repeat_confusability(first, second) < 0.1
 
 
 @pytest.mark.parametrize(

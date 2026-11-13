@@ -1,0 +1,67 @@
+- generic [ref=f5e3]:
+  - banner [ref=f5e4]:
+    - heading [level=1] [ref=f5e5]:
+      - link "NeuroGrip, the idea" [ref=f5e6] [cursor=pointer]:
+        - /url: "#overview"
+        - generic [ref=f5e7]: NeuroGrip
+    - navigation "Guided path" [ref=f5e20]:
+      - list [ref=f5e21]:
+        - listitem [ref=f5e22]:
+          - 'button "Step 1: The idea" [ref=f5e23] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e24]: "1"
+            - generic [ref=f5e25]: Idea
+        - listitem [ref=f5e26]:
+          - 'button "Step 2: Live demo" [ref=f5e27] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e28]: "2"
+            - generic [ref=f5e29]: Live
+        - listitem [ref=f5e30]:
+          - 'button "Step 3: Accuracy" [ref=f5e31] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e32]: "3"
+            - generic [ref=f5e33]: Accuracy
+        - listitem [ref=f5e34]:
+          - 'button "Step 4: Personal gestures" [ref=f5e35] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e36]: "4"
+            - generic [ref=f5e37]: Gestures
+        - listitem [ref=f5e38]:
+          - 'button "Step 5: Why errors happen" [ref=f5e39] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e40]: "5"
+            - generic [ref=f5e41]: Errors
+        - listitem [ref=f5e42]:
+          - 'button "Step 6: Speed, safety and limits" [ref=f5e43] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e44]: "6"
+            - generic [ref=f5e45]: Safety
+    - generic [ref=f5e46]:
+      - button "Words explained" [ref=f5e47] [cursor=pointer]
+      - button "Switch to dark theme" [ref=f5e51] [cursor=pointer]
+  - main [ref=f5e55]:
+    - region [ref=f5e461]:
+      - generic [ref=f5e462]:
+        - generic [ref=f5e463]:
+          - heading "Results" [level=2] [ref=f5e464]
+          - paragraph [ref=f5e465]: Results on a recorded person it never trained on appear here once the NinaPro data is staged on this machine.
+        - generic [ref=f5e466]:
+          - tablist "Results pages" [ref=f5e467]:
+            - tab "Real recording" [selected] [ref=f5e468] [cursor=pointer]
+            - tab "Model comparison" [ref=f5e469] [cursor=pointer]
+            - tab "Speed" [ref=f5e470] [cursor=pointer]
+          - generic [ref=f5e471]:
+            - button "Previous page" [disabled] [ref=f5e472]
+            - generic [ref=f5e475]: 1 / 3
+            - button "Next page" [ref=f5e476] [cursor=pointer]
+      - tabpanel "Real recording" [ref=f5e479]:
+        - region [ref=f5e481]:
+          - heading "A real person it never saw" [level=3] [ref=f5e482]
+          - paragraph [ref=f5e483]: This build does not include the real recordings, which are licensed separately. When they are present, this page shows how well the decoder did on a recorded person it never trained on. Meanwhile, Model comparison shows results on simulated people.
+  - contentinfo [ref=f5e270]:
+    - note [ref=f5e271]: Research prototype. Not a medical device. Replays simulated or recorded research data; reads no live electrodes.
+    - paragraph [ref=f5e272]:
+      - generic [ref=f5e273]: Built by
+      - text: Harsh Bavaskar, Anisa D'Souza, Shruti Shanklesha
+    - navigation "Step through the path" [ref=f5e274]:
+      - 'button "Previous: Live" [ref=f5e484] [cursor=pointer]':
+        - generic [ref=f5e446]: "Previous:"
+        - text: Live
+      - 'button "Next: Personal gestures" [ref=f5e485] [cursor=pointer]':
+        - generic [ref=f5e276]:
+          - generic [ref=f5e277]: "Next:"
+          - text: 4Personal gestures

@@ -102,10 +102,15 @@ export function CommitmentBar({
   return (
     <section className="commitment" aria-labelledby="commitment-heading">
       <header className="commitment-head">
-        <h2 id="commitment-heading">Commitment</h2>
+        <h2 id="commitment-heading">Evidence</h2>
+        <span className="commitment-leader">{leaderName}</span>
         <p className="commitment-state" data-state={latched ? 'latched' : 'open'}>
           {state}
         </p>
+        <span className="ng-num commitment-percent">
+          {(commitment * 100).toFixed(0)}
+          <span className="commitment-unit">%</span>
+        </span>
       </header>
 
       <div
@@ -155,20 +160,8 @@ export function CommitmentBar({
         )}
       </div>
 
-      <footer className="commitment-foot">
-        <span className="commitment-leader">{leaderName}</span>
-        <span className="ng-num commitment-percent">
-          {(commitment * 100).toFixed(0)}
-          <span className="commitment-unit"> %</span>
-        </span>
-      </footer>
-
       <p className="commitment-legend">
-        The hand starts moving at the first mark and can still be taken back.
-        It holds only at this gesture&rsquo;s post
-        {risks[leader] !== undefined && risks[leader]! > 0
-          ? ', which sits further out because this grip is harder to undo.'
-          : '.'}
+        Thin mark: starts moving · heavy mark: locks, further out for risky moves
       </p>
 
       <div ref={liveRef} role="status" aria-live="polite" className="visually-hidden" />

@@ -19,6 +19,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DEFAULT_EVIDENCE_CONFIG } from '../packages/core/src/evidence.js';
+import { costWeightedErrorRate } from '../packages/core/src/cwer.js';
 import { type TtumOutcome, runTrial, summariseTtum } from '../packages/core/src/ttum.js';
 import { risksFor } from '../apps/web/src/decode/commitCost.js';
 
@@ -67,7 +68,13 @@ function main(): void {
   // written down twice.
   const risks = risksFor(manifest.gestures);
 
+  // The ablation keeps the mean boundary and removes only its asymmetry, so
+  // any CWER difference is the risk weighting and not a uniformly higher bar.
+  const meanRisk = risks.reduce((sum, value) => sum + value, 0) / risks.length;
+  const uniformRisks = risks.map(() => meanRisk);
+
   const outcomes: TtumOutcome[] = [];
+  const uniformOutcomes: TtumOutcome[] = [];
   const labels: number[] = [];
   for (const trial of manifest.trials) {
     const posteriors: number[][] = [];
@@ -76,10 +83,18 @@ function main(): void {
       posteriors.push(Array.from(flat.subarray(offset, offset + manifest.nClasses)));
     }
     outcomes.push(runTrial({ posteriors, trueClass: trial.label }, risks));
+    uniformOutcomes.push(runTrial({ posteriors, trueClass: trial.label }, uniformRisks));
     labels.push(trial.label);
   }
 
   const summary = summariseTtum(outcomes, labels, manifest.gestures, risks, manifest.hopMs);
+  const uniformSummary = summariseTtum(
+    uniformOutcomes, labels, manifest.gestures, uniformRisks, manifest.hopMs,
+  );
+  // Both arms are charged with the real costs: the ablation changes the
+  // boundaries, not what a mistake costs.
+  const cwer = costWeightedErrorRate(outcomes, labels, manifest.gestures, risks);
+  const uniformCwer = costWeightedErrorRate(uniformOutcomes, labels, manifest.gestures, risks);
   const hopsPerTrial = manifest.trials[0]?.length ?? 0;
 
   const payload = {
@@ -108,6 +123,28 @@ function main(): void {
       'structurally unreachable and censoring is the only failure mode. ' +
       'Lengthening the repetition past about 1.5 s would activate the timeout ' +
       'path and change what this metric measures.',
+    cwer: {
+      riskWeighted: cwer,
+      uniformBoundary: {
+        uniformRisk: meanRisk,
+        ...uniformCwer,
+        anyMotionP50Ms: uniformSummary.anyMotion.p50Ms,
+        latchP50Ms: uniformSummary.latch.p50Ms,
+      },
+      definition:
+        'Cost-Weighted Error Rate: the sum, over trials that latched a gesture ' +
+        'other than the intended one, of the commit cost of the gesture wrongly ' +
+        'committed to, divided by all trials. Costs are the COMMIT_COST table ' +
+        'the accumulator boundaries use, in [0, 1]. Correct latches, the urgency ' +
+        'fallback to rest, and trials that never committed are not charged; ' +
+        'each is counted. The uniform-boundary ablation gives every class the ' +
+        'mean commit cost, so its mean boundary matches the deployed one and only ' +
+        'the asymmetry is removed; both arms are charged with the real costs.',
+      caveat:
+        'Computed from simulator out-of-fold posteriors with no onset envelope. ' +
+        'It is not decomposed by error cause: the Phase 3 attribution router is a ' +
+        'simulator pilot and is not applied here. Not a recorded or human result.',
+    },
     caveat: manifest.caveat,
   };
 
@@ -127,6 +164,11 @@ function main(): void {
     `  latch           p50 ${summary.latch.p50Ms} ms   ` +
       `accuracy ${summary.latch.accuracyAtLatch?.toFixed(4) ?? '-'}   ` +
       `timed out ${summary.latch.nTimedOut}`,
+  );
+  console.log(
+    `  CWER            ${cwer.cwer?.toFixed(4) ?? '-'} (error rate ${cwer.errorRate?.toFixed(4) ?? '-'})   ` +
+      `uniform-boundary ablation ${uniformCwer.cwer?.toFixed(4) ?? '-'} ` +
+      `(error rate ${uniformCwer.errorRate?.toFixed(4) ?? '-'})`,
   );
   console.log(`\nwritten to ${out}`);
 }

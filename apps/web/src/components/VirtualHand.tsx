@@ -258,7 +258,7 @@ export function VirtualHand({
 
   return (
     <figure className="hand" data-latched={latched || undefined}>
-      <figcaption className="hand-caption">Hand</figcaption>
+      <figcaption className="hand-caption">Virtual prosthesis</figcaption>
 
       <svg
         className="hand-figure"
@@ -358,16 +358,14 @@ export function VirtualHand({
         {timedOut
           ? 'No clear intent. Held at rest.'
           : latched
-            ? 'Held. Press Release to open.'
+            ? 'Locked · press Release'
             : excursion > 0
-              ? 'Moving. Returns to rest if the evidence turns.'
+              ? 'Moving · can still reverse'
               : 'Waiting for evidence.'}
       </p>
 
       <p className="hand-legend">
-        Shape is the decoded intent.{' '}
-        <span className="hand-legend-key" aria-hidden="true" /> is live muscle drive
-        on that joint, straight off the electrodes.
+        <span className="hand-legend-key" aria-hidden="true" /> muscle effort
       </p>
 
       {target ? null : (

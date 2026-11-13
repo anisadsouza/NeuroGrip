@@ -72,10 +72,11 @@ describe('construction grid', () => {
     //   commitment  the filled portion of the bar versus the empty remainder
     //   manifold    the peak of the reachability contour
     //   alert       the full stop under the bar, which must not read as a ring
+    //   info        the dot of the i, for the same reason as alert's full stop
     // Adding a name here without a reason on this list is how a line icon set
     // drifts into a mixed one.
     expect(filled.sort()).toEqual(
-      ['alert', 'commitment', 'electrode', 'manifold', 'record', 'theme'].sort(),
+      ['alert', 'commitment', 'electrode', 'info', 'manifold', 'record', 'theme'].sort(),
     );
   });
 });

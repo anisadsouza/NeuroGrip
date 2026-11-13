@@ -18,23 +18,30 @@ holds the full design and the prior-art analysis behind each claim.
    manifold, synthesise gesture prototypes optimised for separability,
    repeatability and effort, and teach them back. *In progress (Phase 2):*
    `services/research/neurogrip/cartography.py` implements the simulated map,
-   per-prototype gate, and illustrative risk-weighted assignment. The gate
-   passes for at least one prototype in 2/8 intact and 5/8 finger-atrophy
-   simulated subjects; it does not establish human learnability. Teach-back
-   and wearer validation are not built.
+   per-prototype gate, simulated teach-back, and illustrative risk-weighted
+   assignment. The gate passes for at least one prototype in 2/8 intact and
+   5/8 finger-atrophy simulated subjects. A simulated reward-driven learner
+   learns 33/40 and 34/40 targets from Cartograph feedback alone (median 13
+   and 14 attempts), and 3/3 and 5/6 gate-passing prototypes keep ≥80%
+   recall as learned. Human learnability and wearer validation are untested.
 2. **Risk-weighted evidence accumulation** — the hand begins moving reversibly
    as evidence accrues and latches only at full commitment; high-cost gestures
    must clear a higher evidence bar than cheap ones. **Built**, and visible:
    the commitment bar shows the evidence, the virtual hand shows what it is
    doing to the prosthesis.
-3. **Error-attribution router** — a simulator-only pilot scores physiological,
-   behavioural, model-capacity and drift evidence, then routes four controlled
-   injections to their intended actions (4/4). This is a logic check, not
-   attribution accuracy on recorded or human errors.
-4. **Anatomical attribution** — a pilot localizes standardized deviations to
-   electrode-ring positions and supplies bounded practice language. It does
-   not yet back-project model feature importance or identify a muscle/finger;
-   real-data validation remains open (Phase 3).
+3. **Error-attribution router** — scores physiological, behavioural,
+   model-capacity and drift evidence for each error and routes it. Four
+   hand-built injections route 4/4 (a logic check). End to end on simulated
+   sessions (`router_session.py`), 15/20 sessions over five pre-declared seeds
+   route to their injected cause: behavioural and model-capacity 5/5,
+   drift 3/5, physiological 2/5. Not validated on recorded or human errors.
+4. **Anatomical attribution** — `coaching.py` decomposes a linear surrogate's
+   error margin exactly over features, back-projects it through the nominal
+   volume-conduction matrix onto four muscle groups, and issues one sentence.
+   On injected simulated deviations it names the right group and direction on
+   85.7% of 910 error windows (chance 12.5%) — an upper bound, because the
+   inverse uses the simulator's own forward-model family. No timing advice
+   (no onset envelope), never a single finger, not validated with people.
 
 **How to use the application: `docs/walkthrough.md`.**
 
@@ -47,16 +54,18 @@ holds the full design and the prior-art analysis behind each claim.
 | 0 | Simulator, feature pipeline in both languages, conformance gate, CI | Complete |
 | 1a | Corpus, LOSO evaluation, model comparison, calibration, ONNX export, latency | Complete |
 | 1b | Evidence accumulator, design system, browser app, Live screen, virtual hand, verification layer, TTUM | Complete |
-| 2 | Neuromotor Cartography | In progress — simulation map, per-prototype gate and illustrative assignment built; gate passes in 2/8 intact and 5/8 finger-atrophy simulated subjects |
-| 3 | Error-attribution router, anatomical coaching | Simulator-only pilot and screen built; controlled injections route 4/4; offline LDA feature attribution and three model references tested on three development subjects; independent/human validation remains |
-| 4 | Clinician review screens, amputee stratum, robustness | Review screens for Evaluate, Robustness, Latency and Records built; robustness plot is simulated only; amputee evaluation and real-world robustness validation remain |
-| 5 | Azure deployment, patent disclosures | Deployment not started; internal disclosure drafts prepared, legal review and data permissions unresolved |
+| 2 | Neuromotor Cartography | Software complete in simulation — map, per-prototype gate, simulated teach-back, illustrative assignment; gate passes in 2/8 intact and 5/8 finger-atrophy simulated subjects; human teach-back untested |
+| 3 | Error-attribution router, anatomical coaching | Software complete in simulation — controlled injections 4/4; end-to-end simulated sessions 15/20; muscle-group back-projection and coaching grammar, 85.7% localisation on simulated injections; offline LDA attribution on three development NinaPro subjects; independent/human validation remains |
+| 4 | Clinician review screens, amputee stratum, robustness | Evaluate, Decision timing (TTUM + CWER), Robustness, Latency and Records built; robustness and timing are simulated only; amputee evaluation and real-world robustness validation remain |
+| 5 | Azure deployment, patent disclosures | Deployment not started; internal disclosure drafts kept local and untracked (the public repo's history still contains an earlier copy), legal review and data permissions unresolved |
 
-**526 tests** — 223 Python, 275 TypeScript, 28 browser.
+**587 tests** — 253 Python, 298 TypeScript, 36 browser. Without locally
+staged NinaPro data, four browser tests skip; everything else runs on
+simulated data alone.
 
-Not yet built or validated: Cartography teach-back, integrated/independently
-validated error attribution and coaching, real-world robustness, amputee
-evaluation, and deployment.
+Not yet built or validated: human teach-back, independently validated error
+attribution and coaching on recorded or human errors, real-world robustness,
+amputee evaluation, and deployment.
 
 ---
 
@@ -284,9 +293,21 @@ Three properties of the number, all of which change what it means:
   contraction, not reaction time from the moment of intent. It is a lower
   bound, and the figure must not travel without that sentence.
 
-CWER is deliberately not computed yet. The Phase 3 router is a controlled
-injection demonstrator, not a validated attribution system, and a half-defined
-safety metric quoted once becomes the number people remember.
+### Cost-weighted error rate
+
+`packages/core/src/cwer.ts`, run by `npm run ttum` on the same replay. Each
+wrong latch is charged the `COMMIT_COST` of the gesture wrongly committed to,
+divided by **every** trial. Correct latches, the urgency fallback to rest, and
+trials that never committed are not charged, and each is counted, so a run
+that wins CWER by never committing shows as exactly that.
+
+Measured over the same 320 trials: **CWER 0.59%** against a plain error rate
+of 1.25% (4 wrong latches; 11 uncommitted). A uniform-boundary ablation — every
+class at the mean commit cost, so only the asymmetry is removed — gives CWER
+0.97% and error rate 1.88% (6 wrong latches; 6 uncommitted), with motion
+starting 20 ms later at the median. Four against six wrong latches is too few
+to call significant. CWER is not decomposed by error cause; it is a simulator
+number with the same no-onset caveat as TTUM.
 
 ---
 
@@ -349,22 +370,41 @@ Three tests are the gates worth knowing about:
 
 ## Design system
 
-`packages/design/`. Two rules, both enforced by tests:
+`packages/design/` holds the tokens and icons; `apps/web/src/shell.css` and
+`apps/web/src/theme.css` hold the frame and the visual layer. Revised
+2026-11-08 at the owner's request (more colour, less text, plain words,
+everything on one screen). The rules now:
 
 1. **The graticule means measurement.** A grid appears only behind data with a
-   real scale — signal lanes, the commitment bar. Never as chrome.
-2. **Carmine means muscle.** The one chromatic hue encodes activation intensity,
-   following anatomical illustration convention. It is never used to emphasise a
-   heading or a control.
+   real scale (signal lanes, the commitment bar, plots). Never as chrome.
+2. **Every hue means one thing.** Four story colours follow a gesture from body
+   to hand: carmine = muscle, blue = signal (and recorded data), amber =
+   evidence (the decoder growing sure), green = grip (a committed outcome).
+   The four were validated together for colour-blind separation, all pairs,
+   in both themes (dataviz validator). Every coloured mark also carries a
+   label or icon. Commit, caution and stop keep their state meanings.
+   `contrast.test.ts` asserts exactly these hue families exist.
+3. **One viewport, no page scroll on a desktop.** Every screen is a `Screen`
+   (`components/Screen.tsx`) whose content is split into pages behind a real
+   tab list. `e2e/layout.spec.ts` asserts every page of every screen fits at
+   1440 x 900 and 1280 x 800. Narrow or short windows fall back to scrolling.
+4. **Nothing outside the UI.** No screen may tell the reader to run a command;
+   `layout.spec.ts` checks every page for `npm run`, `python -m` and the like.
+   Missing data is explained in plain words, and an unavailable source is
+   disabled up front rather than failing after it is chosen.
+5. **Plain words.** Every technical term lives in `apps/web/src/glossary.ts`
+   (plain definition plus a one-line way to say it out loud). The same text
+   powers the Words explained screen and the inline `<Term>` definitions.
 
-Type is Atkinson Hyperlegible for interface text — designed by the Braille
-Institute for maximum character distinction at low vision, which matters because
-the intended users are people with disabilities — and IBM Plex Mono for numerals
-only, where tabular alignment is functional.
-
-No gradients, no glows, no shadows beyond a hairline. Corners are rounded on a
-scale: `sm 3px` for small marks, `6px` default, `lg 10px` for outermost
-surfaces. A nested surface always takes a smaller radius than its container.
+Type: Geist for display (headlines and big numbers), Atkinson Hyperlegible for
+all interface text (designed for low vision, which matters for the intended
+users), IBM Plex Mono for small instrument numerals. Shape scale, stated once:
+actions and tabs are pills, controls 12px, tiles 24px, nested beds 16px. Tiles
+are borderless on a pale ground; no shadows. Imagery is generated high-key
+studio photography (`apps/web/public/images/`), used as illustration only and
+never presented as this project's hardware. The logo is the Ring G mark
+(`components/Mark.tsx`): seven electrodes on the ring, the eighth stepping
+inside as the G's bar.
 
 `packages/design/test/contrast.test.ts` parses the real token file and computes
 WCAG ratios for every foreground/background pair in both themes. A palette

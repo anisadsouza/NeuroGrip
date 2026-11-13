@@ -160,8 +160,8 @@
   "trained_on": "simulator",
   "onnx_parity": {
     "ok": true,
-    "max_abs_diff": 5.125e-07,
-    "max_rel_diff": 1.057e-05,
+    "max_abs_diff": 5.133e-07,
+    "max_rel_diff": 1.22e-05,
     "n_samples": 2000,
     "rtol": 0.0001,
     "atol": 1e-05
@@ -170,25 +170,25 @@
     "n_windows": 1000,
     "batched": false,
     "feature_extraction": {
-      "mean_ms": 0.8477,
-      "p50_ms": 0.8426,
-      "p95_ms": 0.8745,
-      "p99_ms": 1.0614,
-      "max_ms": 2.0252
+      "mean_ms": 1.3423,
+      "p50_ms": 1.1926,
+      "p95_ms": 2.1696,
+      "p99_ms": 2.8605,
+      "max_ms": 4.4148
     },
     "onnx_inference": {
-      "mean_ms": 0.5101,
-      "p50_ms": 0.5063,
-      "p95_ms": 0.5219,
-      "p99_ms": 0.5972,
-      "max_ms": 0.9004
+      "mean_ms": 0.7827,
+      "p50_ms": 0.7192,
+      "p95_ms": 1.1431,
+      "p99_ms": 1.653,
+      "max_ms": 3.1438
     },
     "end_to_end": {
-      "mean_ms": 1.3578,
-      "p50_ms": 1.3499,
-      "p95_ms": 1.4044,
-      "p99_ms": 1.6743,
-      "max_ms": 2.9151
+      "mean_ms": 2.125,
+      "p50_ms": 1.9319,
+      "p95_ms": 3.2443,
+      "p99_ms": 4.0174,
+      "max_ms": 5.6419
     },
     "budget_ms": 10.0,
     "meets_budget": true

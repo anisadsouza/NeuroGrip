@@ -1,0 +1,162 @@
+- generic [ref=f5e3]:
+  - banner [ref=f5e4]:
+    - heading [level=1] [ref=f5e5]:
+      - link "NeuroGrip, the idea" [ref=f5e6] [cursor=pointer]:
+        - /url: "#overview"
+        - generic [ref=f5e7]: NeuroGrip
+    - navigation "Guided path" [ref=f5e20]:
+      - list [ref=f5e21]:
+        - listitem [ref=f5e22]:
+          - 'button "Step 1: The idea" [ref=f5e23] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e24]: "1"
+            - generic [ref=f5e25]: Idea
+        - listitem [ref=f5e26]:
+          - 'button "Step 2: Live demo" [ref=f5e27] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e28]: "2"
+            - generic [ref=f5e29]: Live
+        - listitem [ref=f5e30]:
+          - 'button "Step 3: Accuracy" [ref=f5e31] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e32]: "3"
+            - generic [ref=f5e33]: Accuracy
+        - listitem [ref=f5e34]:
+          - 'button "Step 4: Personal gestures" [ref=f5e35] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e36]: "4"
+            - generic [ref=f5e37]: Gestures
+        - listitem [ref=f5e38]:
+          - 'button "Step 5: Why errors happen" [ref=f5e39] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e40]: "5"
+            - generic [ref=f5e41]: Errors
+        - listitem [ref=f5e42]:
+          - 'button "Step 6: Speed, safety and limits" [ref=f5e43] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e44]: "6"
+            - generic [ref=f5e45]: Safety
+    - generic [ref=f5e46]:
+      - button "Words explained" [ref=f5e47] [cursor=pointer]
+      - button "Switch to dark theme" [ref=f5e51] [cursor=pointer]
+  - main [ref=f5e55]:
+    - region [ref=f5e56]:
+      - generic [ref=f5e57]:
+        - heading "Reads the forearm. Moves only when sure." [level=2] [ref=f5e58]
+        - paragraph [ref=f5e59]:
+          - text: Real-time
+          - button "sEMG" [ref=f5e61]
+          - text: gesture decoding for prosthetic hands, with four mechanisms a standard classifier does not have.
+        - link "Start the live demo" [ref=f5e62] [cursor=pointer]:
+          - /url: "#live"
+        - generic [ref=f5e65]:
+          - generic [ref=f5e66]:
+            - term [ref=f5e67]:
+              - button "LOSO" [ref=f5e69]
+              - text: accuracy
+            - definition [ref=f5e70]: …
+          - generic [ref=f5e71]:
+            - term [ref=f5e72]:
+              - button "ECE" [ref=f5e74]
+            - definition [ref=f5e75]: …
+          - generic [ref=f5e76]:
+            - term [ref=f5e77]:
+              - text: P95
+              - button "latency" [ref=f5e79]
+            - definition [ref=f5e80]: …
+          - generic [ref=f5e81]:
+            - term [ref=f5e82]:
+              - text: Median
+              - button "TTUM" [ref=f5e84]
+            - definition [ref=f5e85]: …
+        - paragraph [ref=f5e86]: Simulated subjects, out-of-fold. Not yet evaluated on a human recording.
+      - figure "Pause the film One gesture, end to end. Simulated signal; the hand is the app’s own virtual prosthesis." [ref=f5e87]:
+        - generic [ref=f5e92]:
+          - img [aria-hidden] [ref=f5e93]:
+            - generic [ref=f5e94]:
+              - generic [ref=f5e95]: 1 Muscles fire
+              - generic [ref=f5e98]: 2 Electrodes record
+              - generic [ref=f5e101]: 3 Evidence builds
+              - generic [ref=f5e104]: 4 Hand latches
+            - generic [ref=f5e107]:
+              - generic [ref=f5e108]: Forearm, cut across
+              - generic [ref=f5e113]: "1"
+              - generic [ref=f5e117]: "2"
+              - generic [ref=f5e121]: "3"
+              - generic [ref=f5e125]: "4"
+              - generic [ref=f5e129]: "5"
+              - generic [ref=f5e133]: "6"
+              - generic [ref=f5e137]: "7"
+              - generic [ref=f5e141]: "8"
+            - generic [ref=f5e145]:
+              - generic [ref=f5e146]: Eight sEMG channels
+              - generic [ref=f5e147]: "1"
+              - generic [ref=f5e150]: "2"
+              - generic [ref=f5e153]: "3"
+              - generic [ref=f5e156]: "4"
+              - generic [ref=f5e159]: "5"
+              - generic [ref=f5e162]: "6"
+              - generic [ref=f5e165]: "7"
+              - generic [ref=f5e168]: "8"
+            - generic [ref=f5e171]:
+              - generic [ref=f5e172]: Evidence for close fist
+              - generic [ref=f5e173]: Waiting
+              - generic [ref=f5e175]: hand starts moving
+              - generic [ref=f5e176]: locks
+          - figure "Virtual prosthesis" [ref=f5e178]:
+            - img "Prosthetic hand, at rest. 0 percent of full travel, muscle drive 0 percent." [ref=f5e179]
+            - paragraph [ref=f5e222]: Waiting for the decoder to be sure.
+        - generic [ref=f5e223]:
+          - button "Pause the film" [ref=f5e224] [cursor=pointer]
+          - generic [ref=f5e226]: One gesture, end to end. Simulated signal; the hand is the app’s own virtual prosthesis.
+      - region [ref=f5e227]:
+        - heading "Four mechanisms beyond a classifier" [level=3] [ref=f5e228]
+        - list [ref=f5e229]:
+          - listitem [ref=f5e230]:
+            - link "Risk-weighted evidence Built Risky grips must clear a higher bar. The hand moves early and can retract until it latches. … cost-weighted error, against … plain error" [ref=f5e231] [cursor=pointer]:
+              - /url: "#live"
+              - generic [ref=f5e232]:
+                - generic [aria-hidden] [ref=f5e233]: "1"
+                - generic [ref=f5e234]: Risk-weighted evidence
+                - generic [ref=f5e235]: Built
+              - generic [ref=f5e236]: Risky grips must clear a higher bar. The hand moves early and can retract until it latches.
+              - generic [ref=f5e237]:
+                - generic [ref=f5e238]: …
+                - generic [ref=f5e239]: cost-weighted error, against … plain error
+          - listitem [ref=f5e240]:
+            - link "Neuromotor Cartography Simulation Maps a person's reachable muscle patterns and designs gestures that fit them. … atrophy subjects gain a passing gesture (intact …)" [ref=f5e241] [cursor=pointer]:
+              - /url: "#cartography"
+              - generic [ref=f5e242]:
+                - generic [aria-hidden] [ref=f5e243]: "2"
+                - generic [ref=f5e244]: Neuromotor Cartography
+                - generic [ref=f5e245]: Simulation
+              - generic [ref=f5e246]: Maps a person's reachable muscle patterns and designs gestures that fit them.
+              - generic [ref=f5e247]:
+                - generic [ref=f5e248]: …
+                - generic [ref=f5e249]: atrophy subjects gain a passing gesture (intact …)
+          - listitem [ref=f5e250]:
+            - 'link "Error-attribution router Simulation Sends each mistake to its cause: the body, the technique, the decoder, or drift. … simulated sessions routed to the injected cause" [ref=f5e251] [cursor=pointer]':
+              - /url: "#attribution"
+              - generic [ref=f5e252]:
+                - generic [aria-hidden] [ref=f5e253]: "3"
+                - generic [ref=f5e254]: Error-attribution router
+                - generic [ref=f5e255]: Simulation
+              - generic [ref=f5e256]: "Sends each mistake to its cause: the body, the technique, the decoder, or drift."
+              - generic [ref=f5e257]:
+                - generic [ref=f5e258]: …
+                - generic [ref=f5e259]: simulated sessions routed to the injected cause
+          - listitem [ref=f5e260]:
+            - link "Anatomical coaching Simulation Names the muscle group behind an error, in one sentence the wearer can act on. … of error windows localised (chance …)" [ref=f5e261] [cursor=pointer]:
+              - /url: "#attribution"
+              - generic [ref=f5e262]:
+                - generic [aria-hidden] [ref=f5e263]: "4"
+                - generic [ref=f5e264]: Anatomical coaching
+                - generic [ref=f5e265]: Simulation
+              - generic [ref=f5e266]: Names the muscle group behind an error, in one sentence the wearer can act on.
+              - generic [ref=f5e267]:
+                - generic [ref=f5e268]: …
+                - generic [ref=f5e269]: of error windows localised (chance …)
+  - contentinfo [ref=f5e270]:
+    - note [ref=f5e271]: Research prototype. Not a medical device. Replays simulated or recorded research data; reads no live electrodes.
+    - paragraph [ref=f5e272]:
+      - generic [ref=f5e273]: Built by
+      - text: Harsh Bavaskar, Anisa D'Souza, Shruti Shanklesha
+    - navigation "Step through the path" [ref=f5e274]:
+      - 'button "Next: Live demo" [ref=f5e275] [cursor=pointer]':
+        - generic [ref=f5e276]:
+          - generic [ref=f5e277]: "Next:"
+          - text: 2Live demo

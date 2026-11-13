@@ -57,7 +57,7 @@ for (const theme of THEMES) {
  * once nested still fails here.
  */
 test('the gesture picker is a well-formed radio group in the composed page', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/#live');
   await page.waitForSelector('[role="radiogroup"]');
 
   const results = await new AxeBuilder({ page }).include('[role="radiogroup"]').analyze();

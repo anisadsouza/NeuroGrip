@@ -31,3 +31,20 @@ await copyFile(source, target);
 const { size } = await stat(target);
 if (size === 0) throw new Error(`Staged robustness report is empty: ${target}`);
 console.log(`staged simulated robustness report to ${target}`);
+
+// Decision timing: TTUM and CWER from the simulator's out-of-fold posteriors.
+const ttumSource = resolve(process.argv[4] ?? 'artifacts/ttum.json');
+const ttumTarget = resolve(process.argv[5] ?? 'apps/web/public/clinician/ttum.json');
+const ttum = JSON.parse(await readFile(ttumSource, 'utf8'));
+if (
+  ttum.source !== 'simulator' ||
+  !ttum.anyMotion ||
+  !ttum.latch ||
+  !ttum.cwer?.riskWeighted ||
+  !ttum.cwer?.uniformBoundary ||
+  ttum.anyMotion.nMoved + ttum.anyMotion.nCensored !== ttum.nTrials
+) {
+  throw new Error(`TTUM report has an unexpected shape or lacks CWER: ${ttumSource}`);
+}
+await copyFile(ttumSource, ttumTarget);
+console.log(`staged simulated TTUM and CWER report to ${ttumTarget}`);

@@ -70,13 +70,27 @@ const TEXT_PAIRS: ReadonlyArray<[string, string, number, string]> = [
   ['--ng-commit', '--ng-paper', 4.5, 'the latched-state label'],
   ['--ng-caution', '--ng-paper', 4.5, 'drift and fatigue warnings'],
   ['--ng-stop', '--ng-paper', 4.5, 'rejected-window message'],
+  ['--ng-accent', '--ng-paper', 4.5, 'accent links and the active step label'],
+  ['--ng-accent', '--ng-paper-raised', 4.5, 'accent text on a panel'],
+  ['--ng-accent', '--ng-accent-wash', 4.5, 'the current step on its tinted ground'],
+  ['--ng-on-accent', '--ng-accent', 4.5, 'label on the primary button'],
+  ['--ng-ink', '--ng-accent-wash', 4.5, 'text in a selected row'],
 ];
+
 
 /** Non-text marks only need 3:1 under WCAG 1.4.11. */
 const GRAPHIC_PAIRS: ReadonlyArray<[string, string, number, string]> = [
   ['--ng-muscle', '--ng-paper-sunk', 3, 'the signal trace against its bed'],
   ['--ng-commit', '--ng-paper-sunk', 3, 'the commitment bar fill'],
   ['--ng-ink', '--ng-paper-sunk', 3, 'plotted lines'],
+  ['--ng-signal', '--ng-paper-sunk', 3, 'the signal trace against its bed'],
+  ['--ng-signal', '--ng-paper', 3, 'signal marks and recorded-data badges'],
+  ['--ng-signal', '--ng-signal-wash', 3, 'a signal icon on its tile'],
+  ['--ng-evidence', '--ng-paper', 3, 'the evidence fill edge'],
+  ['--ng-evidence', '--ng-evidence-wash', 3, 'an evidence icon on its tile'],
+  ['--ng-grip', '--ng-paper', 3, 'committed-grip marks'],
+  ['--ng-grip', '--ng-grip-wash', 3, 'a grip icon on its tile'],
+  ['--ng-muscle', '--ng-muscle-wash', 3, 'a muscle icon on its tile'],
   // Listed here and NOT in TEXT_PAIRS, which is the whole point of the token:
   // --ng-ink-faint clears 3:1 for a mark and does not clear 4.5:1 for prose.
   // It is for hairlines, ghost outlines and the rest posture behind a moving
@@ -87,6 +101,7 @@ const GRAPHIC_PAIRS: ReadonlyArray<[string, string, number, string]> = [
   // drawn on. It does NOT clear 3:1 on paper-sunk, so a faint mark must not be
   // moved into a plot bed without being restated in a darker ink.
   ['--ng-ink-faint', '--ng-paper-raised', 3, 'the rest posture behind a moving hand'],
+  ['--ng-accent', '--ng-paper-sunk', 3, 'evidence fill edge in the commitment bar'],
   // Deliberately NOT listed: --ng-rule / --ng-rule-strong against the ground.
   // WCAG 1.4.11 covers graphics needed to *understand content* and the visual
   // boundaries of *interactive controls*. A structural separator between two
@@ -173,7 +188,7 @@ describe('palette discipline', () => {
     expect(base).toBeGreaterThan(small);
     expect(large).toBeGreaterThan(base);
     // Nothing so round it stops reading as an instrument panel.
-    expect(large).toBeLessThanOrEqual(16);
+    expect(large).toBeLessThanOrEqual(12);
   });
 
   it('respects reduced motion', () => {
@@ -201,12 +216,33 @@ describe('palette discipline', () => {
     expect(Object.keys(media).sort()).toEqual(Object.keys(dark).sort());
   });
 
-  it('carries exactly one chromatic family for activation', () => {
-    // Carmine encodes muscle. The state colours are semantic, not accents.
-    // If a fourth hue appears, someone has started decorating.
-    const hues = Object.entries(light)
-      .filter(([name]) => /muscle|commit|caution|stop/.test(name))
-      .map(([name]) => name.replace(/--ng-|-weak|-wash/g, ''));
-    expect(new Set(hues).size).toBe(4);
+  it('carries exactly the declared hue families', () => {
+    // Premise changed 2026-11-08 (evening) at the owner's request: the chrome
+    // has ONE accent. The four story hues survive only as data colours inside
+    // figures, and the state colours keep their meaning. A hue outside these
+    // lists means someone has started decorating.
+    const family = (name: string) => name.replace(/--ng-|on-|-weak|-wash|-strong/g, '');
+    const hues = new Set(
+      Object.keys(light)
+        .filter((name) => /accent|muscle|signal|evidence|grip|commit|caution|stop/.test(name))
+        .map(family),
+    );
+    expect([...hues].sort()).toEqual(
+      ['accent', 'caution', 'commit', 'evidence', 'grip', 'muscle', 'signal', 'stop'],
+    );
+  });
+
+  it('keeps data colours out of the chrome', () => {
+    // shell.css is the frame and every screen's layout. Data hues belong to
+    // figures (app.css and the SVG/canvas components), never to navigation,
+    // headings, buttons or panels.
+    const shell = readFileSync(
+      fileURLToPath(new URL('../../../apps/web/src/shell.css', import.meta.url)),
+      'utf-8',
+    );
+    const leaks = [...shell.matchAll(/var\(--ng-(muscle|signal|evidence|grip)[\w-]*\)/g)].map(
+      (match) => match[0],
+    );
+    expect(leaks, `data hue used in chrome: ${leaks.join(', ')}`).toEqual([]);
   });
 });

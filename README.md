@@ -74,9 +74,8 @@ every number on it means.
 The [technical reference](docs/technical_reference.md) consolidates the
 implementation, experiments, limitations, and reproducible commands.
 The [data/release review](docs/data_and_release_review.md) records the current
-NinaPro permission status, and
-[patent-disclosure working drafts](docs/patent_disclosure_drafts.md) are
-internal-only material for team and counsel review.
+NinaPro permission status. Patent-disclosure working drafts are internal-only
+material kept outside version control while this repository is public.
 
 ## Where it stands
 
@@ -87,7 +86,10 @@ internal-only material for team and counsel review.
 | Recorded quality gate | 16,572 / 17,293 labeled S10 windows accepted (95.83%); 721 rejected across rest and movement labels. Acceptance is not accuracy |
 | Browser replay latency | NinaPro worker P95: 1.18 ms (2026-11-03, MacBook Air / Apple M3; feature extraction + inference only, not total reaction time). P95 varies between runs; a prior run measured 2.70 ms |
 | Time to motion | Simulator-only TTUM: 40 ms median before the hand starts moving, 260 ms to latch |
-| Neuromotor Cartography | Simulator-only per-prototype gate: at least one prototype passes for 2/8 intact and 5/8 finger-atrophy subjects; no human learnability result |
+| Cost-weighted error | Simulator-only CWER 0.59% (plain error 1.25%); uniform-boundary ablation 0.97% (1.88%). 4 vs 6 wrong latches — not significant |
+| Neuromotor Cartography | Simulator-only per-prototype gate: at least one prototype passes for 2/8 intact and 5/8 finger-atrophy subjects; a simulated learner learns 33/40 and 34/40 targets; no human learnability result |
+| Error routing | Simulator-only: 4/4 hand-built injections; 15/20 end-to-end simulated sessions over five seeds |
+| Anatomical coaching | Simulator-only: names the injected muscle group and direction on 85.7% of 910 error windows (chance 12.5%); an upper bound |
 | Error attribution | Synthetic router checks: 4/4; offline LDA score-margin attribution compared with linear SVM, RBF-SVM, and random forest on three development subjects; not causal or human-validated |
 | Tests | 223 Python + 275 TypeScript tests; 28 browser tests; typecheck passes |
 | Built | Simulator and decoder, DB2 loader and comparison, subject-held-out ONNX export/replay, Live and Results, simulator-only Cartography and Error Attribution, clinician-oriented Evaluate/Robustness/Latency/Records views |
@@ -132,10 +134,15 @@ npm run stage:cartography
 
 The gate requires at least 80% held-out repetition recall and better
 nearest-rival separation than the one-to-one matched catalogue gesture.
-In this simulator, 3/40 intact and 6/40 finger-atrophy prototypes pass. This is
-not evidence of human learnability: babble, users, and trials are simulated,
-and there is no teach-back or wearer study. The displayed function assignment
-is illustrative only.
+In this simulator, 3/40 intact and 6/40 finger-atrophy prototypes pass.
+Teach-back is simulated: a reward-driven learner starts at rest and adjusts its
+command from Cartograph feedback alone. It learns 33/40 intact and 34/40
+finger-atrophy targets (median 13 and 14 attempts; learned = 3 of the last 5
+attempts nearest the target), and 3/3 and 5/6 gate-passing prototypes keep at
+least 80% decoder recall as learned. The learner's command space is the
+synergy set babble was generated from, so every target is reachable by
+construction. This is not evidence of human learnability, and the displayed
+function assignment is illustrative only.
 
 The Attribution screen demonstrates physiological-overlap, behavioral,
 model-capacity, and drift routes on four controlled synthetic injections. To
@@ -147,7 +154,25 @@ npm run stage:attribution
 ```
 
 The 4/4 result verifies only those designed cases. It is not measured
-attribution accuracy. Its ring marks channel-level deviations, not specific
+attribution accuracy. The same screen also routes errors end to end on
+simulated sessions, and checks whether the anatomical coaching names the
+injected muscle group:
+
+```bash
+python -m neurogrip.experiments router-session --out artifacts/router_session.json
+python -m neurogrip.experiments coaching --out artifacts/coaching_localisation.json
+npm run stage:attribution
+```
+
+Over five pre-declared seeds, 15/20 sessions route to their injected cause
+(behavioural and model-capacity 5/5, drift 3/5, physiological 2/5). The first
+run scored 2/4 on seed 0 and exposed three estimator defects, which were fixed
+without changing any routing threshold; `artifacts/router_session.json`
+records what changed. Coaching names the injected group and direction on
+85.7% of 910 error windows across five simulated subjects. The back-projection
+inverts the simulator's own volume-conduction model family, so that is an
+upper bound, and the coaching explains a linear surrogate rather than the
+deployed RBF SVM. Its ring marks channel-level deviations, not specific
 muscles or fingers. A separate offline analysis now decomposes held-out errors
 from a trained uniform-prior LDA into exact feature contributions and compares
 them with a trained RBF-SVM reference:

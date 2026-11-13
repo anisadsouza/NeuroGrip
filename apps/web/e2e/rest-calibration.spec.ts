@@ -25,13 +25,13 @@ const HAS_REST_WARNING = Boolean(existsSync(MANIFEST_PATH) && (
 
 test('Live reports high rest RMS as a non-blocking calibration warning', async ({ page }) => {
   test.skip(!HAS_REST_WARNING, 'No flagged local NinaPro rest calibration is staged.');
-  await page.goto('/');
-  await page.getByLabel('Replay source').selectOption('ninapro');
+  await page.goto('/#live');
+  await page.getByLabel('Choose the signal').selectOption('ninapro');
 
   const warning = page.getByRole('status').filter({
-    hasText: 'Recorded rest RMS screen flagged channel',
+    hasText: 'Rest screen flagged channel',
   });
-  await expect(warning).toContainText('above the exploratory 50 µV RMS screen');
+  await expect(warning).toContainText('50 µV RMS');
   await expect(warning).toContainText('Replay continues');
   await expect(warning).toContainText('not a validated fault diagnosis');
 });

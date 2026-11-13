@@ -1,108 +1,11 @@
 /**
- * Live screen layout.
+ * Figures: the oscilloscope, commitment bar, hand, activation ring, plots,
+ * tables and the hero film.
  *
- * Every colour, size and duration here comes from a token. A literal value in
- * this file is a bug: it means something escaped the design system and will
- * not follow the theme.
+ * This is the only stylesheet allowed to use the data colours (muscle,
+ * signal, evidence, grip); shell.css, the chrome, is tested never to. Every
+ * colour, size and duration here comes from a token.
  */
-
-.app {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-/* The wordmark is drawn, not set: see Wordmark.tsx for the grid. It sizes by
-   height and takes whatever width the construction gives it. */
-.wordmark {
-  display: block;
-  height: 0.92em;
-  width: auto;
-  color: var(--ng-ink);
-}
-
-.masthead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--ng-space-4);
-  padding: var(--ng-space-4);
-  border-bottom: var(--ng-hairline) solid var(--ng-rule);
-}
-
-.masthead-title {
-  display: flex;
-  align-items: baseline;
-  gap: var(--ng-space-3);
-}
-.masthead-title .icon {
-  align-self: center;
-}
-.masthead h1 {
-  font-size: var(--ng-text-xl);
-  line-height: var(--ng-leading-tight);
-  margin: 0;
-  letter-spacing: -0.015em;
-}
-.masthead-sub {
-  margin: 0;
-  color: var(--ng-ink-muted);
-  font-size: var(--ng-text-sm);
-}
-.screen-nav { display: flex; gap: var(--ng-space-2); margin-inline-start: auto; }
-.screen-nav { flex-wrap: wrap; }
-.screen-nav button { background: none; border: var(--ng-hairline) solid var(--ng-rule); color: var(--ng-ink); border-radius: var(--ng-radius); padding: var(--ng-space-2) var(--ng-space-3); cursor: pointer; }
-.screen-nav button[aria-current='page'] { border-color: var(--ng-ink); font-weight: 700; }
-
-.theme-toggle {
-  background: none;
-  border: var(--ng-hairline) solid var(--ng-rule-strong);
-  color: var(--ng-ink);
-  padding: var(--ng-space-2);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  /* A disc, not a rounded square. It is the one control in the frame that
-     changes the whole surface rather than the decoding, so it is shaped
-     unlike anything in the instrument below it. */
-  border-radius: var(--ng-radius-dot);
-  width: 2.5rem;
-  height: 2.5rem;
-}
-.theme-toggle:hover {
-  border-color: var(--ng-ink);
-}
-
-main {
-  flex: 1;
-  padding: var(--ng-space-6) var(--ng-space-4) var(--ng-space-12);
-}
-
-.live {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
-  grid-template-areas: 'main side' 'transport side';
-  gap: var(--ng-space-6);
-  align-items: start;
-  max-width: 1180px;
-  margin: 0 auto;
-}
-.live-main {
-  grid-area: main;
-  min-width: 0;
-  display: grid;
-  gap: var(--ng-space-6);
-}
-.live-side {
-  grid-area: side;
-  display: grid;
-  gap: var(--ng-space-4);
-}
-.live-transport {
-  grid-area: transport;
-  display: flex;
-  gap: var(--ng-space-3);
-}
 
 .panel {
   border: var(--ng-hairline) solid var(--ng-rule);
@@ -166,13 +69,6 @@ main {
 .replay-source label { font-weight: 700; }
 .replay-source select { width: 100%; max-width: 28rem; min-width: 0; }
 .replay-source p { margin: 0; }
-.muted {
-  color: var(--ng-ink-muted);
-}
-.small {
-  font-size: var(--ng-text-sm);
-}
-
 /* ---- Oscilloscope ------------------------------------------------------ */
 
 .scope {
@@ -242,8 +138,10 @@ main {
   position: absolute;
   inset-block: 0;
   left: 0;
-  background: var(--ng-muscle-wash);
-  border-right: 2px solid var(--ng-muscle);
+  /* Evidence is the decoder becoming sure: the interface's accent, because
+     it is the quantity the whole Live screen is about. */
+  background: var(--ng-accent-wash);
+  border-right: 2px solid var(--ng-accent);
   /* Motion here is the value changing, which is the one thing motion is for. */
   transition: width var(--ng-duration-fast) linear;
 }
@@ -363,12 +261,12 @@ main {
 /* Weight hierarchy, as on a mechanical drawing: the chassis silhouette is the
    heaviest line, the bearings next, the shafts inside them lighter still. */
 .hand-chassis {
-  stroke-width: 2;
+  stroke-width: 1.75;
   stroke-linejoin: miter;
   stroke-miterlimit: 4;
 }
 .hand-link {
-  stroke-width: 1.5;
+  stroke-width: 1.25;
 }
 .hand-housing {
   fill: none;
@@ -380,7 +278,7 @@ main {
    drive wash beneath it still shows through. */
 .hand-pivot {
   fill: none;
-  stroke: var(--ng-ink-faint);
+  stroke: var(--ng-ink-muted);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
@@ -394,18 +292,20 @@ main {
   vector-effect: non-scaling-stroke;
 }
 .hand-edge {
-  stroke-width: 1.5;
+  stroke-width: 1.25;
 }
 .hand-chassis-edge {
-  stroke-width: 2;
+  stroke-width: 1.75;
   stroke-linejoin: miter;
   stroke-miterlimit: 4;
 }
 
-/* The turned-away face: one flat tone with a hard edge, cel shading rather
-   than a gradient. See LIGHT_OFFSET in VirtualHand.tsx. */
+/* Technical line drawing (2026-11-08): the cel shade is switched off, so the
+   hand reads as an engineering drawing - outlines, bearings and axles - not a
+   rendered object. The shade geometry stays in VirtualHand.tsx in case a
+   solid rendering is wanted again. */
 .hand-shade {
-  fill: var(--ng-paper-sunk);
+  fill: none;
   stroke: none;
   pointer-events: none;
 }
@@ -420,6 +320,7 @@ main {
 
 .hand-tendon {
   fill: none;
+  stroke-dasharray: 2 3;
   stroke: var(--ng-muscle);
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -517,54 +418,6 @@ main {
 
 /* ---- Controls ---------------------------------------------------------- */
 
-.gesture-choices {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--ng-space-1);
-  margin-top: var(--ng-space-3);
-}
-.gesture-choice {
-  font: inherit;
-  font-size: var(--ng-text-sm);
-  text-align: left;
-  padding: var(--ng-space-2);
-  background: var(--ng-paper);
-  color: var(--ng-ink);
-  border: var(--ng-hairline) solid var(--ng-rule);
-  border-radius: var(--ng-radius);
-  cursor: pointer;
-}
-.gesture-choice:hover {
-  border-color: var(--ng-ink-muted);
-}
-.gesture-choice[data-selected] {
-  border-color: var(--ng-ink);
-  background: var(--ng-paper-sunk);
-  font-weight: 700;
-}
-
-.transport {
-  font: inherit;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ng-space-2);
-  padding: var(--ng-space-3) var(--ng-space-4);
-  background: var(--ng-ink);
-  color: var(--ng-paper);
-  border: var(--ng-hairline) solid var(--ng-ink);
-  border-radius: var(--ng-radius);
-  cursor: pointer;
-}
-.transport:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-.transport-quiet {
-  background: transparent;
-  color: var(--ng-ink);
-  border-color: var(--ng-rule-strong);
-}
-
 .readout-list {
   margin: 0;
   display: grid;
@@ -593,24 +446,6 @@ main {
 .readout-list dd[data-correct='false'] {
   color: var(--ng-caution);
   font-weight: 700;
-}
-
-.notice {
-  border-radius: var(--ng-radius);
-  display: flex;
-  gap: var(--ng-space-3);
-  align-items: flex-start;
-  padding: var(--ng-space-3);
-  border: var(--ng-hairline) solid var(--ng-rule-strong);
-  font-size: var(--ng-text-sm);
-}
-.notice-stop {
-  border-color: var(--ng-stop);
-  color: var(--ng-stop);
-}
-.notice h2 {
-  margin: 0 0 var(--ng-space-1);
-  font-size: var(--ng-text-base);
 }
 
 .cartography-screen {
@@ -703,6 +538,9 @@ main {
   border-bottom: var(--ng-hairline) solid var(--ng-rule);
   vertical-align: top;
 }
+.cartography-table th,
+.cartography-table td { text-align: start; }
+.cartography-table .ng-num { font-family: var(--ng-font-numeric); }
 .cartography-table thead th { color: var(--ng-ink-muted); font-weight: 600; }
 .cartography-table tbody th { font-weight: 600; white-space: nowrap; }
 .cartography-table .muted { display: block; font-size: var(--ng-text-xs); }
@@ -995,6 +833,7 @@ main {
 .clinician-two-column {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
   gap: var(--ng-space-4);
 }
 .clinician-metrics,
@@ -1016,134 +855,283 @@ main {
 .clinician-panel > p:last-child { margin-bottom: 0; }
 .clinician-record + p { margin-bottom: 0; }
 
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* ---- Narrow ------------------------------------------------------------ */
-
-@media (max-width: 900px) {
-  .live {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'main' 'side' 'transport';
-  }
-  .actuation {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .hand {
-    height: auto;
-  }
-  .hand-figure {
-    max-width: 240px;
-    justify-self: center;
-  }
-  .scope-bed {
-    height: 200px;
-  }
-  .commitment-percent {
-    font-size: var(--ng-text-xl);
-  }
-}
-
-@media (max-width: 520px) {
-  .masthead {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: 'title theme' 'nav nav';
-  }
-  .masthead-title { grid-area: title; min-width: 0; }
-  .screen-nav { grid-area: nav; margin-inline-start: 0; }
-  .screen-nav { flex-wrap: wrap; }
-  .theme-toggle { grid-area: theme; }
-  main {
-    padding: var(--ng-space-4) var(--ng-space-3) var(--ng-space-8);
-  }
-  .gesture-choices {
-    grid-template-columns: 1fr;
-  }
-  .live-transport {
-    flex-direction: column;
-  }
-  .attribution-detail-grid { grid-template-columns: minmax(0, 1fr); }
-  .clinician-header,
-  .clinician-two-column { grid-template-columns: minmax(0, 1fr); }
-  .clinician-section-heading { flex-direction: column; }
-  .transport {
-    justify-content: center;
-  }
-}
-
-/* ---------------------------------------------------------------------- *
-   Colophon
-   
-   Credits and provenance, at the end of the instrument rather than in front
-   of it. Three zones on one hairline-separated band: the mark and what course
-   this is, who built it, and the statement that qualifies everything above.
- * ---------------------------------------------------------------------- */
-
-.colophon {
-  margin-top: auto;
-  padding: var(--ng-space-8) var(--ng-space-4) var(--ng-space-6);
-  border-top: var(--ng-hairline) solid var(--ng-rule);
-  background: var(--ng-paper-sunk);
+/* Teach-back. The learner's path is ink, not carmine: it is a position on a
+   map, not muscle activation. */
+.teach-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(max-content, auto);
-  gap: var(--ng-space-6) var(--ng-space-8);
-  align-items: start;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--ng-space-5);
+  margin-top: var(--ng-space-4);
+}
+.teach-side { display: grid; align-content: start; gap: var(--ng-space-3); min-width: 0; }
+.teach-path,
+.teach-trace-line {
+  fill: none;
+  stroke: var(--ng-ink-muted);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.teach-hit { fill: var(--ng-ink); stroke: var(--ng-ink); }
+.teach-miss { fill: var(--ng-paper-raised); stroke: var(--ng-ink-muted); stroke-width: 1; }
+.teach-trace { display: block; width: 100%; max-width: 720px; margin-top: var(--ng-space-3); }
+.teach-scrub,
+.teach-name { display: grid; gap: var(--ng-space-1); font-size: var(--ng-text-sm); }
+/* Ink, not the browser's default accent: the palette has one hue, and it means muscle. */
+.teach-scrub input { width: 100%; min-height: 44px; accent-color: var(--ng-ink); }
+.teach-name input {
+  min-height: 44px;
+  padding: 0 var(--ng-space-3);
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  border-radius: var(--ng-radius-sm);
+  background: var(--ng-paper-raised);
+  color: var(--ng-ink);
+  font: inherit;
+}
+.teach-name input:focus-visible,
+.teach-scrub input:focus-visible {
+  outline: var(--ng-hairline) solid var(--ng-ink);
+  outline-offset: var(--ng-space-1);
 }
 
-.colophon-mark {
-  min-width: 0;
-}
-
-.colophon-mark .wordmark {
-  max-width: 100%;
-}
-
-.colophon-course {
-  margin: var(--ng-space-2) 0 0;
-  color: var(--ng-ink-muted);
-  font-size: var(--ng-text-xs);
-  line-height: var(--ng-leading-normal);
-}
-
-.colophon-team h2 {
-  margin: 0 0 var(--ng-space-2);
-  font-size: var(--ng-text-xs);
-  font-weight: 400;
-  color: var(--ng-ink-muted);
-}
-
-.colophon-team ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+/* Signed muscle-group deviation. Carmine: the quantity is muscle activity.
+   The centre rule is the zero of a real scale. */
+.attribution-sessions { display: grid; gap: var(--ng-space-4); }
+.muscle-groups { display: grid; gap: var(--ng-space-2); margin: var(--ng-space-3) 0; }
+.muscle-group {
   display: grid;
-  gap: var(--ng-space-1);
+  grid-template-columns: minmax(7.5rem, auto) minmax(0, 1fr) minmax(5.5rem, auto);
+  align-items: center;
+  gap: var(--ng-space-3);
   font-size: var(--ng-text-sm);
 }
+.muscle-group-track {
+  position: relative;
+  height: var(--ng-space-3);
+  border-inline: var(--ng-hairline) solid var(--ng-rule);
+}
+.muscle-group-track::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  border-left: var(--ng-hairline) solid var(--ng-rule-strong);
+}
+.muscle-group-bar {
+  position: absolute;
+  inset-block: 0;
+  background: var(--ng-muscle);
+  border-radius: var(--ng-radius-sm);
+}
+.muscle-group-value { color: var(--ng-ink-muted); text-align: end; }
 
-.colophon-safety {
-  grid-column: 1 / -1;
-  margin: 0;
-  padding-top: var(--ng-space-4);
-  border-top: var(--ng-hairline) solid var(--ng-rule);
-  color: var(--ng-ink-muted);
-  font-size: var(--ng-text-xs);
-  max-width: var(--ng-measure);
+.attribution-screen > * { min-width: 0; }
+.attribution-detail-heading .cartography-readout span { white-space: normal; }
+
+@media (max-width: 760px) {
+  .attribution-sessions .attribution-detail-heading,
+  .attribution-screen > .panel > .attribution-detail-heading {
+    flex-direction: column;
+  }
+  .attribution-sessions .attribution-detail-heading .cartography-readout,
+  .attribution-screen > .panel > .attribution-detail-heading .cartography-readout {
+    text-align: start;
+  }
+  .attribution-sessions .attribution-detail-grid { grid-template-columns: minmax(0, 1fr); }
+  .teach-grid { grid-template-columns: minmax(0, 1fr); }
+  .muscle-group { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .muscle-group-value { grid-column: 1 / -1; text-align: start; }
 }
 
-@media (max-width: 640px) {
-  .colophon {
-    grid-template-columns: minmax(0, 1fr);
-    padding-top: var(--ng-space-6);
-  }
+/* ---- Data colours inside figures ------------------------------------------ */
+
+/* Error causes are four categories, so they take the four data hues. Each
+   cause also carries its name in text: colour is never the only carrier. */
+[data-cause='physiological'] { --cause: var(--ng-muscle); --cause-wash: var(--ng-muscle-wash); }
+[data-cause='behavioral'] { --cause: var(--ng-evidence); --cause-wash: var(--ng-evidence-wash); }
+[data-cause='model_capacity'] { --cause: var(--ng-signal); --cause-wash: var(--ng-signal-wash); }
+[data-cause='drift'] { --cause: var(--ng-grip); --cause-wash: var(--ng-grip-wash); }
+[data-cause='inconclusive'] { --cause: var(--ng-ink-muted); --cause-wash: var(--ng-paper-sunk); }
+
+.attribution-score-track span { background: var(--cause, var(--ng-ink)); }
+.attribution-score-track { background: var(--cause-wash, var(--ng-paper-sunk)); }
+.attribution-case-picker button[data-cause] {
+  border-inline-start: 3px solid var(--cause);
+}
+
+.cartography-pose { fill: var(--ng-muscle); opacity: 0.4; }
+.teach-hit { fill: var(--ng-grip); stroke: var(--ng-grip); }
+.teach-path,
+.teach-trace-line { stroke: var(--ng-signal); }
+.screen-review .clinician-data-line { stroke: var(--ng-signal); }
+.screen-review .clinician-data-point circle { stroke: var(--ng-signal); }
+
+/* ---- Hero film (Remotion composition) ------------------------------------- */
+
+.hero-film {
+  background: var(--ng-paper-raised);
+  font-family: var(--ng-font-text);
+}
+.hero-film svg { display: block; }
+.hero-label { fill: var(--ng-ink); font-size: 26px; font-weight: 600; }
+.hero-readout { fill: var(--ng-ink); font-size: 24px; font-family: var(--ng-font-numeric); }
+.hero-tick { fill: var(--ng-ink-muted); font-size: 20px; }
+.hero-stage { fill: var(--ng-ink-faint); font-size: 24px; font-weight: 500; }
+.hero-stage-active { fill: var(--ng-ink); font-weight: 600; }
+.hero-rail { fill: var(--ng-rule); }
+.hero-rail-done { fill: var(--ng-accent); }
+.hero-skin { fill: var(--ng-paper); stroke: var(--ng-ink-muted); stroke-width: 2; }
+.hero-muscle { fill: var(--ng-muscle); }
+.hero-bone { fill: var(--ng-paper-raised); stroke: var(--ng-ink); stroke-width: 2; }
+.hero-electrode { fill: var(--ng-paper-raised); stroke: var(--ng-ink); stroke-width: 2; }
+.hero-electrode-lit { fill: var(--ng-signal); }
+.hero-electrode-index { fill: var(--ng-ink); font-size: 16px; font-family: var(--ng-font-numeric); }
+.hero-baseline { stroke: var(--ng-rule); stroke-width: 1; }
+.hero-trace { fill: none; stroke: var(--ng-signal); stroke-width: 1.5; stroke-linejoin: round; }
+.hero-channel { fill: var(--ng-ink-muted); font-size: 18px; font-family: var(--ng-font-numeric); }
+.hero-track { fill: var(--ng-paper-sunk); stroke: var(--ng-rule-strong); }
+.hero-fill { fill: var(--ng-accent); opacity: 0.85; }
+.hero-fill-latched { fill: var(--ng-commit); opacity: 1; }
+.hero-mark { stroke: var(--ng-ink); stroke-width: 2; }
+.hero-hand {
+  position: absolute;
+  left: 860px;
+  top: 120px;
+  width: 400px;
+  height: 450px;
+}
+.hero-hand .hand {
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.hero-hand .hand-figure { height: 100%; }
+.hero-hand .hand-caption,
+.hero-hand .hand-legend,
+.hero-hand .hand-state,
+.hero-hand .hand-missing { display: none; }
+
+/* ---- Figure panels: one headline row of numbers, then the picture --------- */
+
+.figure-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ng-space-3);
+}
+.figure-panel > h3 {
+  margin: 0;
+  font-size: var(--ng-text-lg);
+}
+.stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ng-space-2) var(--ng-space-8);
+  margin: 0;
+}
+.stat-row > div {
+  display: grid;
+  gap: 2px;
+}
+.stat-row dt {
+  font-size: var(--ng-text-xs);
+  color: var(--ng-ink-muted);
+}
+.stat-row dd {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.stat-vs {
+  font-family: var(--ng-font-text);
+  font-size: var(--ng-text-sm);
+  color: var(--ng-ink-muted);
+  letter-spacing: 0;
+}
+.figure-caption {
+  margin: 0;
+  font-size: var(--ng-text-xs);
+  color: var(--ng-ink-muted);
+}
+
+.ttum-histogram {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+}
+.chart-axis line { stroke: var(--ng-rule); stroke-width: 1; }
+.chart-axis text { fill: var(--ng-ink-muted); font-family: var(--ng-font-numeric); font-size: 11px; }
+.ttum-bar { fill: var(--ng-accent); }
+.chart-marker line { stroke: var(--ng-ink); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.chart-marker text { fill: var(--ng-ink); font-size: 12px; }
+
+.ablation {
+  display: grid;
+  gap: var(--ng-space-4);
+}
+.ablation-group {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr) 4.5rem;
+  align-items: center;
+  gap: var(--ng-space-1) var(--ng-space-3);
+}
+.ablation-label {
+  grid-row: span 2;
+  font-size: var(--ng-text-sm);
+  font-weight: 600;
+}
+.ablation-bar {
+  display: block;
+  height: 14px;
+  border-radius: var(--ng-radius-sm);
+}
+.ablation-bar[data-kind='weighted'],
+.legend-key[data-kind='weighted'] { background: var(--ng-accent); }
+.ablation-bar[data-kind='uniform'],
+.legend-key[data-kind='uniform'] { background: var(--ng-ink-faint); }
+.ablation-value {
+  font-size: var(--ng-text-sm);
+  text-align: end;
+}
+.ablation-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--ng-space-2);
+  margin: 0;
+  font-size: var(--ng-text-xs);
+  color: var(--ng-ink-muted);
+}
+.legend-key {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  margin-left: var(--ng-space-2);
+}
+
+.budget {
+  position: relative;
+  height: 28px;
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  border-radius: var(--ng-radius);
+  background: var(--ng-paper-sunk);
+  overflow: hidden;
+}
+.budget-used {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--ng-accent);
+}
+.budget-label {
+  position: absolute;
+  right: var(--ng-space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--ng-text-xs);
+  color: var(--ng-ink-muted);
+}
+
+.clinician-two-column[data-count='1'] {
+  grid-template-columns: minmax(0, 40rem);
 }

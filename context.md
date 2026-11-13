@@ -1,7 +1,7 @@
 # NeuroGrip: current state and next steps
 
-Updated 2026-11-04 after the Cartography gate, simulator-only attribution pilot,
-and clinician-oriented research review screens. Read
+Updated 2026-11-08 after simulated teach-back, end-to-end error routing on
+simulated sessions, muscle-group coaching, and CWER. Read
 `CLAUDE.md` for the project's engineering and safety rules.
 
 **Research prototype. Not a medical device. Not validated for clinical use.**
@@ -67,10 +67,10 @@ These are the ones an AI assistant is most likely to break. The full list is in
 | --- | --- | --- |
 | 0–1b | Simulator, Python/TypeScript feature conformance, decoder, ONNX, browser Live/virtual hand | Done |
 | Recorded DB2 path | Nine local S1/S10/S11 sessions, loader and mapping, subject-held-out export/replay, Results views, S11 quality audit | Implemented; exploratory, three subjects; independent benchmark and full-size SVM sweep remain |
-| 2 | Neuromotor Cartography (Pillar 1) | Simulated map, corrected per-prototype gate, illustrative assignment and screen implemented; human validation remains |
-| 3 | Error-attribution router, anatomical coaching | P/B/M/D simulator pilot and channel-localized coaching screen implemented; offline held-out LDA score-margin attribution and three reference-model comparisons added; real-data generalization and human coaching validation remain |
-| 4 | Clinician views and robustness | Evaluate/Robustness/Latency/Records views built; the electrode-shift view is simulated only. Recorded-fault validation and amputee evaluation remain |
-| 5 | Azure deploy, patent disclosures | Deployment not started; internal draft prepared locally; legal/inventorship review and permission clearance remain |
+| 2 | Neuromotor Cartography (Pillar 1) | Simulated map, per-prototype gate, simulated teach-back, illustrative assignment and screen implemented; human teach-back and validation remain |
+| 3 | Error-attribution router, anatomical coaching | Router on 4 controlled injections (4/4) and end to end on simulated sessions (15/20 over 5 seeds); muscle-group back-projection and coaching grammar (85.7% localisation on simulated injections); offline LDA attribution on three development NinaPro subjects; real-data and human validation remain |
+| 4 | Clinician views and robustness | Evaluate/Decision timing/Robustness/Latency/Records views built; timing (TTUM + CWER) and electrode shift are simulated only. Recorded-fault validation and amputee evaluation remain |
+| 5 | Azure deploy, patent disclosures | Deployment not started (deferred by the team 2026-11-08); internal draft kept local and untracked — an earlier copy remains in public history; legal/inventorship review and permission clearance remain |
 
 The app has Live, Results, Cartography, Attribution and clinician-oriented
 Research review screens. Additional independent recorded subjects, validated
@@ -500,16 +500,31 @@ proportional to excitation, so those savings are not independent.
 The Cartography screen displays the first intact simulated subject's map,
 prototype gate, illustrative Hungarian function assignment, and cohort counts.
 This completes the software demonstration milestone, not the research claim:
-there is no recorded human babble, teach-back, or wearer validation, and the
-function assignment is not a clinical recommendation. Real-user mapping and
-teach-back remain future work.
+there is no recorded human babble or wearer validation, and the function
+assignment is not a clinical recommendation.
+
+**Teach-back (simulated).** `teach_back` gives each prototype to a
+reward-driven learner that starts at rest, perturbs a synergy command, and
+keeps the change only if the attempt lands closer on the Cartograph. Learned
+means 3 of the last 5 attempts land nearer the target than any other target.
+The first criterion (three in a row within a distance tolerance) censored every
+target, because a perfect performer lands in the right cell only 60-85% of the
+time per attempt and its distance noise floor exceeded the tolerance; the
+learner also re-measures its kept command every third attempt so one lucky
+landing cannot lock it in. Results: 33/40 intact and 34/40 finger-atrophy
+targets learned (median 13 and 14 attempts); 3/3 and 5/6 gate-passing
+prototypes keep ≥80% decoder recall as learned. The learner's command space is
+the synergy set babble was generated from, so reachability holds by
+construction. Gate numbers are unchanged by the addition (verified by diff).
 
 ## 8. Phase 3 (error attribution and coaching): simulator pilot
 
 `services/research/neurogrip/attribution.py` implements four evidence channels:
 
-- **P:** diagonal-Gaussian Bhattacharyya overlap of the two cleanest 80% class
-  repeat clusters.
+- **P:** cross-validated confusability (twice the two-class shrinkage-LDA
+  error) of the two cleanest 80% class repeat clusters. This replaced a
+  diagonal Bhattacharyya coefficient that collapsed to ~1e-50 in 136
+  dimensions on simulated signals the decoder could not separate.
 - **B:** maximum channel-wise standardized deviation from the intended class's
   repeat cluster, relative to the historical 95th-percentile spread.
 - **M:** whether a stronger reference prediction is correct while the deployed
@@ -534,8 +549,43 @@ Reproduce and stage the demonstration:
 
 ```bash
 python -m neurogrip.experiments attribution --out artifacts/attribution_demo.json
+python -m neurogrip.experiments router-session --out artifacts/router_session.json
+python -m neurogrip.experiments coaching --out artifacts/coaching_localisation.json
 npm run stage:attribution
 ```
+
+**End to end on simulated sessions** (`router_session.py`). Each session is
+generated by the simulator with one injected fault and decoded; every actual
+error is routed. Over five seeds fixed beforehand, 15/20 sessions route to
+their injected cause: behavioural 5/5 (34/38 errors), model capacity 5/5
+(84/87), drift 3/5 (7/9), physiological 2/5 (20/57). The first run, seed 0
+only, scored 2/4 and exposed three estimator defects, fixed without changing
+any routing threshold: P's high-dimensional collapse (above); D compared
+fresh windows with in-sample training distances (now leave-one-repetition-out);
+and D read drift off the gesture in error, double-counting a behavioural
+deviation (now other cued gestures only). The 30%-reach atrophy injection
+produced one error, so the physiological fault became two cues produced as one
+pattern. Remaining limits: windows within one attempt are correlated, so CUSUM
+still inflates in clean sessions; the decoder tolerates simulated fatigue, so
+drift sessions produce only 1-2 errors; physiological routing is weak.
+
+**Anatomical coaching** (`coaching.py`). For a shrinkage-LDA surrogate, the
+decoded-minus-intended margin change from the intended class's training mean
+is decomposed exactly over features (integrated gradients reduce to this for a
+linear model). Channel attributions take their sign from the channel's
+activity, are back-projected through a ridge inverse of the nominal
+volume-conduction matrix, summed into four muscle groups, and turned into one
+sentence by a fixed grammar; it declines when no group holds 40% of the
+evidence. On injected group deviations across five simulated subjects it names
+the right group and direction on 780/910 error windows (85.7%; chance 12.5%;
+per subject 74-93%). That is an upper bound — the inverse uses the simulator's
+own forward-model family — and it explains a surrogate, not the deployed RBF
+SVM. No timing advice: the simulator has no onset envelope.
+
+**CWER** (`packages/core/src/cwer.ts`, via `npm run ttum`): 0.59% against a
+plain error rate of 1.25% on 320 simulated out-of-fold trials; a
+uniform-boundary ablation gives 0.97% and 1.88%. Four versus six wrong latches
+is too few to call significant. Shown in Research review → Decision timing.
 
 ### Remaining phases
 

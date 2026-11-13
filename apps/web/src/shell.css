@@ -1,0 +1,1517 @@
+/**
+ * The chrome: frame, guided path, screen headers, page layouts, controls.
+ *
+ * Clinical precision (owner's brief, 2026-11-08 evening): cool greys, one
+ * medical-blue accent for what is interactive or current, hairline-bordered
+ * panels, no shadows, no gradients, IBM Plex throughout.
+ *
+ * Two rules this file is tested against:
+ *   - It never references a data colour (muscle, signal, evidence, grip).
+ *     Those belong to figures and live in app.css.
+ *   - On a desktop the frame is exactly one viewport tall and the page never
+ *     scrolls; content that cannot fit is split into pages (Screen.tsx).
+ *     layout.spec.ts checks every page at 1440 x 900 and 1280 x 800.
+ *
+ * Shape scale, stated once: controls 8px, panels 12px, step numbers round.
+ */
+
+/* ---- Base ------------------------------------------------------------------ */
+
+body {
+  background: var(--ng-paper);
+  font-feature-settings: 'ss02' 1; /* Plex's single-storey g reads better small */
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--ng-font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+.muted {
+  color: var(--ng-ink-muted);
+}
+.small {
+  font-size: var(--ng-text-sm);
+}
+
+.visually-hidden {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- Brand ----------------------------------------------------------------- */
+
+.brand-mark {
+  display: block;
+  flex: none;
+  fill: currentColor;
+}
+.brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ng-space-3);
+  color: var(--ng-ink);
+}
+.brand-name {
+  font-family: var(--ng-font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+/* ---- Buttons --------------------------------------------------------------- */
+
+.button-primary,
+.button-quiet,
+.transport {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ng-space-2);
+  min-height: 44px;
+  padding: 0 var(--ng-space-5);
+  border: var(--ng-hairline) solid transparent;
+  border-radius: var(--ng-radius);
+  font: inherit;
+  font-size: var(--ng-text-base);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--ng-duration) var(--ng-ease),
+    border-color var(--ng-duration) var(--ng-ease),
+    transform var(--ng-duration-fast) var(--ng-ease);
+}
+.button-primary,
+.transport {
+  background: var(--ng-accent);
+  color: var(--ng-on-accent);
+}
+.button-primary:hover,
+.transport:hover:not(:disabled) {
+  background: var(--ng-accent-strong);
+}
+.button-quiet,
+.transport-quiet {
+  background: var(--ng-paper-raised);
+  color: var(--ng-ink);
+  border-color: var(--ng-rule-strong);
+}
+.button-quiet:hover,
+.transport-quiet:hover:not(:disabled) {
+  background: var(--ng-paper-raised);
+  border-color: var(--ng-ink);
+}
+.button-primary:active,
+.button-quiet:active,
+.transport:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.transport:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.icon-button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  border-radius: var(--ng-radius);
+  background: var(--ng-paper-raised);
+  color: var(--ng-ink);
+  cursor: pointer;
+}
+.icon-button:hover {
+  border-color: var(--ng-ink);
+}
+.icon-button[aria-current='page'] {
+  border-color: var(--ng-accent);
+  background: var(--ng-accent-wash);
+  color: var(--ng-accent);
+}
+.icon-button-small {
+  width: 32px;
+  height: 32px;
+}
+
+/* ---- Frame ----------------------------------------------------------------- */
+
+.app {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--ng-space-6);
+  min-height: 64px;
+  padding: 0 var(--ng-space-8);
+  border-bottom: var(--ng-hairline) solid var(--ng-rule);
+  background: var(--ng-paper-raised);
+}
+.topbar-brand {
+  margin: 0;
+  font-size: inherit;
+  flex: none;
+}
+.topbar-brand a {
+  display: inline-flex;
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--ng-radius);
+}
+.topbar-actions {
+  display: flex;
+  gap: var(--ng-space-2);
+  flex: none;
+}
+
+/* The guided path: six numbered steps joined by a hairline, so it reads as
+   a sequence. Done steps keep a filled rule, the current step takes the
+   accent, steps ahead stay grey. */
+.path {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+}
+.path ol {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.path li {
+  display: flex;
+  align-items: center;
+}
+.path li + li::before {
+  content: '';
+  width: 24px;
+  height: var(--ng-hairline);
+  background: var(--ng-rule-strong);
+}
+.path li[data-state='done'] + li::before,
+.path li[data-state='current']::before {
+  background: var(--ng-ink-muted);
+}
+.path button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ng-space-2);
+  min-height: 40px;
+  padding: 0 var(--ng-space-3);
+  border: 0;
+  border-radius: var(--ng-radius);
+  background: none;
+  color: var(--ng-ink-muted);
+  font: inherit;
+  font-size: var(--ng-text-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.path button:hover {
+  color: var(--ng-ink);
+  background: var(--ng-paper);
+}
+.path-index {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  border-radius: var(--ng-radius-dot);
+  font-size: var(--ng-text-xs);
+  font-weight: 500;
+  color: var(--ng-ink-muted);
+}
+.path li[data-state='done'] .path-index {
+  border-color: var(--ng-ink-muted);
+  color: var(--ng-ink);
+}
+.path li[data-state='current'] button {
+  color: var(--ng-ink);
+  font-weight: 600;
+}
+.path li[data-state='current'] .path-index {
+  border-color: var(--ng-accent);
+  background: var(--ng-accent);
+  color: var(--ng-on-accent);
+}
+
+.stage {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: var(--ng-space-6) var(--ng-space-8) var(--ng-space-4);
+}
+
+.footline {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--ng-space-6);
+  min-height: 60px;
+  padding: var(--ng-space-2) var(--ng-space-8);
+  border-top: var(--ng-hairline) solid var(--ng-rule);
+  background: var(--ng-paper-raised);
+  font-size: var(--ng-text-xs);
+}
+.footline p {
+  margin: 0;
+}
+.footline-notice {
+  color: var(--ng-ink);
+}
+.footline-team {
+  color: var(--ng-ink-muted);
+}
+.stepper {
+  display: flex;
+  gap: var(--ng-space-2);
+}
+.stepper .button-primary,
+.stepper .button-quiet {
+  min-height: 40px;
+  font-size: var(--ng-text-sm);
+  padding: 0 var(--ng-space-4);
+}
+.stepper-index {
+  margin-right: var(--ng-space-2);
+  opacity: 0.8;
+}
+
+/* ---- Screen: title, one sentence, pages ------------------------------------ */
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ng-space-5);
+  min-width: 0;
+}
+.screen-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--ng-space-3) var(--ng-space-6);
+}
+.screen-heading {
+  min-width: 0;
+  flex: 1 1 26rem;
+}
+.screen-heading h2 {
+  margin: 0;
+  font-size: var(--ng-text-xl);
+  line-height: var(--ng-leading-tight);
+  letter-spacing: -0.02em;
+}
+.screen-summary {
+  margin: var(--ng-space-1) 0 0;
+  max-width: var(--ng-measure);
+  color: var(--ng-ink-muted);
+}
+.screen-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ng-space-3);
+}
+
+/* Pages are underlined tabs: quieter than pills, and they sit on the same
+   hairline that separates the header from the body. */
+.pager-tabs {
+  display: inline-flex;
+  gap: var(--ng-space-1);
+  border-bottom: var(--ng-hairline) solid var(--ng-rule);
+}
+.pager-tabs [role='tab'] {
+  position: relative;
+  min-height: 40px;
+  padding: 0 var(--ng-space-3);
+  border: 0;
+  background: none;
+  color: var(--ng-ink-muted);
+  font: inherit;
+  font-size: var(--ng-text-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.pager-tabs [role='tab']:hover {
+  color: var(--ng-ink);
+}
+.pager-tabs [role='tab'][aria-selected='true'] {
+  color: var(--ng-ink);
+  font-weight: 600;
+}
+.pager-tabs [role='tab'][aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  left: var(--ng-space-2);
+  right: var(--ng-space-2);
+  bottom: -1px;
+  height: 2px;
+  background: var(--ng-accent);
+}
+.pager-step {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ng-space-1);
+}
+.pager-arrow {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  border-radius: var(--ng-radius);
+  background: var(--ng-paper-raised);
+  color: var(--ng-ink);
+  cursor: pointer;
+}
+.pager-arrow:hover:not(:disabled) {
+  border-color: var(--ng-ink);
+}
+.pager-arrow:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.pager-count {
+  min-width: 4ch;
+  text-align: center;
+  font-size: var(--ng-text-sm);
+  color: var(--ng-ink-muted);
+}
+
+.screen-body,
+.screen-page {
+  position: relative;
+  min-width: 0;
+}
+.screen-empty {
+  max-width: var(--ng-measure);
+  margin: 0;
+}
+
+/* Inside a paged screen the panel's own title would repeat the page summary,
+   so it stays for assistive technology and leaves the eye alone. */
+.screen .clinician-content-header {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---- Surfaces -------------------------------------------------------------- */
+
+.panel,
+.live-controls,
+.live-output,
+.teach-back,
+.glossary-card,
+.mechanism,
+.hero-frame {
+  border: var(--ng-hairline) solid var(--ng-rule);
+  border-radius: var(--ng-radius-lg);
+  background: var(--ng-paper-raised);
+}
+.panel,
+.live-controls,
+.live-output,
+.teach-back {
+  padding: var(--ng-space-5);
+}
+.panel h2 {
+  font-size: var(--ng-text-lg);
+  margin: 0 0 var(--ng-space-2);
+}
+
+.notice {
+  display: flex;
+  gap: var(--ng-space-3);
+  align-items: flex-start;
+  padding: var(--ng-space-3) var(--ng-space-4);
+  border: var(--ng-hairline) solid var(--ng-rule);
+  border-radius: var(--ng-radius);
+  background: var(--ng-paper-sunk);
+  font-size: var(--ng-text-sm);
+}
+.notice-stop {
+  border-color: var(--ng-stop);
+  color: var(--ng-stop);
+  background: var(--ng-paper-raised);
+}
+.notice h2,
+.notice h3 {
+  margin: 0 0 var(--ng-space-1);
+  font-size: var(--ng-text-base);
+}
+
+/* ---- Overview -------------------------------------------------------------- */
+
+.overview {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: var(--ng-space-6) var(--ng-space-8);
+}
+.overview-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--ng-space-4);
+  min-width: 0;
+}
+.overview-intro h2 {
+  margin: 0;
+  font-size: clamp(2.25rem, 1.2rem + 2.2vw, 3.5rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  max-width: 13ch;
+}
+.overview-lede {
+  margin: 0;
+  max-width: 40ch;
+  font-size: var(--ng-text-lg);
+  color: var(--ng-ink-muted);
+}
+.overview-intro .button-primary {
+  margin-top: var(--ng-space-1);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, auto));
+  gap: var(--ng-space-6);
+  margin: var(--ng-space-4) 0 0;
+  padding-top: var(--ng-space-4);
+  border-top: var(--ng-hairline) solid var(--ng-rule);
+}
+.facts > div {
+  display: grid;
+  gap: 2px;
+}
+.facts dt {
+  font-size: var(--ng-text-xs);
+  color: var(--ng-ink-muted);
+  white-space: nowrap;
+}
+.facts dd {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.facts-note {
+  margin: 0;
+  font-size: var(--ng-text-xs);
+  color: var(--ng-ink-muted);
+}
+
+.hero-player {
+  margin: 0;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--ng-space-2);
+}
+.hero-frame {
+  width: 100%;
+  max-height: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  align-self: center;
+}
+.hero-caption {
+  display: flex;
+  align-items: center;
+  gap: var(--ng-space-3);
+  font-size: var(--ng-text-xs);
+  color: var(--ng-ink-muted);
+}
+
+.mechanisms {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--ng-space-3);
+}
+.mechanisms h3 {
+  margin: 0;
+  font-size: var(--ng-text-base);
+}
+.mechanisms ol {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--ng-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.mechanisms li {
+  display: flex;
+  min-width: 0;
+}
+.mechanism {
+  flex: 1;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--ng-space-2);
+  padding: var(--ng-space-4);
+  color: var(--ng-ink);
+  text-decoration: none;
+  transition: border-color var(--ng-duration) var(--ng-ease);
+}
+.mechanism:hover {
+  border-color: var(--ng-accent);
+}
+.mechanism-head {
+  display: flex;
+  align-items: center;
+  gap: var(--ng-space-2);
+}
+.mechanism-index {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  border-radius: var(--ng-radius-dot);
+  font-size: var(--ng-text-xs);
+  color: var(--ng-ink-muted);
+}
+.mechanism-name {
+  font-weight: 600;
+  line-height: var(--ng-leading-tight);
+}
+.mechanism-status {
+  margin-left: auto;
+  flex: none;
+  padding: 1px var(--ng-space-2);
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  border-radius: var(--ng-radius-sm);
+  font-size: var(--ng-text-xs);
+  color: var(--ng-ink-muted);
+}
+.mechanism-status[data-status='Built'] {
+  border-color: var(--ng-commit);
+  color: var(--ng-commit);
+}
+.mechanism-plain {
+  font-size: var(--ng-text-sm);
+  color: var(--ng-ink-muted);
+}
+.mechanism-metric {
+  display: grid;
+  gap: 2px;
+  padding-top: var(--ng-space-2);
+  border-top: var(--ng-hairline) solid var(--ng-rule);
+}
+.mechanism-value {
+  font-size: 1.375rem;
+  font-weight: 500;
+  line-height: 1.1;
+}
+.mechanism-unit {
+  font-size: var(--ng-text-xs);
+  color: var(--ng-ink-muted);
+}
+
+/* ---- Live ------------------------------------------------------------------ */
+
+.live {
+  display: grid;
+  grid-template-columns: 18rem minmax(0, 1fr) 20rem;
+  gap: var(--ng-space-5);
+  min-width: 0;
+}
+.live-controls,
+.live-center,
+.live-output {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ng-space-4);
+}
+.live-step h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--ng-space-2);
+  margin: 0 0 var(--ng-space-1);
+  font-size: var(--ng-text-base);
+}
+.live-step p {
+  margin: 0;
+}
+.step-index {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border: var(--ng-hairline) solid var(--ng-accent);
+  border-radius: var(--ng-radius-dot);
+  color: var(--ng-accent);
+  font-size: var(--ng-text-xs);
+  font-weight: 500;
+}
+.gesture-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ng-space-1);
+  margin-top: var(--ng-space-2);
+}
+.gesture-choice {
+  min-height: 34px;
+  padding: var(--ng-space-1) var(--ng-space-2);
+  border: var(--ng-hairline) solid var(--ng-rule);
+  border-radius: var(--ng-radius);
+  background: var(--ng-paper-raised);
+  color: var(--ng-ink);
+  font: inherit;
+  font-size: var(--ng-text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+.gesture-choice:hover {
+  border-color: var(--ng-ink-muted);
+}
+.gesture-choice[data-selected] {
+  border-color: var(--ng-accent);
+  background: var(--ng-accent-wash);
+  font-weight: 600;
+}
+.replay-source {
+  display: grid;
+  gap: var(--ng-space-2);
+}
+.replay-source select {
+  width: 100%;
+  min-height: 36px;
+  padding: 0 var(--ng-space-2);
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  border-radius: var(--ng-radius);
+  background: var(--ng-paper-raised);
+  color: var(--ng-ink);
+  font: inherit;
+  font-size: var(--ng-text-sm);
+}
+.live-run {
+  margin-top: auto;
+  padding-top: var(--ng-space-4);
+  border-top: var(--ng-hairline) solid var(--ng-rule);
+}
+.live-transport {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ng-space-2);
+  margin-top: var(--ng-space-2);
+}
+
+/* The hand is the subject of this screen: it takes the centre and all the
+   height there is, with the evidence bar directly under it because the two
+   are one quantity shown twice. */
+.live-center {
+  gap: var(--ng-space-3);
+}
+.live-center .hand {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  gap: var(--ng-space-2);
+  padding: var(--ng-space-4) var(--ng-space-5);
+  border: var(--ng-hairline) solid var(--ng-rule);
+  border-radius: var(--ng-radius-lg);
+  background: var(--ng-paper-raised);
+  overflow: hidden;
+}
+.live-center .hand-figure {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+.live-idle {
+  display: grid;
+  align-content: center;
+  gap: var(--ng-space-1);
+  min-height: 7.5rem;
+  padding: var(--ng-space-4) var(--ng-space-5);
+  border: var(--ng-hairline) dashed var(--ng-rule-strong);
+  border-radius: var(--ng-radius-lg);
+}
+.live-idle-title {
+  margin: 0;
+  font-size: var(--ng-text-lg);
+  font-weight: 600;
+}
+.live-idle p {
+  margin: 0;
+}
+
+.live-output .scope {
+  display: flex;
+  flex-direction: column;
+}
+.live-output .scope-bed {
+  height: 210px;
+}
+.live-ring {
+  padding-top: var(--ng-space-3);
+  border-top: var(--ng-hairline) solid var(--ng-rule);
+}
+.live-ring .ring svg {
+  max-height: 104px;
+  width: auto;
+}
+.ring-caption {
+  font-size: var(--ng-text-sm);
+}
+.live-decoder {
+  display: grid;
+  gap: var(--ng-space-2);
+  margin-top: auto;
+}
+.live-decoder > p {
+  margin: 0;
+  font-size: var(--ng-text-xs);
+}
+.readout-list {
+  gap: var(--ng-space-1);
+}
+.readout-list > div {
+  padding-bottom: var(--ng-space-1);
+}
+.readout-primary dt,
+.readout-primary dd {
+  font-size: var(--ng-text-base) !important;
+  font-weight: 600;
+  color: var(--ng-ink);
+}
+
+/* The evidence panel stays compact so the hand above it keeps the height. */
+.live-center .commitment {
+  flex: none;
+  padding: var(--ng-space-3) var(--ng-space-5);
+  border: var(--ng-hairline) solid var(--ng-rule);
+  border-radius: var(--ng-radius-lg);
+  background: var(--ng-paper-raised);
+}
+.commitment-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ng-space-3);
+  margin-bottom: var(--ng-space-2);
+}
+.commitment-head h2 {
+  margin: 0;
+  font-size: var(--ng-text-base);
+}
+.commitment-leader {
+  font-weight: 600;
+}
+.commitment-state {
+  margin: 0;
+  font-size: var(--ng-text-sm);
+  color: var(--ng-ink-muted);
+}
+.commitment-state[data-state='latched'] {
+  color: var(--ng-commit);
+  font-weight: 600;
+}
+.commitment-percent {
+  margin-left: auto;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+.commitment-unit {
+  font-size: var(--ng-text-sm);
+  color: var(--ng-ink-muted);
+}
+.live-center .commitment-track {
+  height: 40px;
+}
+.commitment-legend {
+  margin: var(--ng-space-2) 0 0;
+  font-size: var(--ng-text-xs);
+  color: var(--ng-ink-muted);
+}
+
+/* ---- Results --------------------------------------------------------------- */
+
+.results-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ng-space-4);
+  align-items: start;
+}
+.results-pair[data-count='1'] {
+  grid-template-columns: minmax(0, 44rem);
+}
+.screen-results .results-table h3 {
+  margin-top: 0;
+}
+.results-table tr[data-selected] th,
+.results-table tr[data-selected] td {
+  background: var(--ng-accent-wash);
+}
+.meter-cell {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(3rem, 1fr);
+  align-items: center;
+  gap: var(--ng-space-2);
+}
+.meter {
+  display: block;
+  height: 6px;
+  border-radius: var(--ng-radius-sm);
+  overflow: hidden;
+}
+.meter > span {
+  display: block;
+  height: 100%;
+  background: var(--ng-ink-muted);
+}
+tr[data-selected] .meter > span {
+  background: var(--ng-accent);
+}
+
+/* ---- Cartography ----------------------------------------------------------- */
+
+.carto-map-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 19rem;
+  gap: var(--ng-space-5);
+  align-items: start;
+}
+.carto-aside {
+  display: grid;
+  gap: var(--ng-space-4);
+}
+.carto-aside .cartography-gate {
+  display: grid;
+  gap: var(--ng-space-2);
+}
+.carto-aside .cartography-gate h3 {
+  margin: 0;
+  font-size: var(--ng-text-base);
+}
+.carto-aside .cartography-readout {
+  text-align: start;
+}
+.carto-aside p {
+  margin: 0;
+}
+.screen-cartography .cartography-map svg {
+  max-height: calc(100dvh - 24rem);
+}
+.screen-cartography .panel > h3 {
+  margin: 0 0 var(--ng-space-3);
+  font-size: var(--ng-text-lg);
+}
+.teach-back {
+  display: grid;
+  gap: var(--ng-space-3);
+}
+.teach-back > .attribution-case-picker {
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+.teach-back > .attribution-case-picker button {
+  background: var(--ng-paper);
+}
+.teach-grid {
+  margin-top: 0;
+  grid-template-columns: minmax(0, 1fr) 20rem;
+  align-items: start;
+}
+.screen-cartography .teach-grid .cartography-map svg {
+  max-height: calc(100dvh - 30rem);
+}
+.teach-side {
+  gap: var(--ng-space-2);
+}
+.teach-side .attribution-evidence {
+  margin-top: 0;
+}
+.teach-side .attribution-evidence dd {
+  white-space: normal;
+  text-align: end;
+}
+.teach-trace {
+  margin-top: 0;
+  max-height: 110px;
+}
+.teach-trace text {
+  font-size: 12px;
+}
+.teach-definition {
+  margin: 0;
+}
+.teach-scrub input {
+  accent-color: var(--ng-accent);
+}
+
+/* ---- Attribution ----------------------------------------------------------- */
+
+.attribution-page,
+.attribution-sessions {
+  display: grid;
+  gap: var(--ng-space-4);
+  align-content: start;
+}
+.attribution-page .notice {
+  margin: 0;
+  align-self: end;
+}
+.attribution-case-picker button {
+  padding: var(--ng-space-2) var(--ng-space-3);
+  border-radius: var(--ng-radius);
+}
+.attribution-case-picker button[aria-pressed='true'] {
+  border-color: var(--ng-accent);
+  background: var(--ng-accent-wash);
+}
+.attribution-detail {
+  padding: var(--ng-space-5);
+}
+.attribution-detail-grid {
+  margin-top: var(--ng-space-3);
+}
+.attribution-sessions > .panel.attribution-detail-grid {
+  margin-top: 0;
+}
+.attribution-action {
+  margin-top: var(--ng-space-3);
+}
+.attribution-ring svg {
+  width: min(100%, 150px);
+}
+.attribution-evidence {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ng-space-1);
+}
+.attribution-evidence > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--ng-space-3);
+  padding-bottom: var(--ng-space-1);
+  border-bottom: var(--ng-hairline) solid var(--ng-rule);
+}
+.attribution-evidence dd {
+  white-space: nowrap;
+}
+
+/* ---- Research review ------------------------------------------------------- */
+
+.screen-review .clinician-panel[aria-labelledby='robustness-heading'] {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--ng-space-3) var(--ng-space-6);
+  align-content: start;
+}
+.screen-review .clinician-panel[aria-labelledby='robustness-heading'] > .clinician-section-heading,
+.screen-review
+  .clinician-panel[aria-labelledby='robustness-heading']
+  > :not(.clinician-section-heading):not(.clinician-chart-scroll):not(.clinician-table-wrap) {
+  grid-column: 1 / -1;
+}
+.screen-review .clinician-chart-scroll svg {
+  min-width: 0;
+  max-height: calc(100dvh - 24rem);
+  width: 100%;
+}
+.screen-review .clinician-table th,
+.screen-review .clinician-table td {
+  padding: var(--ng-space-2) var(--ng-space-2);
+  white-space: normal;
+  text-align: left;
+}
+.screen-review .clinician-table td.ng-num,
+.screen-review .clinician-table td:last-child {
+  font-family: var(--ng-font-numeric);
+}
+.clinician-chart-scroll:focus-visible,
+.clinician-table-wrap:focus-visible {
+  outline: var(--ng-focus);
+  outline-offset: 2px;
+}
+
+.limits {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ng-space-4);
+  align-content: start;
+}
+.limits h3 {
+  margin: 0 0 var(--ng-space-3);
+  font-size: var(--ng-text-lg);
+}
+.limits ul {
+  display: grid;
+  gap: var(--ng-space-3);
+  margin: 0;
+  padding-left: var(--ng-space-5);
+}
+.limits li {
+  max-width: 60ch;
+}
+.limits li::marker {
+  color: var(--ng-ink-faint);
+}
+
+/* ---- Method notes: caveats on demand -------------------------------------- */
+
+.method-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ng-space-1);
+  min-height: 32px;
+  padding: 0 var(--ng-space-2) 0 var(--ng-space-1);
+  border: 0;
+  border-radius: var(--ng-radius);
+  background: none;
+  color: var(--ng-ink-muted);
+  font: inherit;
+  font-size: var(--ng-text-xs);
+  font-weight: 500;
+  cursor: pointer;
+  justify-self: start;
+  align-self: flex-start;
+}
+.method-trigger:hover {
+  color: var(--ng-accent);
+  background: var(--ng-accent-wash);
+}
+.method-note {
+  width: min(36rem, calc(100vw - 4rem));
+  max-height: min(70vh, 40rem);
+  overflow: auto;
+  padding: var(--ng-space-5) var(--ng-space-6) var(--ng-space-6);
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  border-radius: var(--ng-radius-lg);
+  background: var(--ng-paper-raised);
+  color: var(--ng-ink);
+}
+.method-note::backdrop {
+  background: color-mix(in srgb, var(--ng-ink) 18%, transparent);
+}
+.method-note-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ng-space-4);
+  margin-bottom: var(--ng-space-3);
+}
+.method-note-head h3 {
+  margin: 0;
+  font-size: var(--ng-text-lg);
+}
+.method-note-body {
+  display: grid;
+  gap: var(--ng-space-3);
+  font-size: var(--ng-text-sm);
+  color: var(--ng-ink-muted);
+}
+.method-note-body p {
+  margin: 0;
+}
+
+/* Tabular figures in every table, so columns of numbers align. */
+td,
+.attribution-evidence dd {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Inline definitions ---------------------------------------------------- */
+
+.term {
+  position: relative;
+  display: inline;
+}
+.term-trigger {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: help;
+  text-decoration: underline dotted;
+  text-decoration-color: var(--ng-ink-faint);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}
+.term-trigger:hover {
+  text-decoration-color: var(--ng-accent);
+}
+.term-tip {
+  display: none;
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  top: calc(100% + 6px);
+  width: max-content;
+  max-width: 19rem;
+  padding: var(--ng-space-2) var(--ng-space-3);
+  border: var(--ng-hairline) solid var(--ng-rule-strong);
+  border-radius: var(--ng-radius);
+  background: var(--ng-paper-raised);
+  color: var(--ng-ink);
+  font-family: var(--ng-font-text);
+  font-size: var(--ng-text-sm);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: var(--ng-leading-normal);
+  text-align: start;
+  white-space: normal;
+}
+.term:hover .term-tip,
+.term:focus-within .term-tip,
+.term[data-open] .term-tip {
+  display: block;
+}
+
+/* ---- Glossary -------------------------------------------------------------- */
+
+.glossary {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ng-space-4);
+  align-content: start;
+}
+.glossary-card {
+  display: grid;
+  align-content: start;
+  gap: var(--ng-space-2);
+  padding: var(--ng-space-4) var(--ng-space-5);
+}
+.glossary-card h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--ng-space-2);
+  margin: 0;
+  font-size: var(--ng-text-lg);
+}
+.glossary-aka {
+  font-family: var(--ng-font-numeric);
+  font-size: var(--ng-text-sm);
+  font-weight: 400;
+  color: var(--ng-ink-muted);
+}
+.glossary-card p {
+  margin: 0;
+}
+.glossary-say {
+  display: grid;
+  gap: 2px;
+  padding-left: var(--ng-space-3);
+  border-left: 2px solid var(--ng-accent);
+  font-weight: 500;
+}
+.glossary-say-label {
+  font-size: var(--ng-text-xs);
+  font-weight: 400;
+  color: var(--ng-ink-muted);
+}
+
+/* ---- Desktop: one viewport, no page scroll --------------------------------- */
+
+@media (min-width: 1024px) and (min-height: 640px) {
+  .app {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+  .stage {
+    overflow: hidden;
+  }
+  .screen {
+    min-height: 0;
+  }
+  .screen-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    /* A safety valve, not a layout: every page is sized to fit, and a test
+       asserts that at 1280 x 800 and 1440 x 900 none of them needs it. */
+    overflow: auto;
+  }
+  .screen-page {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  /* Panels take the height their content needs; only the live instrument
+     fills the stage. A panel stretched around three lines of content reads
+     as a broken page. */
+  .screen-page > * {
+    flex: 0 1 auto;
+    min-height: 0;
+  }
+  .screen-page > .live {
+    flex: 1;
+  }
+  .live {
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .live-controls,
+  .live-center,
+  .live-output {
+    min-height: 0;
+  }
+}
+
+@media (max-height: 860px) and (min-width: 1024px) {
+  .topbar {
+    min-height: 54px;
+  }
+  .footline {
+    min-height: 52px;
+    padding-block: var(--ng-space-1);
+  }
+  .stepper .button-primary,
+  .stepper .button-quiet {
+    min-height: 36px;
+  }
+  .stage {
+    padding-block: var(--ng-space-4) var(--ng-space-3);
+  }
+  .screen-summary {
+    font-size: var(--ng-text-sm);
+  }
+  .screen-cartography .teach-grid .cartography-map svg {
+    max-height: calc(100dvh - 34rem);
+  }
+  .attribution-detail-grid {
+    gap: var(--ng-space-4);
+  }
+  .attribution-scores {
+    gap: var(--ng-space-2);
+  }
+  .screen {
+    gap: var(--ng-space-3);
+  }
+  .screen-heading h2 {
+    font-size: 1.5rem;
+  }
+  .panel,
+  .live-controls,
+  .live-output,
+  .teach-back,
+  .attribution-detail {
+    padding: var(--ng-space-4);
+  }
+  .overview {
+    gap: var(--ng-space-4) var(--ng-space-6);
+  }
+  .overview-intro {
+    gap: var(--ng-space-3);
+  }
+  .facts {
+    margin-top: var(--ng-space-2);
+    padding-top: var(--ng-space-3);
+  }
+  .facts dd {
+    font-size: 1.25rem;
+  }
+  .mechanism {
+    padding: var(--ng-space-3);
+    gap: var(--ng-space-1);
+  }
+  .mechanism-value {
+    font-size: 1.125rem;
+  }
+  .live-step > p.muted {
+    display: none;
+  }
+  .gesture-choice {
+    min-height: 30px;
+    font-size: var(--ng-text-xs);
+  }
+  .live-output .scope-bed {
+    height: 160px;
+  }
+  .live-ring .ring svg {
+    max-height: 84px;
+  }
+  .glossary {
+    gap: var(--ng-space-3);
+  }
+  .glossary-card {
+    padding: var(--ng-space-3) var(--ng-space-4);
+    gap: var(--ng-space-1);
+  }
+  .attribution-ring svg {
+    width: min(100%, 120px);
+  }
+}
+
+/* ---- Narrow and short windows: an ordinary scrolling page ------------------ */
+
+@media (max-width: 1279px) {
+  .topbar,
+  .footline {
+    padding-inline: var(--ng-space-6);
+  }
+  .stage {
+    padding-inline: var(--ng-space-6);
+  }
+  .path li + li::before {
+    width: 12px;
+  }
+  .footline {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .footline-team {
+    display: none;
+  }
+  .live {
+    grid-template-columns: 16.5rem minmax(0, 1fr) 17rem;
+    gap: var(--ng-space-4);
+  }
+}
+
+@media (max-width: 1100px) {
+  .path-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .path li[data-state='current'] .path-label {
+    position: static;
+    width: auto;
+    height: auto;
+    clip: auto;
+  }
+}
+
+@media (max-width: 1023px) {
+  .topbar {
+    flex-wrap: wrap;
+    gap: var(--ng-space-2) var(--ng-space-4);
+    padding: var(--ng-space-2) var(--ng-space-4);
+  }
+  .path {
+    order: 3;
+    flex: 1 0 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+  .topbar-actions {
+    margin-left: auto;
+  }
+  .stage {
+    padding: var(--ng-space-4);
+  }
+  .footline {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--ng-space-3) var(--ng-space-4);
+    gap: var(--ng-space-2);
+  }
+  .stepper {
+    justify-content: flex-end;
+  }
+  .overview {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+  }
+  .mechanisms ol {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .live,
+  .limits,
+  .carto-map-page,
+  .teach-grid,
+  .results-pair,
+  .screen-review .clinician-panel[aria-labelledby='robustness-heading'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .live-center .hand {
+    min-height: 360px;
+  }
+  .live-run {
+    margin-top: 0;
+  }
+  .glossary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mechanisms ol {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .screen-controls,
+  .pager-tabs {
+    width: 100%;
+  }
+  .pager-tabs {
+    overflow-x: auto;
+  }
+  .attribution-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .brand-name {
+    display: none;
+  }
+}

@@ -58,7 +58,7 @@ export function Oscilloscope({
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
     context.clearRect(0, 0, width, height);
 
-    const trace = cssVar(canvas, '--ng-muscle', '#a8324a');
+    const trace = cssVar(canvas, '--ng-signal', '#2a6fc9');
     const rule = cssVar(canvas, '--ng-rule', '#d8dbd8');
     const laneHeight = height / nChannels;
 

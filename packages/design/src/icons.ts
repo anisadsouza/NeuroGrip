@@ -165,6 +165,11 @@ export const ICONS = {
     elements: [path('M4 13 L9.5 18.5 L20 6')],
   },
 
+  info: {
+    note: 'Method and limits behind a result. The alert mark inverted: a ring instead of a triangle, the dot above the bar, so it reads as more to know rather than a warning.',
+    elements: [circle(12, 12, 9), circle(12, 7.6, 0.9, true), path('M12 10.5 V17')],
+  },
+
   close: {
     note: 'Dismiss. A true diagonal cross rather than a rotated plus, so it cannot be misread as add.',
     elements: [path('M5 5 L19 19'), path('M19 5 L5 19')],
@@ -173,6 +178,26 @@ export const ICONS = {
   chevronDown: {
     note: 'Disclose the detail beneath.',
     elements: [path('M5 9 L12 16 L19 9')],
+  },
+
+  chevronLeft: {
+    note: 'The previous page. The same 45-degree chevron as disclosure, turned to point back.',
+    elements: [path('M15 5 L8 12 L15 19')],
+  },
+
+  chevronRight: {
+    note: 'The next page. Mirror of the previous-page chevron, so the pair reads as one control.',
+    elements: [path('M9 5 L16 12 L9 19')],
+  },
+
+  glossary: {
+    note: 'Two facing pages on a spine: the words-explained screen, drawn as straight construction lines.',
+    elements: [path('M12 6 V20'), path('M12 6 L3 4 V18 L12 20'), path('M12 6 L21 4 V18 L12 20')],
+  },
+
+  route: {
+    note: 'One error, routed: a single line that branches at 45 degrees toward separate remedies.',
+    elements: [path('M2 12 H9'), path('M9 12 L15 6 H22'), path('M9 12 H22'), path('M9 12 L15 18 H22')],
   },
 
   theme: {

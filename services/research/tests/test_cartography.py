@@ -255,3 +255,59 @@ def test_cartography_gate_uses_per_gesture_pass_criterion():
                 item["passes"] for item in result["prototype_comparisons"]
             )
             assert len(result["map_points"]) == 40
+
+
+# --- Teach-back --------------------------------------------------------------
+#
+# A synthesized prototype is a coordinate, not a gesture anyone knows. The
+# simulated learner sees only what the Cartograph would show -- where its
+# attempt landed and how far that is from the target -- and keeps a change of
+# command only when it lands closer. It is never told the muscle pattern.
+
+
+def _teach(cartograph, subject, **overrides):
+    from neurogrip.cartography import TeachBackConfig, synthesize_poses, teach_back
+
+    poses = synthesize_poses(cartograph, 3)
+    config = TeachBackConfig(**overrides)
+    return poses, teach_back(cartograph, poses, subject, SimulatorConfig(), config, seed=5)
+
+
+def test_teach_back_learns_most_targets_from_rest(cartograph, subject):
+    poses, result = _teach(cartograph, subject)
+
+    assert len(result["targets"]) == len(poses)
+    learned = [t for t in result["targets"] if t["attempts_to_criterion"] is not None]
+    assert len(learned) >= 2
+    for target in learned:
+        # Learning happened: the last attempt is much closer than the first.
+        assert target["distances"][-1] < target["distances"][0]
+
+
+def test_teach_back_reports_a_target_it_could_not_learn_as_censored(cartograph, subject):
+    # Two attempts cannot fill a five-attempt window.
+    _, result = _teach(cartograph, subject, max_attempts=2)
+
+    for target in result["targets"]:
+        assert target["attempts_to_criterion"] is None
+        assert target["attempts_made"] == 2
+    assert result["n_censored"] == len(result["targets"])
+
+
+def test_teach_back_trajectory_has_one_point_per_attempt_inside_the_map(cartograph, subject):
+    _, result = _teach(cartograph, subject)
+
+    for target in result["targets"]:
+        assert len(target["trajectory_map"]) == target["attempts_made"]
+        assert len(target["distances"]) == target["attempts_made"]
+        points = np.asarray(target["trajectory_map"])
+        assert points.min() >= 0.0 and points.max() <= 1.0
+        command = np.asarray(target["learned_command"])
+        assert command.min() >= 0.0 and command.max() <= 1.0
+
+
+def test_teach_back_is_seeded(cartograph, subject):
+    _, first = _teach(cartograph, subject)
+    _, second = _teach(cartograph, subject)
+
+    assert first == second

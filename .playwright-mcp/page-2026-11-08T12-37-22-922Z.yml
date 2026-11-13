@@ -1,0 +1,97 @@
+- generic [ref=f5e3]:
+  - banner [ref=f5e4]:
+    - heading [level=1] [ref=f5e5]:
+      - link "NeuroGrip, the idea" [ref=f5e6] [cursor=pointer]:
+        - /url: "#overview"
+        - generic [ref=f5e7]: NeuroGrip
+    - navigation "Guided path" [ref=f5e20]:
+      - list [ref=f5e21]:
+        - listitem [ref=f5e22]:
+          - 'button "Step 1: The idea" [ref=f5e23] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e24]: "1"
+            - generic [ref=f5e25]: Idea
+        - listitem [ref=f5e26]:
+          - 'button "Step 2: Live demo" [ref=f5e27] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e28]: "2"
+            - generic [ref=f5e29]: Live
+        - listitem [ref=f5e30]:
+          - 'button "Step 3: Accuracy" [ref=f5e31] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e32]: "3"
+            - generic [ref=f5e33]: Accuracy
+        - listitem [ref=f5e34]:
+          - 'button "Step 4: Personal gestures" [ref=f5e35] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e36]: "4"
+            - generic [ref=f5e37]: Gestures
+        - listitem [ref=f5e38]:
+          - 'button "Step 5: Why errors happen" [ref=f5e39] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e40]: "5"
+            - generic [ref=f5e41]: Errors
+        - listitem [ref=f5e42]:
+          - 'button "Step 6: Speed, safety and limits" [ref=f5e43] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e44]: "6"
+            - generic [ref=f5e45]: Safety
+    - generic [ref=f5e46]:
+      - button "Words explained" [ref=f5e47] [cursor=pointer]
+      - button "Switch to dark theme" [ref=f5e51] [cursor=pointer]
+  - main [ref=f5e55]:
+    - region [ref=f5e486]:
+      - generic [ref=f5e462]:
+        - generic [ref=f5e463]:
+          - heading "Accuracy" [level=2] [ref=f5e487]
+          - paragraph [ref=f5e465]: Three decoders under leave-one-subject-out testing. Simulated and recorded results are kept apart.
+        - generic [ref=f5e466]:
+          - tablist "Accuracy pages" [ref=f5e488]:
+            - tab "Model comparison" [selected] [ref=f5e469] [cursor=pointer]
+            - tab "Real recording" [ref=f5e468] [cursor=pointer]
+            - tab "Speed" [ref=f5e470] [cursor=pointer]
+          - generic [ref=f5e471]:
+            - button "Previous page" [disabled] [ref=f5e472]
+            - generic [ref=f5e475]: 1 / 3
+            - button "Next page" [ref=f5e476] [cursor=pointer]
+      - tabpanel "Model comparison" [ref=f5e489]:
+        - generic [ref=f5e491]:
+          - region [ref=f5e492]:
+            - heading "Simulated sEMG model comparison" [level=3] [ref=f5e493]
+            - table [ref=f5e494]:
+              - caption [ref=f5e495]: "Best: Curved-boundary SVM"
+              - rowgroup [ref=f5e496]:
+                - row [ref=f5e497]:
+                  - columnheader "Decoder" [ref=f5e498]
+                  - columnheader [ref=f5e499]:
+                    - button "Accuracy on new people" [ref=f5e501]
+                  - columnheader "Varies by" [ref=f5e502]
+                  - columnheader [ref=f5e503]:
+                    - button "Confidence error" [ref=f5e505]
+              - rowgroup [ref=f5e506]:
+                - row [ref=f5e507]:
+                  - rowheader "Simple average (LDA)" [ref=f5e508]
+                  - cell "90.5%" [ref=f5e509]
+                  - cell "±10.0 pts" [ref=f5e514]
+                  - cell "0.263" [ref=f5e515]
+                - row [ref=f5e516]:
+                  - rowheader "Straight-line SVM" [ref=f5e517]
+                  - cell "90.5%" [ref=f5e518]
+                  - cell "±10.9 pts" [ref=f5e523]
+                  - cell "0.070" [ref=f5e524]
+                - row [ref=f5e525]:
+                  - rowheader "Curved-boundary SVM" [ref=f5e526]
+                  - cell "95.6%" [ref=f5e527]
+                  - cell "±5.6 pts" [ref=f5e532]
+                  - cell "0.022" [ref=f5e533]
+            - paragraph [ref=f5e534]: Accuracy here is measured on simulated sEMG. The simulator has no motion artefact, no skin-impedance drift and no cross-session electrode replacement, so these figures are optimistic relative to recorded data such as NinaPro. Report them as simulator results.
+          - region [ref=f5e535]:
+            - heading "Recorded NinaPro DB2 model comparison" [level=3] [ref=f5e536]
+            - paragraph [ref=f5e537]: Not included in this build. Recorded-person results need the NinaPro recordings, which are licensed separately and not shipped with the app.
+  - contentinfo [ref=f5e270]:
+    - note [ref=f5e271]: Research prototype. Not a medical device. Replays simulated or recorded research data; reads no live electrodes.
+    - paragraph [ref=f5e272]:
+      - generic [ref=f5e273]: Built by
+      - text: Harsh Bavaskar, Anisa D'Souza, Shruti Shanklesha
+    - navigation "Step through the path" [ref=f5e274]:
+      - 'button "Previous: Live" [ref=f5e484] [cursor=pointer]':
+        - generic [ref=f5e446]: "Previous:"
+        - text: Live
+      - 'button "Next: Personal gestures" [ref=f5e485] [cursor=pointer]':
+        - generic [ref=f5e276]:
+          - generic [ref=f5e277]: "Next:"
+          - text: 4Personal gestures

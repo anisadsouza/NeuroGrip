@@ -7,6 +7,8 @@ model card quote a recorded run rather than a remembered number.
     python -m neurogrip.experiments compare --out artifacts/model_comparison.json
     python -m neurogrip.experiments cartography --out artifacts/cartography_gate.json
     python -m neurogrip.experiments attribution --out artifacts/attribution_demo.json
+    python -m neurogrip.experiments coaching --out artifacts/coaching_localisation.json
+    python -m neurogrip.experiments router-session --out artifacts/router_session.json
 """
 
 from __future__ import annotations
@@ -21,6 +23,8 @@ import numpy as np
 from neurogrip import FEATURE_SPEC_VERSION
 from neurogrip.attribution import attribution_demo
 from neurogrip.cartography import cartography_gate
+from neurogrip.coaching import localisation_cohort
+from neurogrip.router_session import router_session_cohort
 from neurogrip.datasets import Corpus, CorpusConfig, build_corpus
 from neurogrip.evaluation import paired_fold_test
 from neurogrip.export import export_to_onnx, load_session, predict_onnx, verify_parity
@@ -288,7 +292,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="NeuroGrip experiments")
     parser.add_argument(
         "experiment",
-        choices=["compare", "export", "robustness", "cartography", "attribution"],
+        choices=[
+            "compare", "export", "robustness", "cartography", "attribution",
+            "coaching", "router-session",
+        ],
     )
     parser.add_argument(
         "--out",
@@ -379,6 +386,40 @@ def main() -> None:
             "injected causes routed: "
             f"{payload['injected_causes_routed']}/{payload['n_injections']}"
         )
+        print(f"written to {out}")
+        return
+
+    if args.experiment == "coaching":
+        out = args.out or pathlib.Path("artifacts/coaching_localisation.json")
+        if out.suffix != ".json":
+            parser.error(f"coaching --out must be a .json path, got {out}")
+        payload = localisation_cohort(n_subjects=5, reps=args.reps)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        print(
+            "coaching named the injected group and direction on "
+            f"{payload['n_recovered']}/{payload['n_error_windows']} error windows "
+            f"({payload['recovery_rate']:.1%}; chance {payload['chance_rate']:.1%})"
+        )
+        print(f"written to {out}")
+        return
+
+    if args.experiment == "router-session":
+        out = args.out or pathlib.Path("artifacts/router_session.json")
+        if out.suffix != ".json":
+            parser.error(f"router-session --out must be a .json path, got {out}")
+        payload = router_session_cohort(reps=args.reps)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        print(
+            "sessions routed to their injected cause: "
+            f"{payload['sessions_routed']}/{payload['n_sessions']}"
+        )
+        for fault, row in payload["per_fault"].items():
+            print(
+                f"  {fault}: {row['sessions_routed']}/{row['n_sessions']} sessions, "
+                f"{row['n_errors_routed_to_injected_cause']}/{row['n_error_windows']} errors"
+            )
         print(f"written to {out}")
         return
 

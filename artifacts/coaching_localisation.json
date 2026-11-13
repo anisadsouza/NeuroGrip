@@ -1,0 +1,2403 @@
+{
+  "source": "simulator",
+  "n_subjects": 5,
+  "decoder": "shrinkage LDA surrogate on clean simulated repetitions",
+  "back_projection_geometry": "nominal (no electrode shift, default conduction length)",
+  "injection": {
+    "excess_step": 0.35,
+    "deficit_keep": 0.3,
+    "min_deficit_excitation": 0.15
+  },
+  "min_lead_share": 0.4,
+  "n_windows": 2925,
+  "n_error_windows": 910,
+  "n_recovered": 780,
+  "n_wrong_group_or_direction": 99,
+  "n_declined": 31,
+  "recovery_rate": 0.8571,
+  "chance_rate": 0.125,
+  "per_group": {
+    "digit_flexor": {
+      "error_windows": 152,
+      "recovered": 131,
+      "recovery_rate": 0.8618
+    },
+    "digit_extensor": {
+      "error_windows": 237,
+      "recovered": 220,
+      "recovery_rate": 0.9283
+    },
+    "wrist_flexor": {
+      "error_windows": 274,
+      "recovered": 225,
+      "recovery_rate": 0.8212
+    },
+    "wrist_extensor": {
+      "error_windows": 247,
+      "recovered": 204,
+      "recovery_rate": 0.8259
+    }
+  },
+  "per_subject": [
+    {
+      "subject": "coach00",
+      "electrode_shift_rad": 0.059,
+      "n_error_windows": 173,
+      "recovery_rate": 0.9249
+    },
+    {
+      "subject": "coach01",
+      "electrode_shift_rad": -0.0599,
+      "n_error_windows": 177,
+      "recovery_rate": 0.9266
+    },
+    {
+      "subject": "coach02",
+      "electrode_shift_rad": 0.3053,
+      "n_error_windows": 179,
+      "recovery_rate": 0.8659
+    },
+    {
+      "subject": "coach03",
+      "electrode_shift_rad": -0.1613,
+      "n_error_windows": 197,
+      "recovery_rate": 0.7411
+    },
+    {
+      "subject": "coach04",
+      "electrode_shift_rad": 0.1101,
+      "n_error_windows": 184,
+      "recovery_rate": 0.8424
+    }
+  ],
+  "detail_subject": "coach00",
+  "cases": [
+    {
+      "gesture": "fist",
+      "injected_group": "digit_extensor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 9,
+      "recovered": 9,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "fist",
+        "decoded": "two_finger",
+        "margin_change": 92.079307,
+        "margin_residual": 8.526512829121202e-14,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.0522,
+            "activity_log_ratio": -0.1127
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.0293,
+            "activity_log_ratio": -0.1113
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.0757
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.0508,
+            "activity_log_ratio": 0.1122
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.0021,
+            "activity_log_ratio": 0.0944
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.4234
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.8656,
+            "activity_log_ratio": 1.6056
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.3568
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": -2.9694,
+          "digit_extensor": 220.2945,
+          "wrist_flexor": 7.0937,
+          "wrist_extensor": -126.2577
+        },
+        "coaching": {
+          "confident": true,
+          "group": "digit_extensor",
+          "group_name": "finger extensors",
+          "direction": "excess",
+          "share": 0.6177,
+          "instruction": "Your fist attempt was read as two finger. Try to relax the effort to straighten your fingers, and bend your wrist back a little more.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "fist",
+      "injected_group": "digit_flexor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "fist",
+      "injected_group": "digit_flexor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 9,
+      "recovered": 9,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "fist",
+        "decoded": "spherical_grip",
+        "margin_change": 138.283238,
+        "margin_residual": 0.0,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.2283
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.0068,
+            "activity_log_ratio": -0.1427
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.5468,
+            "activity_log_ratio": -0.6716
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.1887
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.0339,
+            "activity_log_ratio": 0.2489
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.0746,
+            "activity_log_ratio": 0.3009
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.2085,
+            "activity_log_ratio": 0.2745
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.1293,
+            "activity_log_ratio": 0.2286
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": -203.1879,
+          "digit_extensor": 67.0696,
+          "wrist_flexor": 97.9979,
+          "wrist_extensor": 20.9551
+        },
+        "coaching": {
+          "confident": true,
+          "group": "digit_flexor",
+          "group_name": "finger flexors",
+          "direction": "deficit",
+          "share": 0.5221,
+          "instruction": "Your fist attempt was read as spherical grip. Try to curl your fingers more firmly, and keep your wrist from bending inward.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "fist",
+      "injected_group": "wrist_extensor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 9,
+      "recovered": 4,
+      "wrong_group_or_direction": 2,
+      "declined": 3,
+      "example": {
+        "intended": "fist",
+        "decoded": "spherical_grip",
+        "margin_change": 148.824886,
+        "margin_residual": 0.0,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.2512
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.0776
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.0134
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.0214
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.1131,
+            "activity_log_ratio": 0.7226
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.2188,
+            "activity_log_ratio": 0.962
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.3525,
+            "activity_log_ratio": 0.6531
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.3156,
+            "activity_log_ratio": 0.9717
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": 4.0061,
+          "digit_extensor": 100.3993,
+          "wrist_flexor": -42.8084,
+          "wrist_extensor": 121.7615
+        },
+        "coaching": {
+          "confident": true,
+          "group": "wrist_extensor",
+          "group_name": "wrist extensors",
+          "direction": "excess",
+          "share": 0.4527,
+          "instruction": "Your fist attempt was read as spherical grip. Try to keep your wrist from pulling back, and relax the effort to straighten your fingers.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "fist",
+      "injected_group": "wrist_extensor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "fist",
+      "injected_group": "wrist_flexor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 5,
+      "recovered": 5,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "fist",
+        "decoded": "wrist_flexion",
+        "margin_change": 260.081477,
+        "margin_residual": 5.684341886080802e-14,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.2611,
+            "activity_log_ratio": 0.774
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.0603,
+            "activity_log_ratio": 0.4198
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.1548,
+            "activity_log_ratio": -0.1488
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.5091,
+            "activity_log_ratio": 0.6803
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.0147,
+            "activity_log_ratio": 0.6088
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.2202
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.3081
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.304
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": -261.5645,
+          "digit_extensor": -1.8931,
+          "wrist_flexor": 590.1736,
+          "wrist_extensor": -78.2474
+        },
+        "coaching": {
+          "confident": true,
+          "group": "wrist_flexor",
+          "group_name": "wrist flexors",
+          "direction": "excess",
+          "share": 0.6333,
+          "instruction": "Your fist attempt was read as wrist flexion. Try to keep your wrist from bending inward, and curl your fingers more firmly.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "fist",
+      "injected_group": "wrist_flexor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "open_hand",
+      "injected_group": "digit_extensor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "open_hand",
+      "injected_group": "digit_extensor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 1,
+      "recovered": 1,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "open_hand",
+        "decoded": "wrist_extension",
+        "margin_change": 158.716827,
+        "margin_residual": 2.842170943040401e-14,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.1568
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.018,
+            "activity_log_ratio": -0.1838
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.1684
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.0273,
+            "activity_log_ratio": -0.2617
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.3084
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.6397
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.9546,
+            "activity_log_ratio": -1.3807
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.17
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": 12.3489,
+          "digit_extensor": -581.1487,
+          "wrist_flexor": -43.8601,
+          "wrist_extensor": 330.6653
+        },
+        "coaching": {
+          "confident": true,
+          "group": "digit_extensor",
+          "group_name": "finger extensors",
+          "direction": "deficit",
+          "share": 0.6003,
+          "instruction": "Your open hand attempt was read as wrist extension. Try to straighten your fingers a little more, and keep your wrist from pulling back.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "open_hand",
+      "injected_group": "digit_flexor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 9,
+      "recovered": 9,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "open_hand",
+        "decoded": "point",
+        "margin_change": 287.312081,
+        "margin_residual": 1.1368683772161603e-13,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.0149,
+            "activity_log_ratio": -0.0209
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.2926,
+            "activity_log_ratio": 0.9751
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.6492,
+            "activity_log_ratio": 1.6921
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.0332,
+            "activity_log_ratio": 0.1166
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.01,
+            "activity_log_ratio": -0.1395
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.0446
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.209
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.0436
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": 522.2792,
+          "digit_extensor": 6.9864,
+          "wrist_flexor": -118.5883,
+          "wrist_extensor": -53.1694
+        },
+        "coaching": {
+          "confident": true,
+          "group": "digit_flexor",
+          "group_name": "finger flexors",
+          "direction": "excess",
+          "share": 0.745,
+          "instruction": "Your open hand attempt was read as point. Try to ease off the finger squeeze.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "open_hand",
+      "injected_group": "wrist_extensor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 2,
+      "recovered": 2,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "open_hand",
+        "decoded": "wrist_extension",
+        "margin_change": 163.994151,
+        "margin_residual": 2.842170943040401e-14,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.0807,
+            "activity_log_ratio": 0.5155
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.0138,
+            "activity_log_ratio": 0.0236
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.0596,
+            "activity_log_ratio": 0.2691
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.2862
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.2667,
+            "activity_log_ratio": 0.4282
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.1048,
+            "activity_log_ratio": 0.2296
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.0909,
+            "activity_log_ratio": -0.0567
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.3835,
+            "activity_log_ratio": 0.5417
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": 16.017,
+          "digit_extensor": -104.3493,
+          "wrist_flexor": -25.4761,
+          "wrist_extensor": 277.1243
+        },
+        "coaching": {
+          "confident": true,
+          "group": "wrist_extensor",
+          "group_name": "wrist extensors",
+          "direction": "excess",
+          "share": 0.6552,
+          "instruction": "Your open hand attempt was read as wrist extension. Try to keep your wrist from pulling back.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "open_hand",
+      "injected_group": "wrist_extensor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "open_hand",
+      "injected_group": "wrist_flexor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 5,
+      "recovered": 0,
+      "wrong_group_or_direction": 4,
+      "declined": 1,
+      "example": {
+        "intended": "open_hand",
+        "decoded": "point",
+        "margin_change": 255.563154,
+        "margin_residual": 5.684341886080802e-14,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.4344
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.3834,
+            "activity_log_ratio": 1.2983
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.3333,
+            "activity_log_ratio": 0.7193
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.2372,
+            "activity_log_ratio": 1.172
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.0454,
+            "activity_log_ratio": -0.1718
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.0007,
+            "activity_log_ratio": -0.1137
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.0242
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.1183
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": 220.6527,
+          "digit_extensor": 25.6553,
+          "wrist_flexor": 205.4304,
+          "wrist_extensor": -129.4701
+        },
+        "coaching": {
+          "confident": false,
+          "group": null,
+          "direction": null,
+          "share": 0.3796,
+          "instruction": "Your open hand attempt was read as point. No single muscle group explains it; repeat the gesture slowly and compare it with your own stable attempts.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "pinch",
+      "injected_group": "digit_extensor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 9,
+      "recovered": 9,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "pinch",
+        "decoded": "point",
+        "margin_change": 85.086939,
+        "margin_residual": 4.263256414560601e-14,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.0154
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.0008,
+            "activity_log_ratio": -0.1085
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.0412,
+            "activity_log_ratio": -0.3029
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.0015,
+            "activity_log_ratio": -0.2102
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.0087,
+            "activity_log_ratio": -0.0176
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.0453,
+            "activity_log_ratio": 0.6249
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.8271,
+            "activity_log_ratio": 1.1775
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.0753,
+            "activity_log_ratio": 0.4745
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": -10.5543,
+          "digit_extensor": 184.0553,
+          "wrist_flexor": 3.5584,
+          "wrist_extensor": -82.5373
+        },
+        "coaching": {
+          "confident": true,
+          "group": "digit_extensor",
+          "group_name": "finger extensors",
+          "direction": "excess",
+          "share": 0.6557,
+          "instruction": "Your pinch attempt was read as point. Try to relax the effort to straighten your fingers, and bend your wrist back a little more.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "pinch",
+      "injected_group": "digit_extensor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 5,
+      "recovered": 5,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "pinch",
+        "decoded": "fist",
+        "margin_change": 102.943548,
+        "margin_residual": 8.526512829121202e-14,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.0267,
+            "activity_log_ratio": 0.0651
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.0742
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.0171,
+            "activity_log_ratio": 0.1287
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.1062,
+            "activity_log_ratio": 0.1559
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.0122,
+            "activity_log_ratio": -0.0872
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.0228,
+            "activity_log_ratio": -0.2377
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.815,
+            "activity_log_ratio": -0.9189
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.0457
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": 0.0691,
+          "digit_extensor": -220.5822,
+          "wrist_flexor": 21.3388,
+          "wrist_extensor": 110.877
+        },
+        "coaching": {
+          "confident": true,
+          "group": "digit_extensor",
+          "group_name": "finger extensors",
+          "direction": "deficit",
+          "share": 0.6251,
+          "instruction": "Your pinch attempt was read as fist. Try to straighten your fingers a little more, and keep your wrist from pulling back.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "pinch",
+      "injected_group": "digit_flexor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "pinch",
+      "injected_group": "digit_flexor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "pinch",
+      "injected_group": "wrist_extensor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "pinch",
+      "injected_group": "wrist_extensor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "pinch",
+      "injected_group": "wrist_flexor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 9,
+      "recovered": 9,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "pinch",
+        "decoded": "two_finger",
+        "margin_change": 91.931604,
+        "margin_residual": 1.8474111129762605e-13,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.9642
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.6165
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.1279
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.9788,
+            "activity_log_ratio": 1.3147
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.4656
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.019,
+            "activity_log_ratio": 0.0877
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.0022,
+            "activity_log_ratio": -0.2302
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.1281
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": -61.4428,
+          "digit_extensor": 14.5483,
+          "wrist_flexor": 262.555,
+          "wrist_extensor": -77.4263
+        },
+        "coaching": {
+          "confident": true,
+          "group": "wrist_flexor",
+          "group_name": "wrist flexors",
+          "direction": "excess",
+          "share": 0.6312,
+          "instruction": "Your pinch attempt was read as two finger. Try to keep your wrist from bending inward.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "pinch",
+      "injected_group": "wrist_flexor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "point",
+      "injected_group": "digit_extensor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "point",
+      "injected_group": "digit_extensor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 9,
+      "recovered": 9,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "point",
+        "decoded": "pinch",
+        "margin_change": 70.320976,
+        "margin_residual": 1.4210854715202004e-14,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.0746,
+            "activity_log_ratio": 0.125
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.0412,
+            "activity_log_ratio": 0.0912
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.0043,
+            "activity_log_ratio": 0.0067
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.1019
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.0149,
+            "activity_log_ratio": -0.0772
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.0258,
+            "activity_log_ratio": -0.4389
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.8393,
+            "activity_log_ratio": -1.0559
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.0216
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": -0.1138,
+          "digit_extensor": -164.5547,
+          "wrist_flexor": 8.3179,
+          "wrist_extensor": 87.3551
+        },
+        "coaching": {
+          "confident": true,
+          "group": "digit_extensor",
+          "group_name": "finger extensors",
+          "direction": "deficit",
+          "share": 0.6321,
+          "instruction": "Your point attempt was read as pinch. Try to straighten your fingers a little more, and keep your wrist from pulling back.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "point",
+      "injected_group": "digit_flexor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "point",
+      "injected_group": "digit_flexor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "point",
+      "injected_group": "wrist_extensor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 9,
+      "recovered": 9,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "point",
+        "decoded": "spherical_grip",
+        "margin_change": 95.045189,
+        "margin_residual": 7.105427357601002e-14,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.2304,
+            "activity_log_ratio": 0.6796
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.0472,
+            "activity_log_ratio": 0.422
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.4736
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.1017,
+            "activity_log_ratio": 0.4827
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.2026,
+            "activity_log_ratio": 1.0955
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.0878,
+            "activity_log_ratio": 0.8566
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.2808
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.3303,
+            "activity_log_ratio": 0.9938
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": -28.2384,
+          "digit_extensor": -46.7412,
+          "wrist_flexor": 65.2395,
+          "wrist_extensor": 168.7829
+        },
+        "coaching": {
+          "confident": true,
+          "group": "wrist_extensor",
+          "group_name": "wrist extensors",
+          "direction": "excess",
+          "share": 0.5462,
+          "instruction": "Your point attempt was read as spherical grip. Try to keep your wrist from pulling back.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "point",
+      "injected_group": "wrist_extensor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "point",
+      "injected_group": "wrist_flexor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 3,
+      "recovered": 3,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "point",
+        "decoded": "spherical_grip",
+        "margin_change": 80.446692,
+        "margin_residual": 5.684341886080802e-14,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.3554,
+            "activity_log_ratio": 0.5806
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.0838,
+            "activity_log_ratio": 0.1741
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.033,
+            "activity_log_ratio": -0.1414
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.2898,
+            "activity_log_ratio": 0.8048
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.0706,
+            "activity_log_ratio": 0.1384
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.0154,
+            "activity_log_ratio": -0.0048
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.1521,
+            "activity_log_ratio": -0.1125
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.1495
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": -41.795,
+          "digit_extensor": -40.9588,
+          "wrist_flexor": 121.9851,
+          "wrist_extensor": 18.5789
+        },
+        "coaching": {
+          "confident": true,
+          "group": "wrist_flexor",
+          "group_name": "wrist flexors",
+          "direction": "excess",
+          "share": 0.5462,
+          "instruction": "Your point attempt was read as spherical grip. Try to keep your wrist from bending inward.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "point",
+      "injected_group": "wrist_flexor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "wrist_flexion",
+      "injected_group": "digit_extensor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "wrist_flexion",
+      "injected_group": "digit_flexor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "wrist_flexion",
+      "injected_group": "digit_flexor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "wrist_flexion",
+      "injected_group": "wrist_extensor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 9,
+      "recovered": 6,
+      "wrong_group_or_direction": 0,
+      "declined": 3,
+      "example": {
+        "intended": "wrist_flexion",
+        "decoded": "spherical_grip",
+        "margin_change": 410.036803,
+        "margin_residual": 2.8421709430404007e-13,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.0255,
+            "activity_log_ratio": -0.0846
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.0029,
+            "activity_log_ratio": -0.0554
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.0146,
+            "activity_log_ratio": 0.0933
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.041,
+            "activity_log_ratio": -0.0476
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.0082,
+            "activity_log_ratio": 0.4273
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.3879,
+            "activity_log_ratio": 1.6382
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.2747,
+            "activity_log_ratio": 0.9013
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.2453,
+            "activity_log_ratio": 1.1469
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": 61.047,
+          "digit_extensor": 230.2588,
+          "wrist_flexor": -235.862,
+          "wrist_extensor": 384.867
+        },
+        "coaching": {
+          "confident": true,
+          "group": "wrist_extensor",
+          "group_name": "wrist extensors",
+          "direction": "excess",
+          "share": 0.422,
+          "instruction": "Your wrist flexion attempt was read as spherical grip. Try to keep your wrist from pulling back, and bend your wrist in a little more.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "wrist_flexion",
+      "injected_group": "wrist_flexor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "wrist_flexion",
+      "injected_group": "wrist_flexor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 9,
+      "recovered": 9,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "wrist_flexion",
+        "decoded": "two_finger",
+        "margin_change": 341.811201,
+        "margin_residual": 0.0,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.3942,
+            "activity_log_ratio": -1.5634
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.1534,
+            "activity_log_ratio": -1.5569
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.7972
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.378,
+            "activity_log_ratio": -1.7309
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.0544,
+            "activity_log_ratio": -1.4322
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.4633
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.1918
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.0199,
+            "activity_log_ratio": -0.7326
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": 244.2413,
+          "digit_extensor": 48.0909,
+          "wrist_flexor": -904.2881,
+          "wrist_extensor": 13.681
+        },
+        "coaching": {
+          "confident": true,
+          "group": "wrist_flexor",
+          "group_name": "wrist flexors",
+          "direction": "deficit",
+          "share": 0.7472,
+          "instruction": "Your wrist flexion attempt was read as two finger. Try to bend your wrist in a little more.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "wrist_extension",
+      "injected_group": "digit_extensor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "wrist_extension",
+      "injected_group": "digit_extensor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "wrist_extension",
+      "injected_group": "digit_flexor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "wrist_extension",
+      "injected_group": "wrist_extensor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "wrist_extension",
+      "injected_group": "wrist_extensor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 9,
+      "recovered": 9,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "wrist_extension",
+        "decoded": "open_hand",
+        "margin_change": 248.886727,
+        "margin_residual": 1.7053025658242404e-13,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.111,
+            "activity_log_ratio": -1.2505
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.2712
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.0068,
+            "activity_log_ratio": -0.2695
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.6802
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.328,
+            "activity_log_ratio": -1.2556
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.1596,
+            "activity_log_ratio": -1.2802
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.5853
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.3945,
+            "activity_log_ratio": -1.5078
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": 24.4225,
+          "digit_extensor": 138.8811,
+          "wrist_flexor": 16.7076,
+          "wrist_extensor": -553.2011
+        },
+        "coaching": {
+          "confident": true,
+          "group": "wrist_extensor",
+          "group_name": "wrist extensors",
+          "direction": "deficit",
+          "share": 0.7545,
+          "instruction": "Your wrist extension attempt was read as open hand. Try to bend your wrist back a little more.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "wrist_extension",
+      "injected_group": "wrist_flexor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "thumb_up",
+      "injected_group": "digit_extensor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "thumb_up",
+      "injected_group": "digit_extensor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "thumb_up",
+      "injected_group": "digit_flexor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "thumb_up",
+      "injected_group": "digit_flexor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "thumb_up",
+      "injected_group": "wrist_extensor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "thumb_up",
+      "injected_group": "wrist_extensor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "thumb_up",
+      "injected_group": "wrist_flexor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 7,
+      "recovered": 7,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "thumb_up",
+        "decoded": "spherical_grip",
+        "margin_change": 167.009068,
+        "margin_residual": 2.842170943040401e-14,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.0442,
+            "activity_log_ratio": 0.281
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.4682
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.138,
+            "activity_log_ratio": 0.5074
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.5974,
+            "activity_log_ratio": 1.8509
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.1688,
+            "activity_log_ratio": 0.6632
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.2592
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.0164,
+            "activity_log_ratio": 0.1572
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.0352,
+            "activity_log_ratio": -0.1428
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": -11.2969,
+          "digit_extensor": 4.2587,
+          "wrist_flexor": 257.3252,
+          "wrist_extensor": -48.6559
+        },
+        "coaching": {
+          "confident": true,
+          "group": "wrist_flexor",
+          "group_name": "wrist flexors",
+          "direction": "excess",
+          "share": 0.8003,
+          "instruction": "Your thumb up attempt was read as spherical grip. Try to keep your wrist from bending inward.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "thumb_up",
+      "injected_group": "wrist_flexor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "two_finger",
+      "injected_group": "digit_extensor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 7,
+      "recovered": 7,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "two_finger",
+        "decoded": "point",
+        "margin_change": 133.20362,
+        "margin_residual": 8.526512829121202e-14,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.0139
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.0789
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.0303
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.0445
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.0289,
+            "activity_log_ratio": 0.1714
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.1667,
+            "activity_log_ratio": 0.7911
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.7322,
+            "activity_log_ratio": 1.5012
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.0722,
+            "activity_log_ratio": 0.4321
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": -1.0492,
+          "digit_extensor": 260.906,
+          "wrist_flexor": -11.4297,
+          "wrist_extensor": -75.5416
+        },
+        "coaching": {
+          "confident": true,
+          "group": "digit_extensor",
+          "group_name": "finger extensors",
+          "direction": "excess",
+          "share": 0.7477,
+          "instruction": "Your two finger attempt was read as point. Try to relax the effort to straighten your fingers.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "two_finger",
+      "injected_group": "digit_extensor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 4,
+      "recovered": 4,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "two_finger",
+        "decoded": "fist",
+        "margin_change": 66.980776,
+        "margin_residual": 5.684341886080802e-14,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.0601,
+            "activity_log_ratio": 0.0939
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.0491
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.0173,
+            "activity_log_ratio": 0.088
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.2403
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.0128,
+            "activity_log_ratio": 0.2426
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.008,
+            "activity_log_ratio": 0.0462
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.8621,
+            "activity_log_ratio": -0.8133
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.0396,
+            "activity_log_ratio": 0.0463
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": 3.2453,
+          "digit_extensor": -175.7554,
+          "wrist_flexor": -3.25,
+          "wrist_extensor": 108.5145
+        },
+        "coaching": {
+          "confident": true,
+          "group": "digit_extensor",
+          "group_name": "finger extensors",
+          "direction": "deficit",
+          "share": 0.6045,
+          "instruction": "Your two finger attempt was read as fist. Try to straighten your fingers a little more, and keep your wrist from pulling back.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "two_finger",
+      "injected_group": "digit_flexor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 4,
+      "recovered": 4,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "two_finger",
+        "decoded": "fist",
+        "margin_change": 72.589417,
+        "margin_residual": 0.0,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.1422,
+            "activity_log_ratio": 0.2357
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.179,
+            "activity_log_ratio": 0.6235
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.5668,
+            "activity_log_ratio": 0.6447
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.2465
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.0068,
+            "activity_log_ratio": 0.2618
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.042,
+            "activity_log_ratio": 0.1626
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.0579,
+            "activity_log_ratio": -0.1414
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.0053,
+            "activity_log_ratio": 0.1278
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": 113.8972,
+          "digit_extensor": -16.5642,
+          "wrist_flexor": -27.2182,
+          "wrist_extensor": 16.6284
+        },
+        "coaching": {
+          "confident": true,
+          "group": "digit_flexor",
+          "group_name": "finger flexors",
+          "direction": "excess",
+          "share": 0.6534,
+          "instruction": "Your two finger attempt was read as fist. Try to ease off the finger squeeze.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "two_finger",
+      "injected_group": "digit_flexor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "two_finger",
+      "injected_group": "wrist_extensor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 9,
+      "recovered": 9,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "two_finger",
+        "decoded": "spherical_grip",
+        "margin_change": 138.332401,
+        "margin_residual": 2.842170943040401e-14,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.0994,
+            "activity_log_ratio": 0.5203
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.0952
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.1289
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.0,
+            "activity_log_ratio": 0.4186
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.1427,
+            "activity_log_ratio": 1.0459
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.293,
+            "activity_log_ratio": 1.2551
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.0442,
+            "activity_log_ratio": 0.5517
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.4208,
+            "activity_log_ratio": 1.3456
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": -1.9746,
+          "digit_extensor": -35.8657,
+          "wrist_flexor": -42.0411,
+          "wrist_extensor": 267.2833
+        },
+        "coaching": {
+          "confident": true,
+          "group": "wrist_extensor",
+          "group_name": "wrist extensors",
+          "direction": "excess",
+          "share": 0.7699,
+          "instruction": "Your two finger attempt was read as spherical grip. Try to keep your wrist from pulling back.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "two_finger",
+      "injected_group": "wrist_extensor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "two_finger",
+      "injected_group": "wrist_flexor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 1,
+      "recovered": 1,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "two_finger",
+        "decoded": "wrist_flexion",
+        "margin_change": 266.562587,
+        "margin_residual": 1.7053025658242404e-13,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.3251,
+            "activity_log_ratio": 0.861
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.0725,
+            "activity_log_ratio": 0.3211
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.0024,
+            "activity_log_ratio": -0.0736
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.3979,
+            "activity_log_ratio": 0.7022
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.0118,
+            "activity_log_ratio": 0.4062
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.0495,
+            "activity_log_ratio": -0.1103
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.1254,
+            "activity_log_ratio": -0.3024
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.0155,
+            "activity_log_ratio": -0.0737
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": -120.6841,
+          "digit_extensor": -95.2608,
+          "wrist_flexor": 430.9317,
+          "wrist_extensor": -23.1072
+        },
+        "coaching": {
+          "confident": true,
+          "group": "wrist_flexor",
+          "group_name": "wrist flexors",
+          "direction": "excess",
+          "share": 0.6432,
+          "instruction": "Your two finger attempt was read as wrist flexion. Try to keep your wrist from bending inward.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "two_finger",
+      "injected_group": "wrist_flexor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 9,
+      "recovered": 9,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "two_finger",
+        "decoded": "pinch",
+        "margin_change": 76.916072,
+        "margin_residual": 7.105427357601002e-14,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.4612
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.0563
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.0041
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.9145,
+            "activity_log_ratio": -0.9512
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.008,
+            "activity_log_ratio": -0.15
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.0474,
+            "activity_log_ratio": 0.1756
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.0162,
+            "activity_log_ratio": -0.015
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.0139,
+            "activity_log_ratio": -0.0437
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": 43.1427,
+          "digit_extensor": -13.1272,
+          "wrist_flexor": -184.5267,
+          "wrist_extensor": 62.0639
+        },
+        "coaching": {
+          "confident": true,
+          "group": "wrist_flexor",
+          "group_name": "wrist flexors",
+          "direction": "deficit",
+          "share": 0.6093,
+          "instruction": "Your two finger attempt was read as pinch. Try to bend your wrist in a little more.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "spherical_grip",
+      "injected_group": "digit_extensor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "spherical_grip",
+      "injected_group": "digit_extensor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "spherical_grip",
+      "injected_group": "digit_flexor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "spherical_grip",
+      "injected_group": "digit_flexor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "spherical_grip",
+      "injected_group": "wrist_extensor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "spherical_grip",
+      "injected_group": "wrist_extensor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 9,
+      "recovered": 9,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "spherical_grip",
+        "decoded": "two_finger",
+        "margin_change": 125.475996,
+        "margin_residual": 5.684341886080802e-14,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.0194,
+            "activity_log_ratio": -0.0968
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.0069,
+            "activity_log_ratio": 0.0628
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.0137,
+            "activity_log_ratio": 0.1078
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.1631
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.1211,
+            "activity_log_ratio": -0.9765
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.2894,
+            "activity_log_ratio": -1.1949
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.0058,
+            "activity_log_ratio": -0.3762
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.5437,
+            "activity_log_ratio": -1.2154
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": -4.2845,
+          "digit_extensor": 46.8853,
+          "wrist_flexor": 64.4357,
+          "wrist_extensor": -261.4516
+        },
+        "coaching": {
+          "confident": true,
+          "group": "wrist_extensor",
+          "group_name": "wrist extensors",
+          "direction": "deficit",
+          "share": 0.6934,
+          "instruction": "Your spherical grip attempt was read as two finger. Try to bend your wrist back a little more.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    },
+    {
+      "gesture": "spherical_grip",
+      "injected_group": "wrist_flexor",
+      "direction": "excess",
+      "windows": 9,
+      "error_windows": 0,
+      "recovered": 0,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": null
+    },
+    {
+      "gesture": "spherical_grip",
+      "injected_group": "wrist_flexor",
+      "direction": "deficit",
+      "windows": 9,
+      "error_windows": 3,
+      "recovered": 3,
+      "wrong_group_or_direction": 0,
+      "declined": 0,
+      "example": {
+        "intended": "spherical_grip",
+        "decoded": "pinch",
+        "margin_change": 70.392495,
+        "margin_residual": 5.684341886080802e-14,
+        "channels": [
+          {
+            "channel": 1,
+            "attribution_share": 0.1717,
+            "activity_log_ratio": -0.5572
+          },
+          {
+            "channel": 2,
+            "attribution_share": 0.0265,
+            "activity_log_ratio": -0.1473
+          },
+          {
+            "channel": 3,
+            "attribution_share": 0.2091,
+            "activity_log_ratio": 0.3069
+          },
+          {
+            "channel": 4,
+            "attribution_share": 0.5155,
+            "activity_log_ratio": -0.7015
+          },
+          {
+            "channel": 5,
+            "attribution_share": 0.0379,
+            "activity_log_ratio": -0.2242
+          },
+          {
+            "channel": 6,
+            "attribution_share": 0.0183,
+            "activity_log_ratio": -0.1013
+          },
+          {
+            "channel": 7,
+            "attribution_share": 0.0209,
+            "activity_log_ratio": 0.1343
+          },
+          {
+            "channel": 8,
+            "attribution_share": 0.0,
+            "activity_log_ratio": -0.0138
+          }
+        ],
+        "muscle_groups": {
+          "digit_flexor": 67.8609,
+          "digit_extensor": 3.3705,
+          "wrist_flexor": -131.5053,
+          "wrist_extensor": 14.2976
+        },
+        "coaching": {
+          "confident": true,
+          "group": "wrist_flexor",
+          "group_name": "wrist flexors",
+          "direction": "deficit",
+          "share": 0.6059,
+          "instruction": "Your spherical grip attempt was read as pinch. Try to bend your wrist in a little more, and ease off the finger squeeze.",
+          "scope": "Estimated from the electrode ring for groups of forearm muscles. It does not identify a single finger or muscle."
+        }
+      }
+    }
+  ],
+  "caveat": "Simulated subject, simulated injections, linear surrogate decoder. Recovery means the sentence named the injected muscle group and direction; it is not evidence that the sentence helps a person. No timing advice: the simulator has no onset envelope. The back-projection inverts the same family of volume-conduction model the simulator generates from; only the electrode rotation and conduction length differ. Recorded anatomy will not be this kind, so this is an upper bound on localisation, not an estimate of it."
+}

@@ -1,0 +1,112 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - heading [level=1] [ref=e5]:
+      - link "NeuroGrip, overview" [ref=e6] [cursor=pointer]:
+        - /url: "#overview"
+        - generic [ref=e7]: NeuroGrip
+    - navigation "Application sections" [ref=e18]:
+      - button "Live" [ref=e19] [cursor=pointer]
+      - button "Results" [ref=e20] [cursor=pointer]
+      - button "Cartography" [ref=e21] [cursor=pointer]
+      - button "Attribution" [ref=e22] [cursor=pointer]
+      - button "Research review" [ref=e23] [cursor=pointer]: Review
+    - generic [ref=e24]:
+      - button "Words explained" [ref=e25] [cursor=pointer]
+      - button "Switch to dark theme" [ref=e29] [cursor=pointer]
+  - main [ref=e33]:
+    - region [ref=e120]:
+      - generic [ref=e121]:
+        - generic [ref=e122]:
+          - heading "Live decoding" [level=2] [ref=e126]
+          - paragraph [ref=e127]: Pick a gesture and press Start. Blue is the muscle signal, amber is the decoder growing sure, green is the hand locking in.
+        - generic [ref=e129]:
+          - button "Start decoding" [disabled] [ref=e130]
+          - button "Release" [disabled] [ref=e133]
+      - generic [ref=e139]:
+        - complementary "Decoder controls" [ref=e140]:
+          - region [ref=e141]:
+            - heading "Choose a gesture" [level=3] [ref=e142]:
+              - generic [aria-hidden] [ref=e143]: "1"
+              - text: Choose a gesture
+            - paragraph [ref=e144]: A recorded signal of that gesture plays. The decoder is not told which one.
+            - radiogroup "Intended gesture"
+          - region [ref=e145]:
+            - heading "Choose the signal" [level=3] [ref=e146]:
+              - generic [aria-hidden] [ref=e147]: "2"
+            - combobox "Choose the signal" [ref=e149]:
+              - option "Simulated forearm" [selected]
+              - option "Real recorded person (not in this build)" [disabled]
+            - status [ref=e150]: Loading replay bundle…
+          - figure "Activation" [ref=e152]:
+            - img "Forearm cross-section, 8 electrodes, shaded by activation" [ref=e154]:
+              - generic [ref=e156]: "1"
+              - generic [ref=e159]: "2"
+              - generic [ref=e162]: "3"
+              - generic [ref=e165]: "4"
+              - generic [ref=e168]: "5"
+              - generic [ref=e171]: "6"
+              - generic [ref=e174]: "7"
+              - generic [ref=e177]: "8"
+            - table [ref=e180]:
+              - caption [ref=e181]: Per-channel activation, microvolts RMS
+              - rowgroup [ref=e182]:
+                - row [ref=e183]:
+                  - rowheader "Channel 1" [ref=e184]
+                  - cell "0 µV" [ref=e185]
+                - row [ref=e186]:
+                  - rowheader "Channel 2" [ref=e187]
+                  - cell "0 µV" [ref=e188]
+                - row [ref=e189]:
+                  - rowheader "Channel 3" [ref=e190]
+                  - cell "0 µV" [ref=e191]
+                - row [ref=e192]:
+                  - rowheader "Channel 4" [ref=e193]
+                  - cell "0 µV" [ref=e194]
+                - row [ref=e195]:
+                  - rowheader "Channel 5" [ref=e196]
+                  - cell "0 µV" [ref=e197]
+                - row [ref=e198]:
+                  - rowheader "Channel 6" [ref=e199]
+                  - cell "0 µV" [ref=e200]
+                - row [ref=e201]:
+                  - rowheader "Channel 7" [ref=e202]
+                  - cell "0 µV" [ref=e203]
+                - row [ref=e204]:
+                  - rowheader "Channel 8" [ref=e205]
+                  - cell "0 µV" [ref=e206]
+        - generic [ref=e207]:
+          - figure "Signal 600 µV · 200 ms" [ref=e208]:
+            - generic [ref=e209]:
+              - generic [ref=e210]: Signal
+              - generic [ref=e211]: 600 µV · 200 ms
+            - paragraph [ref=e214]: 8 channels of surface electromyography, 200 millisecond window, full scale 600 microvolts.
+          - generic [ref=e215]:
+            - paragraph [ref=e216]: Loading the decoder…
+            - paragraph [ref=e217]: A bar fills here as the decoder grows more sure. The hand starts moving at the first mark and locks in at the end mark.
+        - generic [ref=e218]:
+          - figure "Hand" [ref=e219]:
+            - img "Prosthetic hand, at rest. 0 percent of full travel, muscle drive 0 percent." [ref=e221]
+            - paragraph [ref=e264]: Waiting for the decoder to be sure.
+            - paragraph [ref=e265]: "Shape: what the decoder decided. muscle effort on that joint, from the sensors."
+          - region [ref=e267]:
+            - heading "Decoder" [level=3] [ref=e268]
+            - generic [ref=e269]:
+              - generic [ref=e270]:
+                - term [ref=e271]: Decided gesture
+                - definition [ref=e272]: —
+              - generic [ref=e273]:
+                - term [ref=e274]: How sure it is
+                - definition [ref=e275]: —
+              - generic [ref=e276]:
+                - term [ref=e277]: Hand action
+                - definition [ref=e278]: —
+              - generic [ref=e279]:
+                - term [ref=e280]:
+                  - button "Time to decide" [ref=e282]
+                - definition [ref=e283]: —
+            - paragraph [ref=e284]: "Standard speed. On-screen hand only: no motor is connected."
+  - contentinfo [ref=e116]:
+    - note [ref=e117]: Research prototype. Not a medical device. It replays simulated or recorded research data and reads no live electrodes.
+    - paragraph [ref=e118]:
+      - generic [ref=e119]: Built by
+      - text: Harsh Bavaskar · Anisa D'souza · Shruti Shanklesha

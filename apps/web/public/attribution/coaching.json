@@ -1,0 +1,75 @@
+{
+  "source": "simulator",
+  "n_subjects": 5,
+  "decoder": "shrinkage LDA surrogate on clean simulated repetitions",
+  "back_projection_geometry": "nominal (no electrode shift, default conduction length)",
+  "injection": {
+    "excess_step": 0.35,
+    "deficit_keep": 0.3,
+    "min_deficit_excitation": 0.15
+  },
+  "min_lead_share": 0.4,
+  "n_windows": 2925,
+  "n_error_windows": 910,
+  "n_recovered": 780,
+  "n_wrong_group_or_direction": 99,
+  "n_declined": 31,
+  "recovery_rate": 0.8571,
+  "chance_rate": 0.125,
+  "per_group": {
+    "digit_flexor": {
+      "error_windows": 152,
+      "recovered": 131,
+      "recovery_rate": 0.8618
+    },
+    "digit_extensor": {
+      "error_windows": 237,
+      "recovered": 220,
+      "recovery_rate": 0.9283
+    },
+    "wrist_flexor": {
+      "error_windows": 274,
+      "recovered": 225,
+      "recovery_rate": 0.8212
+    },
+    "wrist_extensor": {
+      "error_windows": 247,
+      "recovered": 204,
+      "recovery_rate": 0.8259
+    }
+  },
+  "per_subject": [
+    {
+      "subject": "coach00",
+      "electrode_shift_rad": 0.059,
+      "n_error_windows": 173,
+      "recovery_rate": 0.9249
+    },
+    {
+      "subject": "coach01",
+      "electrode_shift_rad": -0.0599,
+      "n_error_windows": 177,
+      "recovery_rate": 0.9266
+    },
+    {
+      "subject": "coach02",
+      "electrode_shift_rad": 0.3053,
+      "n_error_windows": 179,
+      "recovery_rate": 0.8659
+    },
+    {
+      "subject": "coach03",
+      "electrode_shift_rad": -0.1613,
+      "n_error_windows": 197,
+      "recovery_rate": 0.7411
+    },
+    {
+      "subject": "coach04",
+      "electrode_shift_rad": 0.1101,
+      "n_error_windows": 184,
+      "recovery_rate": 0.8424
+    }
+  ],
+  "detail_subject": "coach00",
+  "caveat": "Simulated subject, simulated injections, linear surrogate decoder. Recovery means the sentence named the injected muscle group and direction; it is not evidence that the sentence helps a person. No timing advice: the simulator has no onset envelope. The back-projection inverts the same family of volume-conduction model the simulator generates from; only the electrode rotation and conduction length differ. Recorded anatomy will not be this kind, so this is an upper bound on localisation, not an estimate of it."
+}

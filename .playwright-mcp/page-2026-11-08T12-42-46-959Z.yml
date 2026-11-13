@@ -1,0 +1,48 @@
+- generic [ref=f5e3]:
+  - banner [ref=f5e4]:
+    - heading [level=1] [ref=f5e5]:
+      - link "NeuroGrip, the idea" [ref=f5e6] [cursor=pointer]:
+        - /url: "#overview"
+    - navigation "Guided path" [ref=f5e20]:
+      - list [ref=f5e21]:
+        - listitem [ref=f5e22]:
+          - 'button "Step 1: The idea" [ref=f5e23] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e24]: "1"
+            - generic [ref=f5e25]: Idea
+        - listitem [ref=f5e26]:
+          - 'button "Step 2: Live demo" [ref=f5e27] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e28]: "2"
+            - generic [ref=f5e29]: Live
+        - listitem [ref=f5e30]:
+          - 'button "Step 3: Accuracy" [ref=f5e31] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e32]: "3"
+            - generic [ref=f5e33]: Accuracy
+        - listitem [ref=f5e34]:
+          - 'button "Step 4: Personal gestures" [ref=f5e35] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e36]: "4"
+            - generic [ref=f5e37]: Gestures
+        - listitem [ref=f5e38]:
+          - 'button "Step 5: Why errors happen" [ref=f5e39] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e40]: "5"
+            - generic [ref=f5e41]: Errors
+        - listitem [ref=f5e42]:
+          - 'button "Step 6: Speed, safety and limits" [ref=f5e43] [cursor=pointer]':
+            - generic [aria-hidden] [ref=f5e44]: "6"
+            - generic [ref=f5e45]: Safety
+    - generic [ref=f5e46]:
+      - button "Words explained" [ref=f5e47] [cursor=pointer]
+      - button "Switch to dark theme" [ref=f5e51] [cursor=pointer]
+  - main [ref=f5e55]:
+    - region [ref=f5e561]:
+      - heading "Error attribution and coaching" [level=2] [ref=f5e564]
+      - status [ref=f5e566]: Loading attribution report…
+  - contentinfo [ref=f5e270]:
+    - note [ref=f5e271]: Research prototype. Not a medical device. Replays simulated or recorded research data; reads no live electrodes.
+    - navigation "Step through the path" [ref=f5e274]:
+      - 'button "Previous: Gestures" [ref=f5e567] [cursor=pointer]':
+        - generic [ref=f5e446]: "Previous:"
+        - text: Gestures
+      - 'button "Next: Speed, safety and limits" [ref=f5e568] [cursor=pointer]':
+        - generic [ref=f5e569]:
+          - generic [ref=f5e570]: "Next:"
+          - text: 6Speed, safety and limits

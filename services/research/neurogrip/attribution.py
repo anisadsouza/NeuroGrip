@@ -11,6 +11,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.model_selection import StratifiedKFold
 
 from neurogrip.spec import PER_CHANNEL_FEATURES
 
@@ -107,30 +109,38 @@ def _validate(observation: ErrorObservation) -> tuple[np.ndarray, np.ndarray, np
     return observed, intended, decoded
 
 
-def bhattacharyya_overlap(first: np.ndarray, second: np.ndarray) -> float:
-    """Diagonal-Gaussian Bhattacharyya coefficient in [0, 1].
+def repeat_confusability(first: np.ndarray, second: np.ndarray, folds: int = 5) -> float:
+    """How often the user's own clean repeats of two classes are confused, in [0, 1].
 
-    The coefficient is one for indistinguishable class clusters and approaches
-    zero as their means separate. Diagonal covariance keeps the estimate stable
-    when the feature count exceeds the number of clean repetitions.
+    A two-class shrinkage LDA is cross-validated on the two repeat clusters;
+    the score is twice its error rate, so 1 means chance (indistinguishable)
+    and 0 means perfectly separated.
+
+    This replaced a diagonal-Gaussian Bhattacharyya coefficient. Over 136
+    standardized features that coefficient multiplies per-feature sampling
+    noise across every dimension, and on simulated signals it returned ~1e-50
+    for the pair the decoder confused most -- so P could never fire on
+    anything but identical copies. A cross-validated error does not grow with
+    dimension that way. Folds are stratified over windows, not repetitions, so
+    overlapping windows can leak and make classes look slightly *more*
+    separable: the bias is toward not blaming anatomy.
     """
     a = np.asarray(first, dtype=np.float64)
     b = np.asarray(second, dtype=np.float64)
     if a.ndim != 2 or b.ndim != 2 or a.shape[1] != b.shape[1] or a.shape[0] < 2 or b.shape[0] < 2:
-        raise ValueError("overlap needs two repetition matrices with at least two rows")
+        raise ValueError("confusability needs two repetition matrices with at least two rows")
     if not np.isfinite(a).all() or not np.isfinite(b).all():
         raise ValueError("repetition features must be finite")
 
-    mean_a = a.mean(axis=0)
-    mean_b = b.mean(axis=0)
-    var_a = np.maximum(a.var(axis=0, ddof=1), _VARIANCE_FLOOR)
-    var_b = np.maximum(b.var(axis=0, ddof=1), _VARIANCE_FLOOR)
-    average = (var_a + var_b) / 2.0
-    mean_term = np.sum(np.square(mean_a - mean_b) / (8.0 * average))
-    covariance_term = 0.5 * np.sum(
-        np.log(average) - 0.5 * (np.log(var_a) + np.log(var_b))
-    )
-    return float(np.clip(np.exp(-(mean_term + covariance_term)), 0.0, 1.0))
+    x = np.vstack([a, b])
+    y = np.r_[np.zeros(len(a), dtype=int), np.ones(len(b), dtype=int)]
+    splitter = StratifiedKFold(n_splits=min(folds, len(a), len(b)), shuffle=True, random_state=0)
+    errors = 0
+    for train, test in splitter.split(x, y):
+        model = LinearDiscriminantAnalysis(solver="lsqr", shrinkage="auto")
+        model.fit(x[train], y[train])
+        errors += int(np.sum(model.predict(x[test]) != y[test]))
+    return float(np.clip(2.0 * errors / len(y), 0.0, 1.0))
 
 
 def _tightest_repeats(samples: np.ndarray, retain_fraction: float = 0.8) -> np.ndarray:
@@ -187,9 +197,7 @@ def attribute_error(observation: ErrorObservation) -> dict[str, object]:
     if observation.intended == observation.decoded:
         raise ValueError("attribution requires a misclassification")
 
-    overlap = bhattacharyya_overlap(
-        _tightest_repeats(intended), _tightest_repeats(decoded)
-    )
+    overlap = repeat_confusability(_tightest_repeats(intended), _tightest_repeats(decoded))
     channel_rms, channel_direction, historical_spread = _channel_deviations(
         observed, intended
     )
@@ -371,8 +379,8 @@ def attribution_demo(seed: int = 17) -> dict[str, object]:
         "channels": feature_count // channel_features,
         "feature_order": "channel-major",
         "method": (
-            "P: diagonal-Gaussian Bhattacharyya overlap of each class's tightest "
-            "80% repeat cluster; "
+            "P: cross-validated confusability (twice the two-class LDA error) "
+            "of each class's tightest 80% repeat cluster; "
             "B: channel-wise standardized deviation from intended-class repeats; "
             "M: stronger reference prediction is correct while deployed prediction "
             "is wrong; D: centroid CUSUM and median-frequency shift. Scores are "

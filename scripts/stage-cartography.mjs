@@ -16,6 +16,16 @@ if (
 ) {
   throw new Error(`Cartography report has no map or per-prototype metrics: ${source}`);
 }
+if (
+  !demoSubject.teach_back?.targets?.length ||
+  demoSubject.teach_back.targets.some(
+    (target) => target.trajectory_map.length !== target.attempts_made,
+  ) ||
+  !report.cohorts.intact.teach_back ||
+  !report.cohorts.finger_atrophy.teach_back
+) {
+  throw new Error(`Cartography report has no teach-back results: ${source}`);
+}
 
 const staged = {
   criterion: report.criterion,
@@ -26,10 +36,12 @@ const staged = {
         wins: cohort.wins,
         n_subjects: cohort.n_subjects,
         weighted_selection: cohort.weighted_selection,
+        teach_back: cohort.teach_back,
         subjects: [name === 'intact' ? demoSubject : cohort.subjects[0]],
       },
     ]),
   ),
+  teach_back_definition: report.teach_back_definition,
   caveat: report.caveat,
 };
 

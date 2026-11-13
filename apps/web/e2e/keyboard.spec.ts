@@ -23,7 +23,7 @@ async function focused(page: import('@playwright/test').Page): Promise<string> {
 }
 
 test('the gesture group is one stop in the page tab order rather than ten', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/#live');
   await page.waitForSelector('[role="radiogroup"] [role="radio"]');
 
   const radioCount = await page.locator('[role="radiogroup"] [role="radio"]').count();
@@ -52,7 +52,7 @@ test('the gesture group is one stop in the page tab order rather than ten', asyn
 test('the arrow keys move and select within the group rather than scrolling the page', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto('/#live');
   await page.waitForSelector('[role="radiogroup"] [role="radio"]');
 
   await page.locator('[role="radiogroup"] [role="radio"][tabindex="0"]').focus();
@@ -76,7 +76,7 @@ test('the arrow keys move and select within the group rather than scrolling the 
 test('a focused control paints a visible focus ring rather than only declaring one', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto('/#live');
   await page.waitForSelector('button');
 
   await page.keyboard.press('Tab');

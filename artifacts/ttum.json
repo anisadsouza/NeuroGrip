@@ -150,5 +150,83 @@
   },
   "definition": "Time to Useful Motion: hops from a trial first decodable window to the first hop at which the leading gesture reaches motionOnset of its risk-weighted boundary, reported in milliseconds at the stated hop. \"Correct motion\" additionally requires the leader to be the trial true class. Trials that never reach the onset are censored: counted, never assigned a finite value, never dropped. No mean is reported, because under censoring a mean is either wrong or an unstated imputation. The 200 ms of window fill before the first decision is excluded and is additive: a wearer experiences roughly TTUM plus 200 ms.",
   "reachability": "Each trial is 41 hops, and the urgency timeout fires at 75, so within a trial the timeout is structurally unreachable and censoring is the only failure mode. Lengthening the repetition past about 1.5 s would activate the timeout path and change what this metric measures.",
+  "cwer": {
+    "riskWeighted": {
+      "nTrials": 320,
+      "nCorrectLatches": 305,
+      "nWrongLatches": 4,
+      "nSafeFallbacks": 0,
+      "nUncommitted": 11,
+      "errorRate": 0.0125,
+      "cwer": 0.0059375,
+      "confusions": [
+        {
+          "intended": "two_finger",
+          "committed": "pinch",
+          "count": 2,
+          "unitCost": 0.6,
+          "totalCost": 1.2
+        },
+        {
+          "intended": "spherical_grip",
+          "committed": "two_finger",
+          "count": 1,
+          "unitCost": 0.6,
+          "totalCost": 0.6
+        },
+        {
+          "intended": "wrist_extension",
+          "committed": "open_hand",
+          "count": 1,
+          "unitCost": 0.1,
+          "totalCost": 0.1
+        }
+      ]
+    },
+    "uniformBoundary": {
+      "uniformRisk": 0.43000000000000005,
+      "nTrials": 320,
+      "nCorrectLatches": 308,
+      "nWrongLatches": 6,
+      "nSafeFallbacks": 0,
+      "nUncommitted": 6,
+      "errorRate": 0.01875,
+      "cwer": 0.0096875,
+      "confusions": [
+        {
+          "intended": "two_finger",
+          "committed": "pinch",
+          "count": 3,
+          "unitCost": 0.6,
+          "totalCost": 1.7999999999999998
+        },
+        {
+          "intended": "fist",
+          "committed": "two_finger",
+          "count": 1,
+          "unitCost": 0.6,
+          "totalCost": 0.6
+        },
+        {
+          "intended": "spherical_grip",
+          "committed": "two_finger",
+          "count": 1,
+          "unitCost": 0.6,
+          "totalCost": 0.6
+        },
+        {
+          "intended": "wrist_extension",
+          "committed": "open_hand",
+          "count": 1,
+          "unitCost": 0.1,
+          "totalCost": 0.1
+        }
+      ],
+      "anyMotionP50Ms": 60,
+      "latchP50Ms": 280
+    },
+    "definition": "Cost-Weighted Error Rate: the sum, over trials that latched a gesture other than the intended one, of the commit cost of the gesture wrongly committed to, divided by all trials. Costs are the COMMIT_COST table the accumulator boundaries use, in [0, 1]. Correct latches, the urgency fallback to rest, and trials that never committed are not charged; each is counted. The uniform-boundary ablation gives every class the mean commit cost, so its mean boundary matches the deployed one and only the asymmetry is removed; both arms are charged with the real costs.",
+    "caveat": "Computed from simulator out-of-fold posteriors with no onset envelope. It is not decomposed by error cause: the Phase 3 attribution router is a simulator pilot and is not applied here. Not a recorded or human result."
+  },
   "caveat": "Every repetition holds a constant excitation for its whole duration: the simulator applies no onset envelope. Evidence therefore accrues from an already-active steady contraction, so any time-to-motion derived from these sequences measures decoder accrual and not a wearer's reaction time. It is a lower bound on what a person would experience."
 }

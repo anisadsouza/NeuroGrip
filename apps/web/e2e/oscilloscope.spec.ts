@@ -15,7 +15,7 @@
 import { expect, test } from '@playwright/test';
 
 test('the trace draws and changes as the signal arrives', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/#live');
   await page.waitForSelector('canvas');
 
   // The backing store is sized from layout, so a zero here means the early

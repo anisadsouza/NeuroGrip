@@ -88,30 +88,41 @@ are not substitutes for independently labeled real electrode faults.
 
 The accumulator integrates per-class log evidence against the strongest rival,
 applies leakage and class-specific commit costs, starts reversible movement
-before latch, and falls back to rest at timeout. TTUM is measured by replaying
-simulator posteriors through this implementation. It has not been validated
-with recorded-data posteriors, hardware, or human participants.
+before latch, and falls back to rest at timeout. TTUM and the cost-weighted
+error rate (CWER: wrong latches charged their commit cost, over all trials) are
+measured by replaying simulator posteriors through this implementation, with a
+uniform-boundary ablation for comparison (CWER 0.59% vs 0.97%; 4 vs 6 wrong
+latches, not significant). Neither has been validated with recorded-data
+posteriors, hardware, or human participants.
 
 ### Neuromotor Cartography
 
 The research code implements simulated babble, NMF-based synergy mapping,
 reachability/effort/separability estimates, prototype experiments, and a
-weighted-catalogue fallback. The synthesis gate has not established that
-generated prototypes outperform catalogue selection. Human babble and
-teach-back are not implemented or validated.
+weighted-catalogue fallback, and simulated teach-back: a reward-driven learner
+reaches each prototype from Cartograph feedback alone (33/40 intact and 34/40
+finger-atrophy targets learned), and the learned commands are scored as a
+vocabulary. The synthesis gate has not established that generated prototypes
+outperform catalogue selection in general. Human babble and human teach-back
+are not implemented or validated.
 
 ### Error attribution
 
-The browser attribution view demonstrates four synthetic injected cases. The
-offline analysis provides LDA score-margin feature contributions and compares
-three trained reference classifiers on the available subject-held-out folds.
-It is not a causal explanation, not integrated into the browser router, and
-not human-validated coaching.
+The browser attribution view demonstrates four synthetic injected cases, and
+routes the decoder's actual errors on simulated sessions with one injected
+fault each (15/20 sessions over five seeds). Anatomical coaching decomposes a
+linear surrogate's error margin exactly, back-projects it through the nominal
+volume-conduction model onto four muscle groups, and names the injected group
+and direction on 85.7% of simulated error windows — an upper bound, since the
+inverse shares the simulator's model family. The offline NinaPro analysis
+provides LDA score-margin feature contributions and compares three trained
+reference classifiers on the available subject-held-out folds. None of this is
+a causal explanation or human-validated coaching.
 
 ### Clinician-oriented research views
 
-Evaluate, Robustness, Latency, and Records are software research views.
-Robustness evidence shown is simulated electrode shift; Records is study
+Evaluate, Decision timing, Robustness, Latency, and Records are software
+research views. Decision timing and robustness evidence are simulated; Records is study
 provenance, not an electronic health record. Real-fault validation and
 amputee-specific evaluation are outstanding.
 
@@ -145,6 +156,12 @@ dependencies:
   --data-root data/ninapro/DB2 \
   --out artifacts/ninapro_feature_attribution.json
 
+# Simulator-only Phase 2-3 experiments
+.venv/bin/python -m neurogrip.experiments cartography --out artifacts/cartography_gate.json
+.venv/bin/python -m neurogrip.experiments router-session --out artifacts/router_session.json
+.venv/bin/python -m neurogrip.experiments coaching --out artifacts/coaching_localisation.json
+npm run ttum   # TTUM and CWER from artifacts/posteriors
+
 # Software checks
 npm test
 npm run typecheck
@@ -164,6 +181,6 @@ rights chain and applicable upstream/data-use terms are verified; see
   subject benchmark.
 - Validating 50 µV against independent clean subjects or labeled real faults.
 - Human Cartography babble/teach-back or intended-user studies.
-- Integrating and validating error attributions as user coaching.
+- Validating error routing and coaching on recorded or human errors.
 - Real-world electrode-fault robustness, amputee evaluation, hardware,
   clinical/safety validation, regulatory work, or deployment.

@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react';
+import { Screen, type ScreenPage } from '../components/Screen.js';
+import { Term } from '../components/Term.js';
+import { CoachingCheck, SessionPanel } from './AttributionSessions.js';
 
 type Cause = 'physiological' | 'behavioral' | 'model_capacity' | 'drift' | 'inconclusive';
 type ScoredCause = Exclude<Cause, 'inconclusive'>;
@@ -48,10 +51,10 @@ const CAUSE_ORDER: readonly ScoredCause[] = [
 ];
 
 const CAUSE_NAMES: Readonly<Record<ScoredCause, string>> = {
-  physiological: 'Physiological overlap',
-  behavioral: 'Behavioral deviation',
-  model_capacity: 'Model-capacity limitation',
-  drift: 'Signal drift',
+  physiological: 'Body: gestures look alike',
+  behavioral: 'Technique: done differently',
+  model_capacity: 'Decoder: too simple',
+  drift: 'Signal: changed over time',
 };
 
 function useReport() {
@@ -99,10 +102,10 @@ function ForearmRing({ channels }: { channels: readonly ChannelAttribution[] }) 
         <circle cx="100" cy="100" r="72" className="attribution-ring-outline" />
         <circle cx="100" cy="100" r="46" className="attribution-forearm-outline" />
         <text x="100" y="96" textAnchor="middle" className="attribution-ring-centre">
-          Channel
+          Sensor
         </text>
         <text x="100" y="111" textAnchor="middle" className="attribution-ring-centre">
-          deviation
+          ring
         </text>
         {points.map(({ channel, x, y }) => {
           const attribution = marks.get(channel);
@@ -116,8 +119,7 @@ function ForearmRing({ channels }: { channels: readonly ChannelAttribution[] }) 
         })}
       </svg>
       <figcaption className="small muted">
-        Ring positions are schematic. Highlighted channels are the largest
-        standardized deviations from the intended class's repeat cluster.
+        Dark: sensors that differed most from usual
       </figcaption>
     </figure>
   );
@@ -127,7 +129,7 @@ function CauseScores({ scores }: { scores: AttributionCase['scores'] }) {
   return (
     <div className="attribution-scores">
       {CAUSE_ORDER.map((cause) => (
-        <div className="attribution-score" key={cause}>
+        <div className="attribution-score" key={cause} data-cause={cause}>
           <div className="attribution-score-label">
             <span>{CAUSE_NAMES[cause]}</span>
             <span className="ng-num">{(scores[cause] * 100).toFixed(1)}%</span>
@@ -151,56 +153,35 @@ function CauseScores({ scores }: { scores: AttributionCase['scores'] }) {
 export function Attribution() {
   const { report, error } = useReport();
   const [selectedName, setSelectedName] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
 
-  if (error) {
-    return (
-      <section className="attribution-screen" aria-labelledby="attribution-heading">
-        <h2 id="attribution-heading">Error attribution and coaching</h2>
-        <p className="notice notice-stop" role="alert">{error}</p>
-        <p className="small muted">
-          Generate the controlled-injection report with{' '}
-          <code>python -m neurogrip.experiments attribution</code>, then stage it with{' '}
-          <code>npm run stage:attribution</code>.
-        </p>
-      </section>
-    );
-  }
-  if (!report) {
-    return <p className="panel muted" role="status">Loading attribution report…</p>;
-  }
-  if (report.source !== 'synthetic_fault_injections' || report.cases.length === 0) {
-    return <p className="notice notice-stop" role="alert">Attribution report has an unexpected shape.</p>;
-  }
+  const status = error ? (
+    <div className="screen-empty">
+      <p className="notice notice-stop" role="alert">{error}</p>
+      <p className="small muted">This part of the research is not included in this build. Every other screen still works.</p>
+    </div>
+  ) : !report ? (
+    <p className="screen-empty muted" role="status">Loading attribution report…</p>
+  ) : report.source !== 'synthetic_fault_injections' || report.cases.length === 0 ? (
+    <p className="notice notice-stop" role="alert">Attribution report has an unexpected shape.</p>
+  ) : undefined;
 
-  const selected = report.cases.find((item) => item.name === selectedName) ?? report.cases[0]!;
+  const selected = report?.cases.find((item) => item.name === selectedName) ?? report?.cases[0];
 
-  return (
-    <section className="attribution-screen" aria-labelledby="attribution-heading">
-      <header className="attribution-header">
-        <h2 id="attribution-heading">Error attribution and coaching</h2>
-        <p className="muted">
-          A research demonstrator that routes injected error patterns to
-          different review actions.
-        </p>
-      </header>
-
-      <p className="notice" role="note">
-        Synthetic fault injections only. {report.injected_causes_routed}/{report.n_injections}
-        {' '}known injection scenarios reached their expected route. This is a
-        logic check—not an accuracy estimate or a diagnosis of a person's error.
-      </p>
-
-      <div className="attribution-case-picker" role="group" aria-label="Injected error scenario">
+  const designed = report && selected ? (
+    <div className="attribution-page">
+      <div className="attribution-case-picker attribution-designed" role="group" aria-label="Injected error scenario">
         {report.cases.map((item) => (
           <button
             type="button"
             key={item.name}
             aria-pressed={selected.name === item.name}
+            data-cause={item.injected_cause}
             onClick={() => setSelectedName(item.name)}
           >
-            <span>{item.name.replaceAll('_', ' ')}</span>
+            <span>{CAUSE_NAMES[item.injected_cause]}</span>
             <span className="small muted">
-              {item.cause_label} · {item.intended.replaceAll('_', ' ')} → {item.decoded.replaceAll('_', ' ')}
+              {item.intended.replaceAll('_', ' ')} read as {item.decoded.replaceAll('_', ' ')}
             </span>
           </button>
         ))}
@@ -209,7 +190,7 @@ export function Attribution() {
       <section className="panel attribution-detail" aria-labelledby="attribution-detail-heading">
         <div className="attribution-detail-heading">
           <div>
-            <h3 id="attribution-detail-heading">{selected.cause_label}</h3>
+            <h3 id="attribution-detail-heading">{CAUSE_NAMES[selected.cause as ScoredCause] ?? selected.cause_label}</h3>
             <p className="small muted">
               Intended: {selected.intended.replaceAll('_', ' ')} · decoded:{' '}
               {selected.decoded.replaceAll('_', ' ')}
@@ -222,46 +203,84 @@ export function Attribution() {
 
         <div className="attribution-detail-grid">
           <section aria-labelledby="attribution-evidence-heading">
-            <h4 id="attribution-evidence-heading">Cause evidence scores</h4>
-            <p className="small muted">
-              Scores are normalized across the four candidate causes. The route
-              also requires minimum absolute evidence; a weak signal is inconclusive.
-            </p>
+            <h4 id="attribution-evidence-heading">How strongly each cause fits</h4>
             <CauseScores scores={selected.scores} />
+            <details className="attribution-method">
+              <summary>Evidence behind the scores</summary>
             <dl className="attribution-evidence">
-              <div><dt>Clean-class overlap</dt><dd>{(selected.evidence.class_overlap * 100).toFixed(1)}%</dd></div>
-              <div><dt>Behavior deviation / repeat spread</dt><dd>{selected.evidence.behavioral_deviation_ratio.toFixed(2)}×</dd></div>
-              <div><dt>Reference correct, deployed wrong</dt><dd>{selected.evidence.reference_correct_when_deployed_wrong ? 'Yes' : 'No'}</dd></div>
-              <div><dt>Centroid CUSUM / threshold</dt><dd>{selected.evidence.centroid_cusum_ratio.toFixed(2)}</dd></div>
-              <div><dt>Median-frequency shift / threshold</dt><dd>{selected.evidence.median_frequency_shift_ratio.toFixed(2)}</dd></div>
+              <div><dt>The two gestures look alike</dt><dd>{(selected.evidence.class_overlap * 100).toFixed(1)}%</dd></div>
+              <div><dt>How unusual this attempt was</dt><dd>{selected.evidence.behavioral_deviation_ratio.toFixed(2)}×</dd></div>
+              <div><dt>A stronger decoder got it right</dt><dd>{selected.evidence.reference_correct_when_deployed_wrong ? 'Yes' : 'No'}</dd></div>
+              <div><dt>Gradual <Term id="drift">drift</Term></dt><dd>{selected.evidence.centroid_cusum_ratio.toFixed(2)}</dd></div>
+              <div><dt>Signs of tired muscles</dt><dd>{selected.evidence.median_frequency_shift_ratio.toFixed(2)}</dd></div>
             </dl>
+            </details>
           </section>
 
           <section aria-labelledby="attribution-anatomy-heading">
-            <h4 id="attribution-anatomy-heading">Channel-localized feedback</h4>
+            <h4 id="attribution-anatomy-heading">Which sensors noticed it</h4>
             <ForearmRing channels={selected.channel_attribution} />
             {selected.coaching ? (
               <p className="attribution-coaching">{selected.coaching}</p>
             ) : (
-              <p className="small muted">
-                This route does not prescribe a practice cue. Follow the
-                routed review action instead.
-              </p>
+              <p className="small muted">No wearer tip for this cause.</p>
             )}
+            <div className="attribution-action">
+              <h4>Suggested fix</h4>
+              <p>{selected.routed_action}</p>
+            </div>
           </section>
-        </div>
-
-        <div className="attribution-action">
-          <h4>Routed next step</h4>
-          <p>{selected.routed_action}</p>
         </div>
       </section>
 
-      <details className="attribution-method">
-        <summary>How the four evidence scores are formed</summary>
-        <p>{report.method}</p>
-      </details>
-      <p className="small muted attribution-caveat">{report.caveat}</p>
-    </section>
+      <p className="notice small" role="note">
+        Synthetic fault injections only · {report.injected_causes_routed}/{report.n_injections}{' '}
+        routed as expected. A logic check, not an accuracy estimate.
+      </p>
+    </div>
+  ) : null;
+
+  const pages: ScreenPage[] = designed
+    ? [
+        {
+          id: 'designed',
+          label: 'Designed cases',
+          summary:
+            'Four built mistakes, one per cause.',
+          content: designed,
+        },
+        {
+          id: 'sessions',
+          label: 'Sessions',
+          summary:
+            'Where real decoder mistakes were sent.',
+          content: <SessionPanel view="summary" />,
+        },
+        {
+          id: 'session',
+          label: 'One session',
+          summary:
+            'One session, mistake by mistake.',
+          content: <SessionPanel view="detail" />,
+        },
+        {
+          id: 'coaching',
+          label: 'Coaching check',
+          summary:
+            'Does the advice name the right muscle?',
+          content: <CoachingCheck />,
+        },
+      ]
+    : [];
+
+  return (
+    <Screen
+      title="Error attribution and coaching"
+      className="screen-attribution"
+      pages={pages}
+      page={page}
+      onPage={setPage}
+      status={status}
+    />
   );
 }
