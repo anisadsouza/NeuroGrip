@@ -1,408 +1,199 @@
 # NeuroGrip
 
-Software-only surface-EMG hand-gesture decoding for prosthetic control. The
-browser replays simulated EMG or a locally staged NinaPro DB2 recording; it
-does not read live electrodes.
+**Software-only surface-EMG gesture decoding for prosthetic-control research.**
 
-**Research prototype. Not a medical device. Not validated for clinical use.**
+NeuroGrip is a browser-based research prototype that converts simulated or
+recorded forearm surface EMG into a gesture prediction and shows the predicted
+action on a virtual prosthetic hand. It does not connect to live electrodes,
+send actuator commands, or control physical hardware.
 
-Harsh Bavaskar · Anisa D'Souza · Shruti Shanklesha
-BTECH CAP 501, Project Life Cycle Management — ATLAS SkillTech / uGDX
+> **Research prototype — not a medical device. Not validated for clinical use.**
 
----
+**Team:** Harsh Bavaskar · Anisa D'souza · Shruti Shanklesha
 
-## What it does
 
-Processes eight channels of forearm EMG, decodes one of ten gestures, and moves
-the virtual hand *progressively* — starting to move as evidence accumulates,
-and committing only when it is sure enough. How sure it needs to be depends on
-how hard the mistake would be to undo: closing a power grip must clear a higher
-bar than opening a hand. Input is a simulator or a recording replay, not live
-electrode data.
+## What it demonstrates
 
-Inference runs in the browser. The app does not upload signal data or persist
-live input. NinaPro source files and the generated held-out replay are local
-research assets; do not commit or deploy them without checking the dataset
-terms.
+- Eight-channel, 200 ms surface-EMG window processing at a 20 ms hop
+- 136 handcrafted features per window, shared between Python and TypeScript
+- A calibrated RBF-SVM decoder for simulated sEMG
+- Risk-weighted evidence accumulation and reversible virtual-hand motion
+- Subject-held-out NinaPro DB2 replay and exploratory recorded-data evaluation
+- Signal-quality checks, Results, Cartography, Attribution and research-review screens
+- A virtual hand with no transmitted physical actuator command
 
-## End goal
+## Current evidence
 
-NeuroGrip is the software/control layer for a prosthetic-hand system. For this
-college project, the final deliverable is a software-only prototype: simulated
-or recorded EMG goes in, a gesture and confidence come out, and the browser
-shows the virtual prosthetic hand responding in real time. Live shows the
-current-window model probability, a named virtual action such as
-`close_thumb_index`, and whether the action is only a candidate, reversible,
-latched, or a rest fallback. No physical actuator command is transmitted.
+### Simulator
 
-It is not a personal wellness app and it is not a certified commercial medical
-device. It is an academic research prototype with a commercial direction: after
-real EMG hardware testing, amputee-subject validation, clinical safety work, and
-regulatory approval, the same kind of decoder could become part of a prosthetic
-device or clinician calibration tool.
+The simulator uses a deterministic motor-unit pool model rather than shaped
+noise. Eight simulated subjects were used for the selected-model experiment.
+The RBF SVM achieved **95.63% LOSO accuracy** with **ECE 0.0225**. LDA and
+Linear SVM were 90.45% and 90.48%, respectively.
 
-Who it is for: a prosthesis user (indirectly, since they only care that the
-hand responds correctly and quickly), a prosthetist or clinician testing which
-gestures a patient controls reliably, researchers and students testing EMG
-gesture recognition without hardware, and eventually a prosthetic device maker
-embedding the decoder in a hand's control software. Today the direct users are
-the project team and course evaluators.
+These values are simulator-only measurements. The simulator does not include
+real motion artifacts, skin-impedance drift or cross-session electrode replacement.
+
+### Recorded NinaPro DB2
+
+The local development dataset contains three intact subjects: S1, S10 and S11,
+with nine E1–E3 `.mat` recordings. It is not an independent population or
+amputee benchmark.
+
+| Experiment | Accuracy | Majority baseline | ECE |
+|---|---:|---:|---:|
+| Uniform-prior LDA: train S1, test S10 | 46.61% | 36.51% | 0.026 |
+| Ordinary-LDA S1 → S10 reference | 45.09% | 36.51% | 0.1644 |
+| Uniform-prior LDA: train S1 + S10, test S11 | 23.07% | 22.26% | 0.3664 |
+
+A bounded three-subject leave-one-subject-out comparison found no strategy that
+reliably justified changing the decoder. S11 predicted Rest for 19,125 of
+20,956 windows, and six gesture classes had zero recall. These figures are
+exploratory development results, not a final cross-subject benchmark or evidence
+of safe prosthetic control.
+
+The DB2 label mapped to `open_hand` is **finger abduction (label 5)**. It is a
+qualitative proxy for open hand, not an exact general open-hand movement.
+
+### Browser latency
+
+The browser worker test measures 1,000 windows one at a time and requires
+threaded WASM and cross-origin isolation. The latest measured simulated replay
+P95 was **1.905 ms**. The recorded S10 replay measured **1.185 ms** P95.
+Both are below the 10 ms benchmark and exclude reaction time, postMessage and
+UI-thread scheduling.
+
+## System overview
+
+```text
+Simulated or recorded sEMG
+           ↓
+200 ms window / 20 ms hop
+           ↓
+Signal-quality check
+           ↓
+136 channel-major features
+           ↓
+ONNX classifier in browser worker
+           ↓
+Risk-weighted evidence accumulator
+           ↓
+Virtual-hand preview / latch / rest fallback
+```
+
+- **Python**: simulator, NinaPro loader, feature extraction, model evaluation,
+  ONNX export, reports and experiments.
+- **TypeScript/core**: mirrored feature implementation, evidence accumulation,
+  TTUM/CWER and hand kinematics.
+- **React/Vite browser app**: Live, Results, Cartography, Attribution and
+  clinician-oriented research views.
+- **ONNX Runtime Web**: threaded browser inference.
+
+No raw EMG, credentials or prediction history are uploaded by the application.
+Local NinaPro files and generated replay/model assets are git-ignored.
 
 ## Quick start
 
+Requirements:
+
+- Python 3.12+
+- Node 24+
+- npm
+
 ```bash
 python -m venv .venv
-# macOS / Linux
 source .venv/bin/activate
-# Windows PowerShell: .venv\Scripts\Activate.ps1
 pip install -e "./services/research[dev,ml]"
 npm install
 npm run dev:web
 ```
 
-`npm run dev:web` stages the decoder and research reports before starting Vite.
-The source reports are kept in `artifacts/`; the app serves generated public
-copies. If model generation is needed, run `npm run build:assets` first.
+The default application uses the included simulator and requires no NinaPro
+download or account. Open the local address printed by Vite, typically
+`http://localhost:5173`.
 
-The default demo requires no dataset download: its signal is generated by a
-biophysical motor-unit simulator included in the repository. The research
-pipeline can also ingest separately registered NinaPro DB2 recordings (never
-committed to this repository) for a real-recording evaluation.
-
-[**docs/walkthrough.md**](docs/walkthrough.md) explains the interface and what
-every number on it means.
-The [technical reference](docs/technical_reference.md) consolidates the
-implementation, experiments, limitations, and reproducible commands.
-The [data/release review](docs/data_and_release_review.md) records the current
-NinaPro permission status. Patent-disclosure working drafts are internal-only
-material kept outside version control while this repository is public.
-
-## Where it stands
-
-| | |
-| --- | --- |
-| Simulator decoder | RBF SVM, 95.63% LOSO accuracy, ECE 0.022 |
-| NinaPro held-out results | Current Results export, uniform-prior LDA S1→S10: 46.61% (36.51% majority baseline; ECE 0.026); ordinary-LDA reference: 45.09%; uniform-prior LDA S1+S10→S11: 23.07% (22.26% baseline; ECE 0.3664). Exploratory only |
-| Recorded quality gate | 16,572 / 17,293 labeled S10 windows accepted (95.83%); 721 rejected across rest and movement labels. Acceptance is not accuracy |
-| Browser replay latency | NinaPro worker P95: 1.18 ms (2026-11-03, MacBook Air / Apple M3; feature extraction + inference only, not total reaction time). P95 varies between runs; a prior run measured 2.70 ms |
-| Time to motion | Simulator-only TTUM: 40 ms median before the hand starts moving, 260 ms to latch |
-| Cost-weighted error | Simulator-only CWER 0.59% (plain error 1.25%); uniform-boundary ablation 0.97% (1.88%). 4 vs 6 wrong latches — not significant |
-| Neuromotor Cartography | Simulator-only per-prototype gate: at least one prototype passes for 2/8 intact and 5/8 finger-atrophy subjects; a simulated learner learns 33/40 and 34/40 targets; no human learnability result |
-| Error routing | Simulator-only: 4/4 hand-built injections; 15/20 end-to-end simulated sessions over five seeds |
-| Anatomical coaching | Simulator-only: names the injected muscle group and direction on 85.7% of 910 error windows (chance 12.5%); an upper bound |
-| Error attribution | Synthetic router checks: 4/4; offline LDA score-margin attribution compared with linear SVM, RBF-SVM, and random forest on three development subjects; not causal or human-validated |
-| Tests | 223 Python + 275 TypeScript tests; 28 browser tests; typecheck passes |
-| Built | Simulator and decoder, DB2 loader and comparison, subject-held-out ONNX export/replay, Live and Results, simulator-only Cartography and Error Attribution, clinician-oriented Evaluate/Robustness/Latency/Records views |
-| Follow-up | Validate preliminary recorded-data LDA attributions and coaching; validate robustness on real faults; human babble and teach-back; more independent subjects; amputee evaluation; deployment |
-
-The NinaPro replay uses per-channel quality floors calibrated at 25% of each
-channel's RMS in the held-out subject's recorded rest segment, capped at the
-shared 5 µV floor. This is a replay-specific calibration for demonstrating the
-recorded dataset; it is not validated for live electrodes or a safety claim.
-The simulator keeps the original fixed 5 µV gate.
-
-The quality gate rejects channels below their calibrated minimum RMS and has
-heuristics for repeated extreme-value plateaus, repeated >1 mV sample steps,
-and >8× half-window RMS changes. A seeded probe of 1,000 selected S10 windows
-rejected 96.6% of a controlled ±50 µV clipping injection, 100% of a 1 mV
-alternating burst and 10× half-window gain jump, and 1.7% of clean windows
-(1.4% failed the pre-existing RMS floors). These are artificial probes, not
-validated detector sensitivity or specificity. The gate still does **not**
-apply a baseline ceiling to active windows. A separate rest-calibration screen
-computes RMS across all rest-labeled samples and raises a non-blocking warning
-above an exploratory 50 µV threshold. It flags channel 1 for S10 (56.82 µV
-across its available recordings) and S11 (102.74 µV); S1 has no flagged
-channels. The specific S11 E2 recording has 136.70 µV rest RMS. This check is
-based on only three development subjects, does not identify the cause, and is
-not validated fault detection. In the non-overlapping 200 ms rest windows from
-S11 E2, channel 1 exceeded 50 µV in 127/2,121 windows (6.0%); its median was
-6.31 µV and P99 was 496.28 µV. This quantifies intermittent high RMS, but the
-exceedances appeared in 18 runs, with the longest spanning 49 consecutive
-200 ms windows (9.8 seconds). The maximum-RMS window starts at sample 1,704,000
-(about 14.2 minutes into E2); the data has no artifact labels to determine its
-cause or validate the advisory threshold.
-See [`docs/model_card.md`](docs/model_card.md) for limitations.
-
-The Cartography screen shows one simulated subject's babble map and prototype
-comparisons, plus the eight-subject intact and finger-atrophy cohort gate. To
-regenerate the report and stage it for the browser:
+To regenerate the simulator model and replay assets:
 
 ```bash
-python -m neurogrip.experiments cartography --out artifacts/cartography_gate.json
-npm run stage:cartography
+npm run build:assets
 ```
 
-The gate requires at least 80% held-out repetition recall and better
-nearest-rival separation than the one-to-one matched catalogue gesture.
-In this simulator, 3/40 intact and 6/40 finger-atrophy prototypes pass.
-Teach-back is simulated: a reward-driven learner starts at rest and adjusts its
-command from Cartograph feedback alone. It learns 33/40 intact and 34/40
-finger-atrophy targets (median 13 and 14 attempts; learned = 3 of the last 5
-attempts nearest the target), and 3/3 and 5/6 gate-passing prototypes keep at
-least 80% decoder recall as learned. The learner's command space is the
-synergy set babble was generated from, so every target is reachable by
-construction. This is not evidence of human learnability, and the displayed
-function assignment is illustrative only.
+## Documentation
 
-The Attribution screen demonstrates physiological-overlap, behavioral,
-model-capacity, and drift routes on four controlled synthetic injections. To
-regenerate and stage its report:
+- [Using NeuroGrip](docs/walkthrough.md) — interface and demo workflow
+- [Technical reference](docs/technical_reference.md) — architecture, methods and limitations
+- [Model card](docs/model_card.md) — model, measurements and evidence boundaries
+- [Data and release review](docs/data_and_release_review.md) — NinaPro/Kaggle provenance status
+- [Repository status and remaining work](context.md) — implementation and research summary
+
+## Repository layout
+
+| Path | Purpose |
+|---|---|
+| `services/research/neurogrip/` | Simulator, NinaPro loader, DSP, features, training and experiments |
+| `packages/core/` | Mirrored DSP/features, evidence accumulator, TTUM/CWER and hand kinematics |
+| `packages/design/` | Design tokens and icon system |
+| `apps/web/` | React browser application, worker and browser tests |
+| `fixtures/conformance/` | Python/TypeScript golden feature vectors |
+| `artifacts/` | Reproducible experiment and model artifacts |
+| `docs/` | Technical, data-review and walkthrough documentation |
+
+## Testing
+
+Python tests:
 
 ```bash
-python -m neurogrip.experiments attribution --out artifacts/attribution_demo.json
-npm run stage:attribution
+source .venv/bin/activate
+python -m pytest services/research/tests -q
 ```
 
-The 4/4 result verifies only those designed cases. It is not measured
-attribution accuracy. The same screen also routes errors end to end on
-simulated sessions, and checks whether the anatomical coaching names the
-injected muscle group:
+TypeScript, DOM and unit tests:
 
 ```bash
-python -m neurogrip.experiments router-session --out artifacts/router_session.json
-python -m neurogrip.experiments coaching --out artifacts/coaching_localisation.json
-npm run stage:attribution
-```
-
-Over five pre-declared seeds, 15/20 sessions route to their injected cause
-(behavioural and model-capacity 5/5, drift 3/5, physiological 2/5). The first
-run scored 2/4 on seed 0 and exposed three estimator defects, which were fixed
-without changing any routing threshold; `artifacts/router_session.json`
-records what changed. Coaching names the injected group and direction on
-85.7% of 910 error windows across five simulated subjects. The back-projection
-inverts the simulator's own volume-conduction model family, so that is an
-upper bound, and the coaching explains a linear surrogate rather than the
-deployed RBF SVM. Its ring marks channel-level deviations, not specific
-muscles or fingers. A separate offline analysis now decomposes held-out errors
-from a trained uniform-prior LDA into exact feature contributions and compares
-them with a trained RBF-SVM reference:
-
-```bash
-python -m neurogrip.ninapro_feature_attribution \
-  --data-root data/ninapro/DB2 \
-  --out artifacts/ninapro_feature_attribution.json
-```
-
-Across the three development subjects, pooled uncalibrated LDA accuracy was
-34.80%; linear SVM, RBF-SVM, and random-forest references scored 29.50%,
-29.36%, and 38.04%, respectively. The random forest was correct on 19.7% of
-the LDA's errors, but it was selected after examining these same development
-subjects. These research models are not the deployed ONNX decoder, and pooled
-scores are not directly comparable to the equal-subject means in the
-recognition table. This is an exploratory model explanation, not evidence that
-a feature causes an error or that the coaching is useful. The app's attribution
-screen remains a synthetic demonstration; independent-subject and human
-coaching validation have not been completed.
-
-Internal patent-disclosure drafts are local working material; do not commit
-them while this GitHub repository is public. The
-[data/release review](docs/data_and_release_review.md) records the current
-permission status. The drafts are not patent applications or legal advice.
-NinaPro-derived artifacts remain private until the Kaggle uploader's authority
-and upstream terms are verified.
-
-The quality-gate acceptance rate is not gesture accuracy. On the full S10
-evaluation, the revised gate rejects 721 of 17,293 windows across rest and
-movement labels. The decoder's accuracy and confusion matrix are scored
-separately against the dataset labels. A seeded probe of 1,000 selected
-recorded windows rejects 96.6% of controlled clipping, 100% of a 1 mV
-alternating burst, and 100% of a 10× half-window gain jump, with a 1.7% clean
-sample rejection rate (including the existing low-RMS rejects). These probes
-are not real-fault validation. The separate rest-calibration warning is not
-validated against real electrode faults and does not stop replay.
-
-The current Results export is a uniform-prior LDA trained on S1 and tested on
-S10; it scored 46.61%, with ECE 0.026. The separately evaluated ordinary-LDA
-reference scored 45.09%. An archived uniform-prior evaluation artifact reports
-46.85% for the same named split, but its run provenance has not been reconciled;
-the Results tab and this table use the current `ninapro_holdout` artifact.
-S10 informed model diagnostics, so these are exploratory rather than an
-untouched final test. A quick uniform-prior LDA check trained on S1+S10 and
-tested on S11 scored 23.07%, only slightly above the 22.26% majority baseline,
-with ECE 0.3664.
-This is poor cross-subject generalization, not evidence that adding S11 has
-improved recognition. A bounded three-subject leave-one-subject-out comparison
-now tests class-prior changes, rest downsampling, sigmoid calibration, and
-sampled weighted SVMs; none justified replacing the current decoder. The
-full-size multi-model comparison remains unrun. The separate exploratory
-attribution run now also compares capped LinearSVC, RBF-SVM, and random-forest
-references on the three local LOSO folds; it does not establish a final
-benchmark. On S11, the model
-predicted rest for 19,125 of 20,956 windows; six gesture classes had zero
-recall. The per-gesture recalls and audited signal levels are in
-[`docs/model_card.md`](docs/model_card.md).
-
-**Why the S11 score is low:** this is a cross-subject result, and the classifier
-predicted `rest` for about 91% of S11 windows even though rest accounts for
-about 22% of the evaluation windows. Subject-specific signal scale or electrode
-placement, the S11 E2 channel-1 rest-RMS outlier, and calibration/feature
-distribution shift are plausible contributors, but the current experiments do
-not isolate the cause. A bounded reference-model comparison on three subjects
-is exploratory; a larger independent benchmark has not been run.
-An 80% cross-subject target is not guaranteed; it would need better signal
-alignment and evaluation on a new subject that was not used for tuning.
-
-The DB2 label mapped to `open_hand` is label 5, *abduction of all fingers*; it
-is a qualified proxy, not an exact general open-hand match. There is no
-amputee stratum yet. See [`docs/model_card.md`](docs/model_card.md) for separate
-simulator and recorded exploratory checks, and [`context.md`](context.md)
-for the audit, model comparison, quality-gate checks, and detailed limitations.
-
-The Live readout was checked with the simulated replay. One observed output was:
-
-```text
-Decoded: Close fist
-Model probability: (latest window)
-Latency, this window: (measured milliseconds)
-Virtual actuator: close_fist · latched
-```
-
-The probability and latency change with each window. The virtual command is a
-displayed simulation output; it is not sent to a motor. Risk-weighted
-commitment was evaluated on simulator posteriors, not validated on NinaPro.
-The recorded S11 model has ECE 0.3664, so its probabilities are not reliable
-enough to claim that recorded-data commitment behaviour is validated.
-
-The simulated electrode-shift screen stays within its 8 percentage-point
-degradation bound through a 0.2 rad shift, but fails at 0.3 and 0.4 rad. This
-is a useful finding: electrode placement must be checked or recalibrated; it is
-not evidence that the system is robust on people.
-
-## Completion plan
-
-1. Keep the research pipeline reproducible: simulator, features, training,
-   evaluation, ONNX export, latency, and model card.
-2. Keep the browser app usable as the main final demo: live signal, decoded
-   gesture, confidence/evidence, latency, and virtual hand motion.
-3. Validate the simulator-only error-attribution/coaching pilot against
-   additional untouched subjects, integrate the offline model-specific
-   attribution with the router, and validate coaching with human participants.
-   Expand evaluation to more independent subjects. Clinician mode,
-   amputee evaluation (if suitable data is available), and live electrode
-   input remain future work.
-4. Keep documentation updated after each meaningful change: README for project
-   status, `docs/walkthrough.md` for demo usage, and `docs/model_card.md` for
-   model limitations.
-
-## Layout
-
-| Path | Holds |
-| --- | --- |
-| `services/research/` | Python: simulator, features, training, evaluation |
-| `packages/core/` | TypeScript: the same features, plus evidence accumulation |
-| `packages/design/` | Design tokens and icons |
-| `apps/web/` | The browser application |
-| `fixtures/` | Golden vectors pinning the two implementations together |
-| `docs/` | Walkthrough, model card, design reference, specs and plans |
-
-## Tests
-
-```bash
-python -m pytest services/research/tests -q   # needs the virtualenv active
 npm test
 npm run typecheck
-npm run test:conformance   # proves Python and TypeScript agree on features
-npm run test:e2e           # the browser tier: latency budget, axe, keyboard, layout
 ```
 
-## How to run the demo
-
-1. Complete **Quick start**, then open the local URL printed by `npm run dev:web`
-   (normally `http://localhost:5173`).
-2. Wait for “Loading the decoder…” to disappear.
-3. Choose a gesture, press **Start**, and watch the oscilloscope, decoder,
-   evidence bar, and virtual hand. This default mode replays simulated EMG.
-4. Press **Stop** before changing gestures if you want a clean demonstration.
-5. Use **Replay source** to switch between the simulator and the local S10
-   NinaPro replay (when its assets are staged). Open **Results** to see
-   separately labeled simulator/recorded evaluations, the held-out confusion
-   matrix and timeline, and distinct CPU versus browser latency.
-
-Electrode-shift robustness can be generated separately:
+Python/TypeScript feature conformance:
 
 ```bash
-python -m neurogrip.experiments robustness --out artifacts/electrode_shift_robustness.json
+npm run fixtures
+npm run test:conformance
 ```
 
-The current local audit has nine A1 files (S1, S10, and S11, exercises E1-E3)
-under `data/ninapro/DB2/`. For a fresh, licensed DB2 copy, verify its version
-and movement mapping before reporting results. The exploratory comparison can be
-rerun with:
+Production-browser tests:
 
 ```bash
-python -m neurogrip.experiments compare --source ninapro --data-root data/ninapro/DB2 --out artifacts/model_comparison_ninapro.json
-```
-
-The comparison writes both leave-one-subject-out and the NinaPro repetition
-split (train repetitions 1/3/4/6; test 2/5). These recorded results must always
-be reported separately from simulator figures.
-
-The separate held-out command below trains the current uniform-prior LDA
-candidate on S1, tests on S10, exports a separate ONNX model, and generates the
-S10 replay. S10 has since informed model diagnostics, so this is a development
-result rather than an untouched final test. Do not select a test subject that
-also appears among the training subjects.
-
-```bash
-python -m neurogrip.heldout \
-  --data-root data/ninapro/DB2 \
-  --train-subjects 1 \
-  --test-subject 10 \
-  --model lda_uniform \
-  --out artifacts/ninapro_holdout \
-  --replay-out apps/web/public/replay/ninapro
-npm run build:assets
 npm run test:e2e
-npm run dev:web
 ```
 
-The app identifies the source as recorded, shows the test subject and training
-subjects, and keeps the recorded decoder separate from the simulator decoder.
-The locally generated replay under `apps/web/public/replay/ninapro/` is
-git-ignored. A build made while that bundle exists will include it in local
-static output, so do not publish that output unless redistribution is allowed.
+GitHub Actions runs Python tests, TypeScript/type checks, fixture freshness,
+and Playwright browser tests. See [playwright.config.ts](playwright.config.ts)
+for the browser configuration.
 
-After evaluation or latency measurements change, rebuild the browser bundle so
-the Results page serves the latest staged JSON. After a new held-out evaluation,
-run `npm run build:assets` first to copy its model/evaluation/replay into the
-web's public assets; after `npm run test:e2e`, run the web build because the
-latency test writes its measurement after the preview build:
+## Limitations
 
-```bash
-npm run build --workspace @neurogrip/web
-```
+- Recorded NinaPro recognition is weak across subjects and is not a clinical
+  or amputee benchmark.
+- The quality gate is a heuristic, with only controlled/artificial fault probes.
+- No real electrode, hardware actuator or physical prosthesis is connected.
+- Cartography teach-back, error attribution/coaching and robustness figures are
+  simulated or exploratory unless explicitly marked otherwise.
+- Real-world motion artifacts and amputee validation remain unperformed.
+- NinaPro-derived data and models must remain private until redistribution rights
+  are confirmed.
 
-`npm run build:assets` regenerates simulator model/replay assets and stages
-available results; it is not required for every web test or source change.
-Playwright builds the production web app directly. The build-assets script is
-an explicit asset-regeneration workflow, not normal startup or E2E; no measured
-recurring bottleneck currently justifies optimizing it.
+## NinaPro citation
 
-### NinaPro citation
+NeuroGrip's recorded-data experiments use NinaPro DB2:
 
-Recorded results use NinaPro DB2. Cite the dataset and benchmark papers:
+- Atzori et al., “Electromyography data for non-invasive naturally-controlled
+  robotic hand prostheses,” *Scientific Data* 1, 140053 (2014).
+  [doi:10.1038/sdata.2014.53](https://doi.org/10.1038/sdata.2014.53)
+- Atzori et al., “Characterization of a benchmark database for myoelectric
+  movement classification,” *IEEE Transactions on Neural Systems and
+  Rehabilitation Engineering* 23(1), 73–83 (2015).
+  [doi:10.1109/TNSRE.2014.2328495](https://doi.org/10.1109/TNSRE.2014.2328495)
 
-- Atzori et al., "Electromyography data for non-invasive naturally-controlled
-  robotic hand prostheses," *Scientific Data* 1, 140053 (2014),
-  [doi:10.1038/sdata.2014.53](https://doi.org/10.1038/sdata.2014.53).
-- Atzori et al., "Characterization of a Benchmark Database for Myoelectric
-  Movement Classification," *IEEE Transactions on Neural Systems and
-  Rehabilitation Engineering* 23(1), 73–83 (2015),
-  [doi:10.1109/TNSRE.2014.2328495](https://doi.org/10.1109/TNSRE.2014.2328495).
-
-The project owner reports that the local DB2 files came from the Kaggle listing
-[Ninapro DB2](https://www.kaggle.com/datasets/quddusikashaf/ninapro-db2).
-Kaggle's current metadata names Quddusi Kashaf as owner/creator and labels the
-listing **CC0: Public Domain** (version 2; updated 2025-12-21). That label does
-not, by itself, establish the uploader's authority to relicense NinaPro's
-original data, or that derived replay/model files may be redistributed. Verify
-the upstream rights and the terms applying when the files were obtained before
-publishing any source or derived artifacts. See
-[`docs/data_and_release_review.md`](docs/data_and_release_review.md).
-
-The feature-conformance gate matters: Python trains the model and TypeScript
-feeds it at inference, so if the two feature implementations diverge, accuracy
-degrades silently with no error anywhere.
-
-[`CLAUDE.md`](CLAUDE.md) has the architecture, the conventions, and the full
-command reference.
+The Kaggle listing was used by the project owner, but the Kaggle CC0 label alone
+does not establish authority to redistribute NinaPro data or derived assets.
